@@ -7,6 +7,7 @@ import PassengerHome from './pages/PassengerHome';
 import Profile from './pages/Profile';
 import RequestRide from './pages/RequestRide';
 import RideHistory from './pages/RideHistory';
+import LoyaltyProgram from './pages/LoyaltyProgram';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Profile": Profile,
     "RequestRide": RequestRide,
     "RideHistory": RideHistory,
+    "LoyaltyProgram": LoyaltyProgram,
 }
 
 export const pagesConfig = {
