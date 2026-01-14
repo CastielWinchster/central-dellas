@@ -107,17 +107,12 @@ export default function PassengerHome() {
                     document.getElementById('seja-motorista-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-white text-white hover:bg-white/10 px-8 py-6 rounded-2xl text-lg neon-hover"
+                  className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 px-8 py-6 rounded-2xl text-lg"
                 >
                   <Car className="w-5 h-5 mr-2" />
                   Seja Motorista
                 </Button>
               </div>
-              <style>{`
-                .neon-hover:hover {
-                  box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.5);
-                }
-              `}</style>
             </motion.div>
 
             <motion.div
