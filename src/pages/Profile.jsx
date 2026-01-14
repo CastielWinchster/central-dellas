@@ -73,16 +73,8 @@ export default function Profile() {
     {
       title: 'Conta',
       items: [
-        { icon: Shield, label: 'Segurança', description: 'Contatos de emergência' },
-        { icon: Bell, label: 'Notificações', description: 'Preferências de alertas' },
+        { icon: Settings, label: 'Configurações', description: 'Tema, notificações e segurança', link: 'Settings' },
         { icon: Gift, label: 'Programa de Fidelidade', description: 'Recompensas e descontos', link: 'LoyaltyProgram' },
-      ]
-    },
-    {
-      title: 'Pagamentos',
-      items: [
-        { icon: CreditCard, label: 'Métodos de Pagamento', description: 'Adicionar ou remover cartões' },
-        { icon: MapPin, label: 'Endereços Salvos', description: 'Casa, trabalho e favoritos' },
       ]
     }
   ];
