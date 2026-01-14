@@ -17,6 +17,7 @@ import Reviews from './pages/Reviews';
 import RideHistory from './pages/RideHistory';
 import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
+import PassengerDashboard from './pages/PassengerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "RideHistory": RideHistory,
     "Settings": Settings,
     "Wallet": Wallet,
+    "PassengerDashboard": PassengerDashboard,
 }
 
 export const pagesConfig = {

@@ -107,7 +107,7 @@ export default function PassengerHome() {
                     document.getElementById('seja-motorista-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 px-8 py-6 rounded-2xl text-lg"
+                  className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-white hover:text-[#BF3B79] px-8 py-6 rounded-2xl text-lg transition-all"
                 >
                   <Car className="w-5 h-5 mr-2" />
                   Seja Motorista
@@ -158,29 +158,6 @@ export default function PassengerHome() {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-3 gap-4">
-          {quickActions.map((action, index) => (
-            <motion.button
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 + 0.5 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#F22998]/10 hover:border-[#F22998]/30 transition-all text-left group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <action.icon className="w-5 h-5 text-[#F22998]" />
-              </div>
-              <p className="font-medium text-[#F2F2F2] text-sm">{action.label}</p>
-              <p className="text-xs text-[#F2F2F2]/50">{action.sublabel}</p>
-            </motion.button>
-          ))}
         </div>
       </section>
 
