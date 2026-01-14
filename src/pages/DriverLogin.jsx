@@ -1,18 +1,68 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Car, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Car, Mail, Lock, Eye, EyeOff, Camera, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { toast } from 'sonner';
 
 export default function DriverLogin() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    full_name: '',
+    cpf: '',
+    birth_date: '',
+  });
+
+  const handlePhotoCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    if (isRegister) {
+      // Simulate registration
+      if (!photoFile) {
+        toast.error('Por favor, tire uma foto para identificação');
+        return;
+      }
+      
+      try {
+        // Upload photo
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
+        
+        // In real app, would create user with photo
+        toast.success('Cadastro realizado! Faça login para continuar.');
+        setIsRegister(false);
+      } catch (error) {
+        toast.error('Erro ao realizar cadastro');
+      }
+    } else {
+      // Login via Base44 OAuth
+      base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] via-[#1a0a1a] to-[#0D0D0D] flex items-center justify-center p-4">
       <div className="max-w-6xl w-full grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Branding */}
         <motion.div
@@ -36,38 +86,125 @@ export default function DriverLogin() {
           <p className="text-[#F2F2F2]/70 text-lg mb-6">
             Ganhe dinheiro dirigindo em uma plataforma segura e exclusiva para mulheres
           </p>
-          <div className="flex items-center gap-4 justify-center lg:justify-start">
+          <div className="flex flex-col gap-3 justify-center lg:justify-start">
             <div className="flex items-center gap-2">
-              <Car className="w-5 h-5 text-[#F22998]" />
-              <span className="text-[#F2F2F2]/60">Flexibilidade total</span>
+              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <span className="text-[#F2F2F2]/60">Flexibilidade total de horários</span>
             </div>
             <div className="flex items-center gap-2">
-              <Car className="w-5 h-5 text-[#F22998]" />
-              <span className="text-[#F2F2F2]/60">Ganhos justos</span>
+              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <span className="text-[#F2F2F2]/60">Ganhos justos e transparentes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <span className="text-[#F2F2F2]/60">Ambiente 100% seguro</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side - Login Form */}
+        {/* Right Side - Login/Register Form */}
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Card className="p-8 bg-[#F2F2F2]/5 border-[#F22998]/20">
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center shadow-lg shadow-[#F22998]/50">
                 <Car className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#F2F2F2]">Login de Motorista</h2>
-                <p className="text-[#F2F2F2]/60 text-sm">Acesse sua conta</p>
+                <h2 className="text-2xl font-bold text-[#F2F2F2]">
+                  {isRegister ? 'Cadastro de Motorista' : 'Login de Motorista'}
+                </h2>
+                <p className="text-[#F2F2F2]/60 text-sm">
+                  {isRegister ? 'Complete seu cadastro' : 'Acesse sua conta'}
+                </p>
               </div>
             </div>
 
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
-            }} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              {isRegister && (
+                <>
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
+                    <Input
+                      placeholder="Seu nome completo"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">CPF</label>
+                    <Input
+                      placeholder="000.000.000-00"
+                      value={formData.cpf}
+                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
+                    <Input
+                      type="date"
+                      value={formData.birth_date}
+                      onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Foto de Identificação</label>
+                    <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-6 text-center">
+                      {photoPreview ? (
+                        <div className="space-y-3">
+                          <img 
+                            src={photoPreview} 
+                            alt="Preview" 
+                            className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#F22998]"
+                          />
+                          <label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="user"
+                              className="hidden"
+                              onChange={handlePhotoCapture}
+                            />
+                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                              Tirar Outra Foto
+                            </Button>
+                          </label>
+                        </div>
+                      ) : (
+                        <>
+                          <Camera className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
+                          <p className="text-[#F2F2F2] mb-2">Tire uma foto para identificação</p>
+                          <label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="user"
+                              className="hidden"
+                              onChange={handlePhotoCapture}
+                            />
+                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                              <Camera className="w-4 h-4 mr-2" />
+                              Tirar Foto
+                            </Button>
+                          </label>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Email</label>
                 <div className="relative">
@@ -75,7 +212,9 @@ export default function DriverLogin() {
                   <Input
                     type="email"
                     placeholder="seu@email.com"
-                    className="pl-10 bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="pl-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
                     required
                   />
                 </div>
@@ -88,7 +227,9 @@ export default function DriverLogin() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="pl-10 pr-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
                     required
                   />
                   <button
@@ -101,24 +242,24 @@ export default function DriverLogin() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full btn-gradient py-6 text-lg">
-                Entrar como Motorista
+              <Button type="submit" className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
+                {isRegister ? 'Criar Conta' : 'Entrar'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <Link to={createPageUrl('PassengerLogin')} className="text-[#F22998] hover:underline">
-                É passageira? Clique aqui
-              </Link>
+              <button
+                onClick={() => setIsRegister(!isRegister)}
+                className="text-[#F22998] hover:underline"
+              >
+                {isRegister ? 'Já tem conta? Faça login' : 'Primeira vez? Cadastre-se'}
+              </button>
             </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-[#F2F2F2]/60 text-sm">
-                Ainda não é motorista?{' '}
-                <Link to={createPageUrl('DriverRegistration')} className="text-[#F22998] hover:underline">
-                  Cadastre-se
-                </Link>
-              </p>
+            <div className="mt-4 text-center">
+              <Link to={createPageUrl('PassengerLogin')} className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm">
+                É passageira? Clique aqui
+              </Link>
             </div>
           </Card>
         </motion.div>

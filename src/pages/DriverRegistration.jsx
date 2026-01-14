@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Camera, Upload, CheckCircle, AlertCircle, Car, FileText, Shield } from 'lucide-react';
+import { Camera, Upload, CheckCircle, AlertCircle, Car, FileText, Shield, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,11 @@ export default function DriverRegistration() {
     vehicle_model: '',
     vehicle_year: '',
     vehicle_color: '',
-    vehicle_document_photo: null
+    vehicle_document_photo: null,
+    vehicle_cnh_photo: null,
+    birth_date: '',
+    cpf: '',
+    identification_photo: null
   });
 
   const handleFileUpload = async (e, field) => {
@@ -38,7 +42,9 @@ export default function DriverRegistration() {
 
   const handleSubmit = async () => {
     if (!formData.driver_license_number || !formData.driver_license_photo || 
-        !formData.vehicle_plate || !formData.vehicle_document_photo) {
+        !formData.vehicle_plate || !formData.vehicle_document_photo ||
+        !formData.vehicle_cnh_photo || !formData.birth_date || 
+        !formData.cpf || !formData.identification_photo) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -84,7 +90,7 @@ export default function DriverRegistration() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-4 mb-8">
-          {[1, 2].map((s) => (
+          {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 step >= s ? 'bg-gradient-to-r from-[#BF3B79] to-[#F22998]' : 'bg-[#F2F2F2]/10'
@@ -95,7 +101,7 @@ export default function DriverRegistration() {
                   <span className="text-white font-semibold">{s}</span>
                 )}
               </div>
-              {s < 2 && <div className={`w-16 h-1 ${step > s ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/10'}`} />}
+              {s < 3 && <div className={`w-16 h-1 ${step > s ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/10'}`} />}
             </div>
           ))}
         </div>
@@ -146,9 +152,34 @@ export default function DriverRegistration() {
                   )}
                 </div>
 
+                <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-8 text-center">
+                  {formData.vehicle_cnh_photo ? (
+                    <div className="space-y-3">
+                      <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
+                      <p className="text-[#F2F2F2]">CNH do veículo enviada!</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
+                      <p className="text-[#F2F2F2] mb-2">Envie foto da CNH do veículo</p>
+                      <label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, 'vehicle_cnh_photo')}
+                        />
+                        <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                          Escolher Arquivo
+                        </Button>
+                      </label>
+                    </>
+                  )}
+                </div>
+
                 <Button
                   onClick={() => setStep(2)}
-                  disabled={!formData.driver_license_number || !formData.driver_license_photo}
+                  disabled={!formData.driver_license_number || !formData.driver_license_photo || !formData.vehicle_cnh_photo}
                   className="w-full btn-gradient"
                 >
                   Próximo
@@ -158,8 +189,84 @@ export default function DriverRegistration() {
           </motion.div>
         )}
 
-        {/* Step 2: Vehicle */}
+        {/* Step 2: Personal Info */}
         {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
+                  <Shield className="w-5 h-5 text-[#F22998]" />
+                  Dados Pessoais
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="CPF"
+                  value={formData.cpf}
+                  onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                />
+
+                <Input
+                  type="date"
+                  placeholder="Data de Nascimento"
+                  value={formData.birth_date}
+                  onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                />
+
+                <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-8 text-center">
+                  {formData.identification_photo ? (
+                    <div className="space-y-3">
+                      <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
+                      <p className="text-[#F2F2F2]">Foto de identificação enviada!</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Camera className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
+                      <p className="text-[#F2F2F2] mb-2">Foto de identificação (mulher obrigatório)</p>
+                      <label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="user"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, 'identification_photo')}
+                        />
+                        <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                          Tirar Foto
+                        </Button>
+                      </label>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setStep(1)}
+                    variant="outline"
+                    className="flex-1 border-[#F22998]/30 text-[#F22998]"
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    onClick={() => setStep(3)}
+                    disabled={!formData.cpf || !formData.birth_date || !formData.identification_photo}
+                    className="flex-1 btn-gradient"
+                  >
+                    Próximo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Step 3: Vehicle */}
+        {step === 3 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

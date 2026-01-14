@@ -34,20 +34,21 @@ export default function Layout({ children, currentPageName }) {
     loadUser();
   }, []);
 
-  const passengerLinks = [
+  // Only show navigation when user is logged in
+  const passengerLinks = user ? [
     { name: 'Home', icon: Home, page: 'PassengerHome' },
     { name: 'Solicitar Corrida', icon: MapPin, page: 'RequestRide' },
     { name: 'Histórico', icon: History, page: 'RideHistory' },
     { name: 'Mensagens', icon: MessageCircle, page: 'Messages' },
     { name: 'Perfil', icon: User, page: 'Profile' },
-  ];
+  ] : [];
 
-  const driverLinks = [
+  const driverLinks = user ? [
     { name: 'Painel Motorista', icon: Car, page: 'DriverDashboard' },
     { name: 'Corridas Disponíveis', icon: MapPin, page: 'AvailableRides' },
     { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
     { name: 'Avaliações', icon: Star, page: 'MyReviews' },
-  ];
+  ] : [];
 
   const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews'].includes(currentPageName);
 
