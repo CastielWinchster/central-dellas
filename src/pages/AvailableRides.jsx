@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Clock, DollarSign, Star, Navigation,
-  RefreshCw, Filter, ChevronDown, CheckCircle, X
+  RefreshCw, Filter, ChevronDown, CheckCircle, X, Dog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -46,8 +46,9 @@ export default function AvailableRides() {
         duration: 15,
         price: 28.50,
         rideType: 'standard',
+        hasPet: false,
         createdAt: new Date(Date.now() - 120000).toISOString()
-      },
+        },
       {
         id: '2',
         passenger: {
@@ -61,8 +62,9 @@ export default function AvailableRides() {
         duration: 30,
         price: 55.00,
         rideType: 'premium',
+        hasPet: false,
         createdAt: new Date(Date.now() - 300000).toISOString()
-      },
+        },
       {
         id: '3',
         passenger: {
@@ -76,8 +78,9 @@ export default function AvailableRides() {
         duration: 12,
         price: 18.00,
         rideType: 'shared',
+        hasPet: true,
         createdAt: new Date(Date.now() - 60000).toISOString()
-      }
+        }
     ]);
   };
 
@@ -187,7 +190,15 @@ export default function AvailableRides() {
                             className="w-12 h-12 rounded-full object-cover border-2 border-[#F22998]"
                           />
                           <div>
-                            <h3 className="font-semibold text-[#F2F2F2]">{ride.passenger.name}</h3>
+                            <h3 className="font-semibold text-[#F2F2F2] flex items-center gap-2">
+                              {ride.passenger.name}
+                              {ride.hasPet && (
+                                <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center gap-1">
+                                  <Dog className="w-3 h-3" />
+                                  Pet
+                                </span>
+                              )}
+                            </h3>
                             <div className="flex items-center gap-1 text-[#F2F2F2]/60 text-sm">
                               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                               {ride.passenger.rating}

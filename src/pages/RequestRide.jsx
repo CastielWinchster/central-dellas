@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Navigation, Search, Clock, CreditCard, 
   Car, Shield, Users, ChevronRight, Loader2, Star,
-  Wallet, X, Check, Phone
+  Wallet, X, Check, Phone, Dog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ export default function RequestRide() {
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [selectedRideType, setSelectedRideType] = useState('standard');
   const [selectedPayment, setSelectedPayment] = useState('pix');
+  const [hasPet, setHasPet] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [driver, setDriver] = useState(null);

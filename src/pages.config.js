@@ -1,25 +1,25 @@
-import PassengerHome from './pages/PassengerHome';
-import RequestRide from './pages/RequestRide';
-import DriverDashboard from './pages/DriverDashboard';
-import RideHistory from './pages/RideHistory';
-import Profile from './pages/Profile';
-import Messages from './pages/Messages';
 import AvailableRides from './pages/AvailableRides';
+import DriverDashboard from './pages/DriverDashboard';
 import Earnings from './pages/Earnings';
+import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
+import PassengerHome from './pages/PassengerHome';
+import Profile from './pages/Profile';
+import RequestRide from './pages/RequestRide';
+import RideHistory from './pages/RideHistory';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "PassengerHome": PassengerHome,
-    "RequestRide": RequestRide,
-    "DriverDashboard": DriverDashboard,
-    "RideHistory": RideHistory,
-    "Profile": Profile,
-    "Messages": Messages,
     "AvailableRides": AvailableRides,
+    "DriverDashboard": DriverDashboard,
     "Earnings": Earnings,
+    "Messages": Messages,
     "MyReviews": MyReviews,
+    "PassengerHome": PassengerHome,
+    "Profile": Profile,
+    "RequestRide": RequestRide,
+    "RideHistory": RideHistory,
 }
 
 export const pagesConfig = {

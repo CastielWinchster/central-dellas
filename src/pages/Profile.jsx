@@ -4,13 +4,14 @@ import { motion } from 'framer-motion';
 import { 
   User, Camera, Phone, Mail, Shield, Star, 
   Car, CreditCard, MapPin, Bell, ChevronRight,
-  LogOut, Heart, Settings, Edit3, Plus, X, Check
+  LogOut, Heart, Settings, Edit3, Plus, X, Check, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -79,6 +80,9 @@ export default function Profile() {
       items: [
         { icon: Car, label: 'Meu Veículo', description: 'Informações do carro' },
         { icon: Star, label: 'Avaliações', description: 'Ver feedback das passageiras' },
+        ...(user?.user_type === 'driver' || user?.user_type === 'both' ? [
+          { icon: Package, label: 'Serviço de Frete', description: 'Aceitar entregas e encomendas', action: 'toggle_freight' }
+        ] : [])
       ]
     }
   ];
@@ -147,10 +151,18 @@ export default function Profile() {
                     <span className="text-sm text-[#F2F2F2]">{user.total_rides || 0} corridas</span>
                   </div>
                   {user.user_type === 'driver' || user.user_type === 'both' ? (
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20">
-                      <Shield className="w-4 h-4 text-green-400" />
-                      <span className="text-sm text-green-400">Motorista Verificada</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20">
+                        <Shield className="w-4 h-4 text-green-400" />
+                        <span className="text-sm text-green-400">Motorista Verificada</span>
+                      </div>
+                      {user.accepts_freight && (
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20">
+                          <Package className="w-4 h-4 text-blue-400" />
+                          <span className="text-sm text-blue-400">Aceita Frete</span>
+                        </div>
+                      )}
+                    </>
                   ) : null}
                 </div>
               </div>
@@ -286,21 +298,46 @@ export default function Profile() {
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">{section.title}</h3>
               <div className="space-y-2">
                 {section.items.map((item, index) => (
-                  <button
-                    key={index}
-                    className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-[#F22998]/10 transition-colors group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center group-hover:bg-[#F22998]/20 transition-colors">
-                        <item.icon className="w-5 h-5 text-[#F22998]" />
+                  item.action === 'toggle_freight' ? (
+                    <div
+                      key={index}
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center">
+                          <item.icon className="w-5 h-5 text-[#F22998]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-[#F2F2F2]">{item.label}</p>
+                          <p className="text-sm text-[#F2F2F2]/50">{item.description}</p>
+                        </div>
                       </div>
-                      <div className="text-left">
-                        <p className="font-medium text-[#F2F2F2]">{item.label}</p>
-                        <p className="text-sm text-[#F2F2F2]/50">{item.description}</p>
-                      </div>
+                      <Switch
+                        checked={user?.accepts_freight || false}
+                        onCheckedChange={async (checked) => {
+                          await base44.auth.updateMe({ accepts_freight: checked });
+                          setUser(prev => ({ ...prev, accepts_freight: checked }));
+                        }}
+                        className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
+                      />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
-                  </button>
+                  ) : (
+                    <button
+                      key={index}
+                      className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-[#F22998]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center group-hover:bg-[#F22998]/20 transition-colors">
+                          <item.icon className="w-5 h-5 text-[#F22998]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-[#F2F2F2]">{item.label}</p>
+                          <p className="text-sm text-[#F2F2F2]/50">{item.description}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
+                    </button>
+                  )
                 ))}
               </div>
             </Card>
