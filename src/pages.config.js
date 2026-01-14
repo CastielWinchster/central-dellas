@@ -12,6 +12,8 @@ import RequestRide from './pages/RequestRide';
 import RideHistory from './pages/RideHistory';
 import Settings from './pages/Settings';
 import Reviews from './pages/Reviews';
+import DriverRegistration from './pages/DriverRegistration';
+import Wallet from './pages/Wallet';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +32,8 @@ export const PAGES = {
     "RideHistory": RideHistory,
     "Settings": Settings,
     "Reviews": Reviews,
+    "DriverRegistration": DriverRegistration,
+    "Wallet": Wallet,
 }
 
 export const pagesConfig = {

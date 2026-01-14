@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { Car, MapPin } from 'lucide-react';
+import { Car, MapPin, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from 'sonner';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,12 +72,53 @@ export default function MapView({
   className = ''
 }) {
   const [mapCenter, setMapCenter] = useState(center);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationDenied, setLocationDenied] = useState(false);
+
+  useEffect(() => {
+    // Request user's geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = [position.coords.latitude, position.coords.longitude];
+          setUserLocation(userPos);
+          setMapCenter(userPos);
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          setLocationDenied(true);
+        }
+      );
+    } else {
+      setLocationDenied(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (pickupLocation) {
       setMapCenter([pickupLocation.lat, pickupLocation.lng]);
     }
   }, [pickupLocation]);
+
+  useEffect(() => {
+    if (locationDenied) {
+      toast.error(
+        'Localização desativada. Por favor, ative a localização do seu dispositivo para usar o mapa.',
+        { duration: 5000 }
+      );
+    }
+  }, [locationDenied]);
+
+  const userLocationIcon = new L.DivIcon({
+    className: 'custom-user-marker',
+    html: `<div style="background: #3b82f6; border: 3px solid white; border-radius: 50%; padding: 8px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+      </svg>
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
 
   return (
     <div className={`relative rounded-2xl overflow-hidden ${className}`}>
@@ -103,6 +145,15 @@ export default function MapView({
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
         <MapController center={mapCenter} />
+        
+        {/* User location marker */}
+        {userLocation && (
+          <Marker position={userLocation} icon={userLocationIcon}>
+            <Popup>
+              <div className="text-sm font-medium">Você está aqui</div>
+            </Popup>
+          </Marker>
+        )}
         
         {/* Pickup marker */}
         {pickupLocation && (

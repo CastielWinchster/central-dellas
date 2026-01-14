@@ -50,12 +50,7 @@ export default function Settings() {
     loadData();
   }, []);
 
-  const toggleTheme = async () => {
-    const newTheme = user.theme === 'dark' ? 'light' : 'dark';
-    await base44.auth.updateMe({ theme: newTheme });
-    setUser(prev => ({ ...prev, theme: newTheme }));
-    toast.success(`Tema ${newTheme === 'dark' ? 'escuro' : 'claro'} ativado`);
-  };
+
 
   const sendVerificationEmail = async () => {
     try {
@@ -158,7 +153,7 @@ export default function Settings() {
     );
   }
 
-  const isDark = user?.theme === 'dark';
+  const isDark = true; // Always dark theme
 
   return (
     <div className={`min-h-screen pb-24 md:pb-10 transition-colors ${isDark ? 'bg-[#0D0D0D]' : 'bg-gray-50'}`}>
@@ -171,36 +166,7 @@ export default function Settings() {
           Configurações
         </motion.h1>
 
-        {/* Theme Toggle */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className={`mb-6 ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white border-gray-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-[#F22998]/10' : 'bg-[#F22998]/20'}`}>
-                    {isDark ? <Moon className="w-6 h-6 text-[#F22998]" /> : <Sun className="w-6 h-6 text-[#F22998]" />}
-                  </div>
-                  <div>
-                    <p className={`font-medium ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-                      Tema {isDark ? 'Escuro' : 'Claro'}
-                    </p>
-                    <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-500'}`}>
-                      Alternar entre temas claro e escuro
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={isDark}
-                  onCheckedChange={toggleTheme}
-                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+
 
         {/* Notifications */}
         <motion.div
