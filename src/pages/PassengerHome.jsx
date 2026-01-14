@@ -72,7 +72,7 @@ export default function PassengerHome() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F22998]/10 border border-[#F22998]/30 mb-6"
               >
                 <Heart className="w-4 h-4 text-[#F22998]" />
-                <span className="text-sm text-[#F22998] font-medium">Feito por mulheres, para mulheres</span>
+                <span className="text-sm text-[#F22998] font-medium">Feito por mulheres, para todos</span>
               </motion.div>
 
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -95,9 +95,9 @@ export default function PassengerHome() {
                   </Button>
                 </Link>
                 <Link to={createPageUrl('DriverDashboard')}>
-                  <Button variant="outline" className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 px-8 py-6 rounded-2xl text-lg">
+                  <Button variant="outline" className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-transparent hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] px-8 py-6 rounded-2xl text-lg transition-all">
                     <Car className="w-5 h-5 mr-2" />
-                    Quero Dirigir
+                    Seja Motorista
                   </Button>
                 </Link>
               </div>
