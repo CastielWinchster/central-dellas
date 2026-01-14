@@ -19,6 +19,12 @@ export default function Layout({ children, currentPageName }) {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
+        
+        // Apply theme to document
+        if (userData?.theme) {
+          document.documentElement.classList.toggle('light-theme', userData.theme === 'light');
+          document.documentElement.classList.toggle('dark-theme', userData.theme === 'dark');
+        }
       } catch (e) {
         console.log('User not logged in');
       }
@@ -67,8 +73,10 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  const isDark = user?.theme !== 'light';
+
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2]">
+    <div className={`min-h-screen transition-colors ${isDark ? 'bg-[#0D0D0D] text-[#F2F2F2]' : 'bg-gray-50 text-gray-900'}`}>
       <style>{`
         :root {
           --rosa-principal: #BF3B79;
@@ -76,6 +84,20 @@ export default function Layout({ children, currentPageName }) {
           --roxo-escuro: #8C0D60;
           --branco-gelo: #F2F2F2;
           --preto-profundo: #0D0D0D;
+        }
+        
+        .light-theme {
+          --bg-primary: #f9fafb;
+          --bg-secondary: #ffffff;
+          --text-primary: #111827;
+          --text-secondary: #6b7280;
+        }
+        
+        .dark-theme {
+          --bg-primary: #0D0D0D;
+          --bg-secondary: #1a1a1a;
+          --text-primary: #F2F2F2;
+          --text-secondary: rgba(242, 242, 242, 0.6);
         }
         
         .gradient-pink {
@@ -122,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 glass-effect"
+        className={`fixed top-0 left-0 right-0 z-50 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-b border-gray-200'}`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
@@ -143,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
                   "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300",
                   currentPageName === link.page
                     ? "btn-gradient text-white"
-                    : "text-[#F2F2F2]/70 hover:text-[#F22998]"
+                    : isDark ? "text-[#F2F2F2]/70 hover:text-[#F22998]" : "text-gray-600 hover:text-[#F22998]"
                 )}
               >
                 <link.icon className="w-4 h-4" />
@@ -203,7 +225,7 @@ export default function Layout({ children, currentPageName }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className="fixed inset-0 z-40 pt-20 bg-[#0D0D0D]/95 backdrop-blur-xl md:hidden"
+            className={`fixed inset-0 z-40 pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
               {[...passengerLinks, ...driverLinks].map((link) => (
@@ -215,16 +237,16 @@ export default function Layout({ children, currentPageName }) {
                     "flex items-center gap-4 px-4 py-4 rounded-xl transition-all",
                     currentPageName === link.page
                       ? "bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border border-[#F22998]/30"
-                      : "hover:bg-[#F22998]/10"
+                      : isDark ? "hover:bg-[#F22998]/10" : "hover:bg-gray-100"
                   )}
                 >
                   <link.icon className={cn(
                     "w-6 h-6",
-                    currentPageName === link.page ? "text-[#F22998]" : "text-[#F2F2F2]/70"
+                    currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
                   )} />
                   <span className={cn(
                     "font-medium",
-                    currentPageName === link.page ? "text-[#F22998]" : "text-[#F2F2F2]/70"
+                    currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
                   )}>{link.name}</span>
                 </Link>
               ))}
@@ -252,7 +274,7 @@ export default function Layout({ children, currentPageName }) {
       <motion.nav 
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="fixed bottom-0 left-0 right-0 glass-effect md:hidden z-30"
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-30 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
       >
         <div className="flex items-center justify-around py-3 px-2">
           {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
@@ -267,17 +289,17 @@ export default function Layout({ children, currentPageName }) {
                   "p-2 rounded-xl transition-all",
                   currentPageName === link.page
                     ? "bg-gradient-to-br from-[#BF3B79] to-[#F22998] glow-pink"
-                    : "text-[#F2F2F2]/50"
+                    : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
                 )}
               >
                 <link.icon className={cn(
                   "w-5 h-5",
-                  currentPageName === link.page ? "text-white" : "text-[#F2F2F2]/50"
+                  currentPageName === link.page ? "text-white" : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
                 )} />
               </motion.div>
               <span className={cn(
                 "text-[10px] font-medium",
-                currentPageName === link.page ? "text-[#F22998]" : "text-[#F2F2F2]/50"
+                currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
               )}>{link.name}</span>
             </Link>
           ))}
@@ -291,17 +313,17 @@ export default function Layout({ children, currentPageName }) {
                 "p-2 rounded-xl transition-all",
                 currentPageName === 'Profile'
                   ? "bg-gradient-to-br from-[#BF3B79] to-[#F22998] glow-pink"
-                  : "text-[#F2F2F2]/50"
+                  : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
               )}
             >
               <User className={cn(
                 "w-5 h-5",
-                currentPageName === 'Profile' ? "text-white" : "text-[#F2F2F2]/50"
+                currentPageName === 'Profile' ? "text-white" : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
               )} />
             </motion.div>
             <span className={cn(
               "text-[10px] font-medium",
-              currentPageName === 'Profile' ? "text-[#F22998]" : "text-[#F2F2F2]/50"
+              currentPageName === 'Profile' ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
             )}>Perfil</span>
           </Link>
         </div>
