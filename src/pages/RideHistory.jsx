@@ -11,10 +11,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import ReceiptDialog from '../components/ride/ReceiptDialog';
 
 export default function RideHistory() {
   const [user, setUser] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedRideForReceipt, setSelectedRideForReceipt] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -225,6 +227,7 @@ export default function RideHistory() {
                       <Button 
                         variant="outline" 
                         size="sm"
+                        onClick={() => setSelectedRideForReceipt(ride)}
                         className="flex-1 border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
                       >
                         <Download className="w-4 h-4 mr-2" />
@@ -257,6 +260,13 @@ export default function RideHistory() {
             </motion.div>
           )}
         </div>
+
+        {/* Receipt Dialog */}
+        <ReceiptDialog
+          ride={selectedRideForReceipt}
+          isOpen={!!selectedRideForReceipt}
+          onClose={() => setSelectedRideForReceipt(null)}
+        />
       </div>
     </div>
   );
