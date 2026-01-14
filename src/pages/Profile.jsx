@@ -19,6 +19,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [uploading, setUploading] = useState(false);
+  const [redirect, setRedirect] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -26,6 +27,13 @@ export default function Profile() {
         const userData = await base44.auth.me();
         setUser(userData);
         setEditData(userData);
+        
+        // Redirect to specific profile based on user type
+        if (userData.user_type === 'driver') {
+          setRedirect('DriverProfile');
+        } else if (userData.user_type === 'passenger') {
+          setRedirect('PassengerProfile');
+        }
       } catch (e) {
         base44.auth.redirectToLogin();
       }
@@ -88,6 +96,11 @@ export default function Profile() {
       ]
     }
   ];
+
+  if (redirect) {
+    window.location.href = createPageUrl(redirect);
+    return null;
+  }
 
   if (!user) {
     return (
