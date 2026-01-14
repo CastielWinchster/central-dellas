@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import Reviews from './pages/Reviews';
 import DriverRegistration from './pages/DriverRegistration';
 import Wallet from './pages/Wallet';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "Reviews": Reviews,
     "DriverRegistration": DriverRegistration,
     "Wallet": Wallet,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import NotificationBell from './components/NotificationBell';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -192,18 +193,19 @@ export default function Layout({ children, currentPageName }) {
             ) : null}
 
             {user ? (
-              <div className="hidden md:flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
-                  {user.photo_url ? (
-                    <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
-                      <User className="w-5 h-5 text-white" />
-                    </div>
-                  )}
+                <div className="hidden md:flex items-center gap-3">
+                  <NotificationBell userId={user.id} />
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
+                    {user.photo_url ? (
+                      <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
+              ) : (
               <button
                 onClick={() => base44.auth.redirectToLogin()}
                 className="btn-gradient px-6 py-2 rounded-full text-white font-medium"
