@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import MapView from '../components/map/MapView';
+import RouteOptimizer from '../components/RouteOptimizer';
 
 export default function AvailableRides() {
   const [user, setUser] = useState(null);
@@ -16,6 +17,7 @@ export default function AvailableRides() {
   const [selectedRide, setSelectedRide] = useState(null);
   const [filter, setFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -259,6 +261,9 @@ export default function AvailableRides() {
 
           {/* Map and Details */}
           <div className="space-y-4">
+            {/* Route Optimizer */}
+            <RouteOptimizer onRouteOptimized={(route) => setOptimizedRoute(route)} />
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
