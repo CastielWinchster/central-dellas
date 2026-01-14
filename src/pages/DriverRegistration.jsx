@@ -348,7 +348,7 @@ export default function DriverRegistration() {
 
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(2)}
                     variant="outline"
                     className="flex-1 border-[#F22998]/30 text-[#F22998]"
                   >

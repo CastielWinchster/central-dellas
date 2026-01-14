@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 export default function PassengerHome() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -88,19 +89,35 @@ export default function PassengerHome() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Link to={createPageUrl('RequestRide')}>
-                  <Button className="w-full sm:w-auto btn-gradient text-white px-8 py-6 rounded-2xl text-lg font-semibold glow-pink">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Solicitar Corrida
-                  </Button>
-                </Link>
-                <Link to={createPageUrl('DriverDashboard')}>
-                  <Button variant="outline" className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] bg-white hover:bg-white hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] px-8 py-6 rounded-2xl text-lg transition-all">
-                    <Car className="w-5 h-5 mr-2" />
-                    Seja Motorista
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => {
+                    if (user) {
+                      navigate(createPageUrl('RequestRide'));
+                    } else {
+                      navigate(createPageUrl('PassengerLogin'));
+                    }
+                  }}
+                  className="w-full sm:w-auto btn-gradient text-white px-8 py-6 rounded-2xl text-lg font-semibold glow-pink"
+                >
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Solicitar Corrida
+                </Button>
+                <Button 
+                  onClick={() => {
+                    document.getElementById('seja-motorista-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  variant="outline" 
+                  className="w-full sm:w-auto border-white text-white hover:bg-white/10 px-8 py-6 rounded-2xl text-lg neon-hover"
+                >
+                  <Car className="w-5 h-5 mr-2" />
+                  Seja Motorista
+                </Button>
               </div>
+              <style>{`
+                .neon-hover:hover {
+                  box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.5);
+                }
+              `}</style>
             </motion.div>
 
             <motion.div
@@ -210,8 +227,8 @@ export default function PassengerHome() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
+      {/* CTA Section - Seja Motorista */}
+      <section id="seja-motorista-section" className="max-w-7xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -229,12 +246,19 @@ export default function PassengerHome() {
             <p className="text-white/80 max-w-lg mx-auto mb-8">
               Ganhe dinheiro extra com flexibilidade e segurança. Junte-se à nossa comunidade de motoristas mulheres.
             </p>
-            <Link to={createPageUrl('DriverDashboard')}>
-              <Button className="bg-white text-[#BF3B79] hover:bg-white/90 px-8 py-6 rounded-2xl text-lg font-semibold">
-                Começar Agora
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => {
+                if (user) {
+                  navigate(createPageUrl('DriverRegistration'));
+                } else {
+                  navigate(createPageUrl('DriverLogin'));
+                }
+              }}
+              className="bg-white text-[#BF3B79] hover:bg-white/90 px-8 py-6 rounded-2xl text-lg font-semibold"
+            >
+              Começar Agora
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </motion.div>
       </section>
