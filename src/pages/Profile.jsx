@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import { 
   User, Camera, Phone, Mail, Shield, Star, 
   Car, CreditCard, MapPin, Bell, ChevronRight,
-  LogOut, Heart, Settings, Edit3, Plus, X, Check, Package
+  LogOut, Heart, Settings, Edit3, Plus, X, Check, Package, Gift
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -65,6 +67,7 @@ export default function Profile() {
         { icon: User, label: 'Dados Pessoais', description: 'Nome, email e telefone' },
         { icon: Shield, label: 'Segurança', description: 'Contatos de emergência' },
         { icon: Bell, label: 'Notificações', description: 'Preferências de alertas' },
+        { icon: Gift, label: 'Programa de Fidelidade', description: 'Recompensas e descontos', link: 'LoyaltyProgram' },
       ]
     },
     {
@@ -320,6 +323,23 @@ export default function Profile() {
                         className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
                       />
                     </div>
+                  ) : item.link ? (
+                    <Link
+                      key={index}
+                      to={createPageUrl(item.link)}
+                      className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-[#F22998]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center group-hover:bg-[#F22998]/20 transition-colors">
+                          <item.icon className="w-5 h-5 text-[#F22998]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-[#F2F2F2]">{item.label}</p>
+                          <p className="text-sm text-[#F2F2F2]/50">{item.description}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
+                    </Link>
                   ) : (
                     <button
                       key={index}
