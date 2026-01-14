@@ -118,8 +118,8 @@ export default function AvailableRides() {
           className="flex items-center justify-between mb-6"
         >
           <div>
-            <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>Corridas Disponíveis</h1>
-            <p className={isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}>{filteredRides.length} corridas próximas</p>
+            <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>Corridas Disponíveis</h1>
+            <p className={isDark ? 'text-[#F2F2F2]/60' : 'text-black/80'}>{filteredRides.length} corridas próximas</p>
           </div>
           <Button
             onClick={handleRefresh}
@@ -151,7 +151,7 @@ export default function AvailableRides() {
               className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                 filter === f.id
                   ? 'bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white'
-                  : isDark ? 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10' : 'bg-white text-gray-600 hover:bg-gray-100'
+                  : isDark ? 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10' : 'bg-white text-black hover:bg-gray-100'
               }`}
             >
               {f.label}
@@ -192,7 +192,7 @@ export default function AvailableRides() {
                             className="w-12 h-12 rounded-full object-cover border-2 border-[#F22998]"
                           />
                           <div>
-                            <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
+            <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
                               {ride.passenger.name}
                               {ride.hasPet && (
                                 <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center gap-1">
@@ -201,7 +201,7 @@ export default function AvailableRides() {
                                 </span>
                               )}
                             </h3>
-                            <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
+                            <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black'}`}>
                               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                               {ride.passenger.rating}
                             </div>
@@ -216,17 +216,17 @@ export default function AvailableRides() {
                       <div className="space-y-3 mb-4">
                         <div className="flex items-start gap-3">
                           <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5" />
-                          <p className={`text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-gray-700'}`}>{ride.pickup.address}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>{ride.pickup.address}</p>
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1.5" />
-                          <p className={`text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-gray-700'}`}>{ride.destination.address}</p>
+                          <p className={`text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>{ride.destination.address}</p>
                         </div>
                       </div>
 
                       {/* Stats */}
                       <div className={`flex items-center justify-between pt-4 border-t ${isDark ? 'border-[#F22998]/10' : 'border-gray-200'}`}>
-                        <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
+                        <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/70'}`}>
                           <span className="flex items-center gap-1">
                             <Navigation className="w-4 h-4" />
                             {ride.distance} km
@@ -251,8 +251,8 @@ export default function AvailableRides() {
                 className="text-center py-16"
               >
                 <MapPin className="w-16 h-16 text-[#F22998]/30 mx-auto mb-4" />
-                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>Nenhuma corrida disponível</h3>
-                <p className={isDark ? 'text-[#F2F2F2]/50' : 'text-gray-500'}>Novas corridas aparecerão aqui</p>
+                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>Nenhuma corrida disponível</h3>
+                <p className={isDark ? 'text-[#F2F2F2]/50' : 'text-black/60'}>Novas corridas aparecerão aqui</p>
               </motion.div>
             )}
           </div>
@@ -280,21 +280,21 @@ export default function AvailableRides() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Card className={`p-6 rounded-3xl bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 ${isDark ? 'border-[#F22998]/30' : 'border-[#F22998]/40'}`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>Detalhes da Corrida</h3>
+                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>Detalhes da Corrida</h3>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className={`p-3 rounded-xl ${isDark ? 'bg-[#0D0D0D]/50' : 'bg-white/50'}`}>
-                      <p className={`text-sm mb-1 ${isDark ? 'text-[#F2F2F2]/50' : 'text-gray-600'}`}>Distância</p>
-                      <p className={`text-xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>{selectedRide.distance} km</p>
+                      <p className={`text-sm mb-1 ${isDark ? 'text-[#F2F2F2]/50' : 'text-black/70'}`}>Distância</p>
+                      <p className={`text-xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>{selectedRide.distance} km</p>
                     </div>
                     <div className={`p-3 rounded-xl ${isDark ? 'bg-[#0D0D0D]/50' : 'bg-white/50'}`}>
-                      <p className={`text-sm mb-1 ${isDark ? 'text-[#F2F2F2]/50' : 'text-gray-600'}`}>Duração</p>
-                      <p className={`text-xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>{selectedRide.duration} min</p>
+                      <p className={`text-sm mb-1 ${isDark ? 'text-[#F2F2F2]/50' : 'text-black/70'}`}>Duração</p>
+                      <p className={`text-xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>{selectedRide.duration} min</p>
                     </div>
                   </div>
 
                   <div className={`flex items-center justify-between mb-6 p-4 rounded-xl ${isDark ? 'bg-[#0D0D0D]/50' : 'bg-white/50'}`}>
-                    <span className={isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}>Valor da corrida</span>
+                    <span className={isDark ? 'text-[#F2F2F2]/60' : 'text-black/70'}>Valor da corrida</span>
                     <span className="text-2xl font-bold text-[#F22998]">R$ {selectedRide.price.toFixed(2)}</span>
                   </div>
 
@@ -302,7 +302,7 @@ export default function AvailableRides() {
                     <Button
                       onClick={() => setSelectedRide(null)}
                       variant="outline"
-                      className={`py-6 rounded-2xl border-[#F22998]/30 hover:bg-[#F22998]/10 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-700'}`}
+                      className={`py-6 rounded-2xl border-[#F22998]/30 hover:bg-[#F22998]/10 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}
                     >
                       <X className="w-5 h-5 mr-2" />
                       Ignorar
