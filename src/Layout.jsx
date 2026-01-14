@@ -163,23 +163,25 @@ export default function Layout({ children, currentPageName }) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
-              <Link
-                key={link.page}
-                to={createPageUrl(link.page)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300",
-                  currentPageName === link.page
-                    ? "btn-gradient text-white"
-                    : isDark ? "text-[#F2F2F2]/70 hover:text-[#F22998]" : "text-gray-600 hover:text-[#F22998]"
-                )}
-              >
-                <link.icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{link.name}</span>
-              </Link>
-            ))}
-          </nav>
+          {user && (
+            <nav className="hidden md:flex items-center gap-6">
+              {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
+                <Link
+                  key={link.page}
+                  to={createPageUrl(link.page)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300",
+                    currentPageName === link.page
+                      ? "btn-gradient text-white"
+                      : isDark ? "text-[#F2F2F2]/70 hover:text-[#F22998]" : "text-gray-600 hover:text-[#F22998]"
+                  )}
+                >
+                  <link.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{link.name}</span>
+                </Link>
+              ))}
+            </nav>
+          )}
 
           <div className="flex items-center gap-4">
             {user?.user_type === 'driver' || user?.user_type === 'both' ? (
@@ -206,13 +208,19 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                 </div>
               ) : (
-              <button
-                onClick={() => base44.auth.redirectToLogin()}
-                className="btn-gradient px-6 py-2 rounded-full text-white font-medium"
-              >
-                Entrar
-              </button>
-            )}
+                <div className="flex gap-2">
+                  <Link to={createPageUrl('PassengerLogin')}>
+                    <Button className="btn-gradient px-6 py-2 rounded-full text-white font-medium">
+                      Login Passageira
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('DriverLogin')}>
+                    <Button variant="outline" className="border-[#F22998]/30 text-[#F22998] px-6 py-2 rounded-full font-medium">
+                      Login Motorista
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
             {/* Mobile Menu Button */}
             <button
@@ -227,7 +235,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {isMenuOpen && user && (
           <motion.div
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
@@ -279,13 +287,14 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <motion.nav 
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-30 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
-      >
-        <div className="flex items-center justify-around py-3 px-2">
-          {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
+      {user && (
+        <motion.nav 
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          className={`fixed bottom-0 left-0 right-0 md:hidden z-30 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
+        >
+          <div className="flex items-center justify-around py-3 px-2">
+            {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
             <Link
               key={link.page}
               to={createPageUrl(link.page)}
@@ -333,9 +342,10 @@ export default function Layout({ children, currentPageName }) {
               "text-[10px] font-medium",
               currentPageName === 'Profile' ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
             )}>Perfil</span>
-          </Link>
-        </div>
-      </motion.nav>
+            </Link>
+            </div>
+            </motion.nav>
+            )}
     </div>
   );
 }
