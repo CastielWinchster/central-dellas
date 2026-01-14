@@ -95,7 +95,7 @@ export default function PassengerHome() {
                   </Button>
                 </Link>
                 <Link to={createPageUrl('DriverDashboard')}>
-                  <Button variant="outline" className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] hover:bg-transparent hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] px-8 py-6 rounded-2xl text-lg transition-all">
+                  <Button variant="outline" className="w-full sm:w-auto border-[#F22998]/30 text-[#F22998] bg-white hover:bg-white hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] px-8 py-6 rounded-2xl text-lg transition-all">
                     <Car className="w-5 h-5 mr-2" />
                     Seja Motorista
                   </Button>

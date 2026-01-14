@@ -110,7 +110,13 @@ export default function Layout({ children, currentPageName }) {
           -webkit-text-fill-color: transparent;
         }
         
-        .glass-effect {
+        .light-theme .glass-effect {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(191, 59, 121, 0.2);
+        }
+        
+        .dark-theme .glass-effect {
           background: rgba(13, 13, 13, 0.8);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(191, 59, 121, 0.2);

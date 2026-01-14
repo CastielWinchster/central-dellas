@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import RequestRide from './pages/RequestRide';
 import RideHistory from './pages/RideHistory';
 import Settings from './pages/Settings';
+import Reviews from './pages/Reviews';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "RequestRide": RequestRide,
     "RideHistory": RideHistory,
     "Settings": Settings,
+    "Reviews": Reviews,
 }
 
 export const pagesConfig = {
