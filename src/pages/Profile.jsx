@@ -19,7 +19,6 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [uploading, setUploading] = useState(false);
-  const [redirect, setRedirect] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -27,13 +26,6 @@ export default function Profile() {
         const userData = await base44.auth.me();
         setUser(userData);
         setEditData(userData);
-        
-        // Redirect to specific profile based on user type
-        if (userData.user_type === 'driver') {
-          setRedirect('DriverProfile');
-        } else if (userData.user_type === 'passenger') {
-          setRedirect('PassengerProfile');
-        }
       } catch (e) {
         base44.auth.redirectToLogin();
       }
@@ -70,9 +62,17 @@ export default function Profile() {
 
   const menuItems = [
     {
+      title: 'Perfis',
+      items: [
+        { icon: User, label: 'Perfil de Passageira', description: 'Configurações e preferências', link: 'PassengerProfile' },
+        ...(user?.user_type === 'driver' || user?.user_type === 'both' ? [
+          { icon: Car, label: 'Perfil de Motorista', description: 'Serviços e informações', link: 'DriverProfile' }
+        ] : [])
+      ]
+    },
+    {
       title: 'Conta',
       items: [
-        { icon: User, label: 'Dados Pessoais', description: 'Nome, email e telefone' },
         { icon: Shield, label: 'Segurança', description: 'Contatos de emergência' },
         { icon: Bell, label: 'Notificações', description: 'Preferências de alertas' },
         { icon: Gift, label: 'Programa de Fidelidade', description: 'Recompensas e descontos', link: 'LoyaltyProgram' },
@@ -84,23 +84,8 @@ export default function Profile() {
         { icon: CreditCard, label: 'Métodos de Pagamento', description: 'Adicionar ou remover cartões' },
         { icon: MapPin, label: 'Endereços Salvos', description: 'Casa, trabalho e favoritos' },
       ]
-    },
-    {
-      title: 'Motorista',
-      items: [
-        { icon: Car, label: 'Meu Veículo', description: 'Informações do carro' },
-        { icon: Star, label: 'Avaliações', description: 'Ver feedback das passageiras' },
-        ...(user?.user_type === 'driver' || user?.user_type === 'both' ? [
-          { icon: Package, label: 'Serviço de Frete', description: 'Aceitar entregas e encomendas', action: 'toggle_freight' }
-        ] : [])
-      ]
     }
   ];
-
-  if (redirect) {
-    window.location.href = createPageUrl(redirect);
-    return null;
-  }
 
   if (!user) {
     return (
@@ -313,30 +298,7 @@ export default function Profile() {
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">{section.title}</h3>
               <div className="space-y-2">
                 {section.items.map((item, index) => (
-                  item.action === 'toggle_freight' ? (
-                    <div
-                      key={index}
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center">
-                          <item.icon className="w-5 h-5 text-[#F22998]" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium text-[#F2F2F2]">{item.label}</p>
-                          <p className="text-sm text-[#F2F2F2]/50">{item.description}</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={user?.accepts_freight || false}
-                        onCheckedChange={async (checked) => {
-                          await base44.auth.updateMe({ accepts_freight: checked });
-                          setUser(prev => ({ ...prev, accepts_freight: checked }));
-                        }}
-                        className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
-                      />
-                    </div>
-                  ) : item.link ? (
+                  item.link ? (
                     <Link
                       key={index}
                       to={createPageUrl(item.link)}

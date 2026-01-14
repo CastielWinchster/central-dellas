@@ -129,7 +129,7 @@ export default function Layout({ children, currentPageName }) {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/50cfce50f_central2.png"
               alt="Central Dellas"
-              className="h-10 w-auto"
+              className="h-14 w-auto"
             />
           </Link>
 
