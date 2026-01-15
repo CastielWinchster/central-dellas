@@ -132,7 +132,7 @@ Baixe agora: ${window.location.origin}`;
                   <Button
                     onClick={() => setShowPopup(false)}
                     variant="outline"
-                    className="flex-1 border-[#F22998]/30 text-[#F2F2F2] hover:bg-[#F22998]/10"
+                    className="flex-1 border-[#F22998]/30 text-[#F2F2F2] hover:bg-white hover:text-black hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] active:shadow-[0_0_30px_rgba(242,41,152,0.8)] transition-all"
                   >
                     Depois
                   </Button>
