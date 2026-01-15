@@ -148,7 +148,7 @@ export default function RequestRide() {
                           <div className="w-3 h-3 rounded-full bg-green-500" />
                         </div>
                         <Input
-                          placeholder="De onde você está?"
+                          placeholder="Onde você está?"
                           value={pickup}
                           onChange={(e) => setPickup(e.target.value)}
                           className="pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40"
