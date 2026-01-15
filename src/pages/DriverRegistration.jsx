@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Camera, Upload, CheckCircle, AlertCircle, Car, FileText, Shield, User } from 'lucide-react';
+import { Camera, CheckCircle, Car, FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import FileUpload from '../components/FileUpload';
 
 export default function DriverRegistration() {
   const navigate = useNavigate();
@@ -27,17 +28,8 @@ export default function DriverRegistration() {
     identification_photo: null
   });
 
-  const handleFileUpload = async (e, field) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, [field]: file_url }));
-      toast.success('Documento enviado com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao enviar documento');
-    }
+  const handleFileUpload = (fileUrl, field) => {
+    setFormData(prev => ({ ...prev, [field]: fileUrl }));
   };
 
   const handleSubmit = async () => {
@@ -127,55 +119,17 @@ export default function DriverRegistration() {
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 />
 
-                <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-8 text-center">
-                  {formData.driver_license_photo ? (
-                    <div className="space-y-3">
-                      <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
-                      <p className="text-[#F2F2F2]">CNH enviada com sucesso!</p>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
-                      <p className="text-[#F2F2F2] mb-2">Envie foto da CNH</p>
-                      <label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, 'driver_license_photo')}
-                        />
-                        <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
-                          Escolher Arquivo
-                        </Button>
-                      </label>
-                    </>
-                  )}
-                </div>
+                <FileUpload
+                  label="Envie foto da CNH"
+                  onFileUploaded={(url) => handleFileUpload(url, 'driver_license_photo')}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                />
 
-                <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-8 text-center">
-                  {formData.vehicle_cnh_photo ? (
-                    <div className="space-y-3">
-                      <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
-                      <p className="text-[#F2F2F2]">CNH do veículo enviada!</p>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
-                      <p className="text-[#F2F2F2] mb-2">Envie foto da CNH do veículo</p>
-                      <label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, 'vehicle_cnh_photo')}
-                        />
-                        <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
-                          Escolher Arquivo
-                        </Button>
-                      </label>
-                    </>
-                  )}
-                </div>
+                <FileUpload
+                  label="Envie foto da CNH do veículo"
+                  onFileUploaded={(url) => handleFileUpload(url, 'vehicle_cnh_photo')}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                />
 
                 <Button
                   onClick={() => setStep(2)}
@@ -309,30 +263,11 @@ export default function DriverRegistration() {
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 />
 
-                <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-8 text-center">
-                  {formData.vehicle_document_photo ? (
-                    <div className="space-y-3">
-                      <CheckCircle className="w-12 h-12 text-green-400 mx-auto" />
-                      <p className="text-[#F2F2F2]">CRLV enviado com sucesso!</p>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
-                      <p className="text-[#F2F2F2] mb-2">Envie foto do CRLV</p>
-                      <label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, 'vehicle_document_photo')}
-                        />
-                        <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
-                          Escolher Arquivo
-                        </Button>
-                      </label>
-                    </>
-                  )}
-                </div>
+                <FileUpload
+                  label="Envie foto do CRLV"
+                  onFileUploaded={(url) => handleFileUpload(url, 'vehicle_document_photo')}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                />
 
                 <div className="bg-[#F22998]/10 border border-[#F22998]/30 rounded-xl p-4">
                   <div className="flex items-start gap-3">
