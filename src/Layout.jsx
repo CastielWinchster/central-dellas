@@ -223,7 +223,7 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-[#F22998]/10 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-[#F22998]/10 transition-colors relative z-[10000]"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
