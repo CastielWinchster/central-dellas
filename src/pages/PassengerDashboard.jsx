@@ -29,23 +29,23 @@ export default function PassengerDashboard() {
   const quickActions = [
     { 
       icon: MapPin, 
-      label: 'Para Casa', 
-      sublabel: 'Adicionar endereço',
+      label: 'Chamar Agora', 
+      sublabel: 'Corrida imediata',
       page: 'RequestRide',
       gradient: 'from-[#BF3B79] to-[#F22998]'
     },
     { 
-      icon: Navigation, 
-      label: 'Para o Trabalho', 
-      sublabel: 'Adicionar endereço',
-      page: 'RequestRide',
+      icon: Clock, 
+      label: 'Agendar Corrida', 
+      sublabel: 'Até 30 dias',
+      page: 'ScheduleRide',
       gradient: 'from-[#F22998] to-[#8C0D60]'
     },
     { 
-      icon: Clock, 
-      label: 'Agendar Corrida', 
-      sublabel: 'Programar horário',
-      page: 'RequestRide',
+      icon: Heart, 
+      label: 'Favoritas', 
+      sublabel: 'Ver motoristas',
+      page: 'FavoriteDrivers',
       gradient: 'from-[#8C0D60] to-[#BF3B79]'
     }
   ];
@@ -75,9 +75,16 @@ export default function PassengerDashboard() {
     {
       icon: Wallet,
       label: 'Carteira',
-      description: 'Gerenciar pagamentos',
+      description: 'Saldo e recargas',
       page: 'Wallet',
       color: 'bg-gradient-to-br from-[#BF3B79] to-[#F22998]'
+    },
+    {
+      icon: Star,
+      label: 'Clube Dellas',
+      description: 'Planos e benefícios',
+      page: 'ClubDellas',
+      color: 'bg-gradient-to-br from-yellow-500 to-yellow-600'
     },
     {
       icon: User,

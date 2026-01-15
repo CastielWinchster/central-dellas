@@ -8,6 +8,7 @@ import LoyaltyProgram from './pages/LoyaltyProgram';
 import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
+import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerProfile from './pages/PassengerProfile';
@@ -17,7 +18,8 @@ import Reviews from './pages/Reviews';
 import RideHistory from './pages/RideHistory';
 import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
-import PassengerDashboard from './pages/PassengerDashboard';
+import ScheduleRide from './pages/ScheduleRide';
+import ClubDellas from './pages/ClubDellas';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +34,7 @@ export const PAGES = {
     "Messages": Messages,
     "MyReviews": MyReviews,
     "Notifications": Notifications,
+    "PassengerDashboard": PassengerDashboard,
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
     "PassengerProfile": PassengerProfile,
@@ -41,7 +44,8 @@ export const PAGES = {
     "RideHistory": RideHistory,
     "Settings": Settings,
     "Wallet": Wallet,
-    "PassengerDashboard": PassengerDashboard,
+    "ScheduleRide": ScheduleRide,
+    "ClubDellas": ClubDellas,
 }
 
 export const pagesConfig = {
