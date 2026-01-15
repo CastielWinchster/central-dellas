@@ -239,7 +239,7 @@ export default function Layout({ children, currentPageName }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className={`fixed inset-0 z-[90] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
+            className={`fixed inset-0 z-[9999] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
               {[...passengerLinks, ...driverLinks].map((link) => (
