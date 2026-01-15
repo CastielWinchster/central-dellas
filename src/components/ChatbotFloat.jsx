@@ -128,11 +128,11 @@ export default function ChatbotFloat() {
             initial={{ opacity: 0, y: 100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[85] w-[calc(100vw-2rem)] md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#F22998]/30 flex flex-col overflow-hidden"
+            className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 z-[85] w-auto md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#F22998]/30 flex flex-col overflow-hidden"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] p-4 flex items-center gap-3">
+            <div className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] p-4 flex items-center justify-center md:justify-start gap-3 relative">
               <div className="relative">
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
@@ -141,13 +141,13 @@ export default function ChatbotFloat() {
                 />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-center md:text-left">
                 <h3 className="text-white font-bold text-lg">Gheni</h3>
                 <p className="text-white/80 text-xs">Assistente Virtual • Online</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                className="p-2 hover:bg-white/20 rounded-full transition-colors absolute right-2 top-1/2 -translate-y-1/2"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -210,20 +210,20 @@ export default function ChatbotFloat() {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-[#1a0a15] border-t border-[#F22998]/20">
-              <div className="flex gap-2">
+            <div className="p-3 md:p-4 bg-[#1a0a15] border-t border-[#F22998]/20">
+              <div className="flex gap-2 items-center">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Digite sua mensagem..."
-                  className="flex-1 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 focus:border-[#F22998]"
+                  className="flex-1 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 focus:border-[#F22998] text-sm"
                   disabled={isTyping}
                 />
                 <Button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isTyping}
-                  className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] hover:opacity-90 transition-opacity"
+                  className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] hover:opacity-90 transition-opacity shrink-0"
                   size="icon"
                 >
                   <Send className="w-5 h-5" />
