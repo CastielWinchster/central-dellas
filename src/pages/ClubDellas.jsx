@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { Crown, Star, Zap, Gift, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { createPageUrl } from '../utils';
 
 export default function ClubDellas() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,12 +26,20 @@ export default function ClubDellas() {
         if (subs.length > 0) {
           setSubscription(subs[0]);
         }
+
+        // Verificar se voltou do checkout com sucesso
+        const subscriptionStatus = searchParams.get('subscription');
+        if (subscriptionStatus === 'success') {
+          toast.success('Assinatura ativada com sucesso! Bem-vinda ao Clube Dellas 👑');
+        } else if (subscriptionStatus === 'cancelled') {
+          toast.error('Checkout cancelado. Você pode tentar novamente quando quiser!');
+        }
       } catch (e) {
         navigate(createPageUrl('PassengerLogin'));
       }
     };
     loadData();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   const plans = [
     {
@@ -79,43 +89,44 @@ export default function ClubDellas() {
   ];
 
   const handleSubscribe = async (plan) => {
+    // Verificar se está rodando em iframe
+    if (window.self !== window.top) {
+      toast.error('Por favor, abra o app publicado para realizar o checkout');
+      return;
+    }
+
     setLoading(true);
     try {
-      const selectedPlan = plans.find(p => p.value === plan);
+      // Criar sessão de checkout do Stripe
+      const response = await base44.functions.invoke('createSubscriptionCheckout', { plan });
       
-      const nextBilling = new Date();
-      nextBilling.setMonth(nextBilling.getMonth() + 1);
-
-      await base44.entities.Subscription.create({
-        user_id: user.id,
-        plan: plan,
-        monthly_price: selectedPlan.price,
-        discount_percentage: selectedPlan.discount,
-        free_rides_remaining: plan === 'ouro' ? 5 : 0,
-        next_billing_date: nextBilling.toISOString().split('T')[0],
-        status: 'active'
-      });
-
-      toast.success(`Bem-vinda ao Clube Dellas ${selectedPlan.name}!`);
-      
-      // Recarregar dados
-      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      setSubscription(subs[0]);
+      if (response.data.url) {
+        // Redirecionar para checkout do Stripe
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
     } catch (error) {
-      toast.error('Erro ao processar assinatura');
+      toast.error('Erro ao iniciar checkout');
       console.error(error);
-    } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = async () => {
-    if (!confirm('Tem certeza que deseja cancelar sua assinatura?')) return;
+    if (!confirm('Tem certeza que deseja cancelar sua assinatura? Você pode reativar a qualquer momento.')) return;
 
     try {
       await base44.entities.Subscription.update(subscription.id, { status: 'cancelled' });
       toast.success('Assinatura cancelada. Você mantém os benefícios até o fim do período pago.');
-      setSubscription(null);
+      
+      // Recarregar dados
+      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length > 0 && subs[0].status === 'cancelled') {
+        setSubscription(subs[0]);
+      } else {
+        setSubscription(null);
+      }
     } catch (error) {
       toast.error('Erro ao cancelar assinatura');
     }
