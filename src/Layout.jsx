@@ -39,8 +39,8 @@ export default function Layout({ children, currentPageName }) {
   const passengerLinks = [
     { name: 'Home', icon: Home, page: 'PassengerHome' },
     { 
-      name: 'Solicitar Corrida', 
-      icon: MapPin, 
+      name: 'Opções', 
+      icon: Settings, 
       page: user ? 'PassengerDashboard' : 'PassengerLogin'
     }
   ];
@@ -149,7 +149,7 @@ export default function Layout({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-b border-gray-200'}`}
+        className={`fixed top-0 left-0 right-0 z-[100] ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-b border-gray-200'}`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export default function Layout({ children, currentPageName }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className={`fixed inset-0 z-40 pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
+            className={`fixed inset-0 z-[90] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
               {[...passengerLinks, ...driverLinks].map((link) => (
@@ -292,7 +292,7 @@ export default function Layout({ children, currentPageName }) {
         <motion.nav 
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className={`fixed bottom-0 left-0 right-0 md:hidden z-30 ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
+          className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
         >
           <div className="flex items-center justify-around py-3 px-2">
             {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
