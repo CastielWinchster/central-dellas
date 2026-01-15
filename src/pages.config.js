@@ -21,6 +21,7 @@ import Wallet from './pages/Wallet';
 import ScheduleRide from './pages/ScheduleRide';
 import ClubDellas from './pages/ClubDellas';
 import TrackRide from './pages/TrackRide';
+import AdminPanel from './pages/AdminPanel';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "ClubDellas": ClubDellas,
     "TrackRide": TrackRide,
+    "AdminPanel": AdminPanel,
 }
 
 export const pagesConfig = {
