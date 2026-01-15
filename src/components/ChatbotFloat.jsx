@@ -128,7 +128,7 @@ export default function ChatbotFloat() {
             initial={{ opacity: 0, y: 100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-6 right-6 md:bottom-6 md:right-6 z-[85] w-[calc(100vw-2rem)] md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#F22998]/30 flex flex-col overflow-hidden"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[85] w-[calc(100vw-2rem)] md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#F22998]/30 flex flex-col overflow-hidden"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
           >
             {/* Header */}
