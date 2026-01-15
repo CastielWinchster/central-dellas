@@ -124,10 +124,10 @@ export default function MapView({
     <div className={`relative rounded-2xl overflow-hidden ${className}`}>
       <style>{`
         .leaflet-container {
-          background: #1a1a1a;
+          background: #ffffff;
         }
         .leaflet-tile {
-          filter: brightness(0.8) saturate(0.8) hue-rotate(10deg);
+          filter: none;
         }
         .custom-car-marker, .custom-pickup-marker, .custom-destination-marker {
           background: transparent !important;
@@ -142,7 +142,7 @@ export default function MapView({
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapController center={mapCenter} />
         
