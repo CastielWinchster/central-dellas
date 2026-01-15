@@ -103,9 +103,9 @@ export default function ChatbotFloat() {
           >
             <div className="relative">
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Gheni&backgroundColor=transparent&skinColor=c58c85&hair=longHairStraight&hairColor=4a0e4e&top=longHairStraight&eyes=happy&eyebrow=default&mouth=smile&accessories=blank&facialHair=blank&clothingGraphic=skull"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
                 alt="Gheni"
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full object-cover"
               />
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
@@ -133,9 +133,9 @@ export default function ChatbotFloat() {
             <div className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] p-4 flex items-center gap-3">
               <div className="relative">
                 <img
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Gheni&backgroundColor=transparent&skinColor=c58c85&hair=longHairStraight&hairColor=4a0e4e&top=longHairStraight&eyes=happy&eyebrow=default&mouth=smile&accessories=blank&facialHair=blank&clothingGraphic=skull"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
                   alt="Gheni"
-                  className="w-12 h-12 rounded-full border-2 border-white"
+                  className="w-12 h-12 rounded-full border-2 border-white object-cover"
                 />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
               </div>
