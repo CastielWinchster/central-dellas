@@ -5,28 +5,38 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import MapView from '../map/MapView';
 import OfflineTracker from '../OfflineTracker';
+import ShareRideButton from './ShareRideButton';
+import EmergencyButton from './EmergencyButton';
 import { base44 } from '@/api/base44Client';
 
 export default function ActiveRide({ ride, onComplete }) {
   const [driver, setDriver] = useState(null);
+  const [passenger, setPassenger] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
-    // Carregar dados da motorista
-    const loadDriver = async () => {
-      if (ride.driver_id) {
-        try {
-          const users = await base44.entities.User.filter({ id: ride.driver_id });
-          if (users.length > 0) {
-            setDriver(users[0]);
+    // Carregar dados da motorista e passageira
+    const loadUsers = async () => {
+      try {
+        if (ride.driver_id) {
+          const drivers = await base44.entities.User.filter({ id: ride.driver_id });
+          if (drivers.length > 0) {
+            setDriver(drivers[0]);
           }
-        } catch (error) {
-          console.error('Error loading driver:', error);
         }
+        
+        if (ride.passenger_id) {
+          const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
+          if (passengers.length > 0) {
+            setPassenger(passengers[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
       }
     };
 
-    loadDriver();
+    loadUsers();
 
     // Atualizar localização atual
     if (navigator.geolocation) {
@@ -45,13 +55,7 @@ export default function ActiveRide({ ride, onComplete }) {
     }
   }, [ride.driver_id]);
 
-  const handleEmergency = () => {
-    // Ativar botão de emergência
-    base44.entities.Ride.update(ride.id, {
-      emergency_activated: true
-    });
-    alert('Emergência ativada! Contatos de segurança foram notificados.');
-  };
+
 
   const isDark = true;
 
@@ -140,14 +144,15 @@ export default function ActiveRide({ ride, onComplete }) {
         </div>
       </Card>
 
+      {/* Share Ride */}
+      {passenger && (
+        <ShareRideButton ride={ride} passenger={passenger} />
+      )}
+
       {/* Emergency Button */}
-      <Button
-        onClick={handleEmergency}
-        className="w-full py-6 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-semibold"
-      >
-        <AlertCircle className="w-5 h-5 mr-2" />
-        Botão de Emergência
-      </Button>
+      {passenger && (
+        <EmergencyButton ride={ride} user={passenger} />
+      )}
     </div>
   );
 }

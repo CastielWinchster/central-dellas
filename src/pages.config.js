@@ -20,6 +20,7 @@ import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
 import ScheduleRide from './pages/ScheduleRide';
 import ClubDellas from './pages/ClubDellas';
+import TrackRide from './pages/TrackRide';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "ScheduleRide": ScheduleRide,
     "ClubDellas": ClubDellas,
+    "TrackRide": TrackRide,
 }
 
 export const pagesConfig = {
