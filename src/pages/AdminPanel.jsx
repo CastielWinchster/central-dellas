@@ -12,6 +12,7 @@ import LiveMap from '../components/admin/LiveMap';
 import DispatchRide from '../components/admin/DispatchRide';
 import Reports from '../components/admin/Reports';
 import RideHistory from '../components/admin/RideHistory';
+import MigrationMetrics from '../components/admin/MigrationMetrics';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -170,6 +171,10 @@ export default function AdminPanel() {
               <TrendingUp className="w-4 h-4 mr-2" />
               Relatórios
             </TabsTrigger>
+            <TabsTrigger value="migration" className="data-[state=active]:bg-[#F22998]">
+              <Activity className="w-4 h-4 mr-2" />
+              Migração App
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="map">
@@ -186,6 +191,10 @@ export default function AdminPanel() {
 
           <TabsContent value="reports">
             <Reports />
+          </TabsContent>
+
+          <TabsContent value="migration">
+            <MigrationMetrics />
           </TabsContent>
         </Tabs>
       </div>
