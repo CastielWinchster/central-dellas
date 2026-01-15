@@ -137,7 +137,7 @@ export default function ScheduleRide() {
                   value={formData.pickup_address}
                   onChange={(e) => setFormData({...formData, pickup_address: e.target.value})}
                   placeholder="Digite o endereço de origem"
-                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-white' : ''}
                 />
               </div>
               <div>
@@ -149,7 +149,7 @@ export default function ScheduleRide() {
                   value={formData.destination_address}
                   onChange={(e) => setFormData({...formData, destination_address: e.target.value})}
                   placeholder="Digite o endereço de destino"
-                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-white' : ''}
                 />
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function ScheduleRide() {
                   type="date"
                   value={formData.scheduled_date}
                   onChange={(e) => setFormData({...formData, scheduled_date: e.target.value})}
-                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-white' : ''}
                 />
               </div>
               <div>
@@ -183,7 +183,7 @@ export default function ScheduleRide() {
                   type="time"
                   value={formData.scheduled_time}
                   onChange={(e) => setFormData({...formData, scheduled_time: e.target.value})}
-                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-white' : ''}
                 />
               </div>
             </div>
@@ -235,7 +235,7 @@ export default function ScheduleRide() {
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               placeholder="Paradas no caminho, preferências especiais, etc."
               rows={4}
-              className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20' : ''}
+              className={isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-white' : ''}
             />
           </Card>
 

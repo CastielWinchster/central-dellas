@@ -87,6 +87,13 @@ export default function PassengerDashboard() {
       color: 'bg-gradient-to-br from-yellow-500 to-yellow-600'
     },
     {
+      icon: Heart,
+      label: 'Programa Fidelidade',
+      description: 'Pontos e recompensas',
+      page: 'LoyaltyProgram',
+      color: 'bg-gradient-to-br from-[#8C0D60] to-[#BF3B79]'
+    },
+    {
       icon: User,
       label: 'Perfil',
       description: 'Configurações da conta',
