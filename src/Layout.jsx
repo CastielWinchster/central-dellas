@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import NotificationBell from './components/NotificationBell';
+import ChatbotFloat from './components/ChatbotFloat';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -282,6 +283,9 @@ export default function Layout({ children, currentPageName }) {
       <main className="pt-20 min-h-screen">
         {children}
       </main>
+
+      {/* Chatbot Float */}
+      <ChatbotFloat />
 
       {/* Bottom Navigation - Mobile */}
       {user && (
