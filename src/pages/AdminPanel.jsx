@@ -38,7 +38,7 @@ export default function AdminPanel() {
     try {
       const userData = await base44.auth.me();
       
-      if (userData.role !== 'admin') {
+      if (!userData || userData.role !== 'admin') {
         navigate('/PassengerHome');
         return;
       }
