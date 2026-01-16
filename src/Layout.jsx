@@ -270,7 +270,10 @@ export default function Layout({ children, currentPageName }) {
 
               {user && (
                 <button
-                  onClick={() => base44.auth.logout()}
+                  onClick={() => {
+                    base44.auth.logout();
+                    window.location.href = createPageUrl('PassengerHome');
+                  }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >
                   <LogOut className="w-6 h-6" />
