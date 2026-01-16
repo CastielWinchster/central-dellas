@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
@@ -13,6 +13,7 @@ const NotificationBell = lazy(() => import('./components/NotificationBell'));
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 
 export default function Layout({ children, currentPageName }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -30,11 +31,16 @@ export default function Layout({ children, currentPageName }) {
         }
       } catch (e) {
         console.log('User not logged in');
+        // Redirecionar para login se não estiver autenticado e não estiver em páginas públicas
+        const publicPages = ['PassengerLogin', 'DriverLogin', 'PassengerHome'];
+        if (!publicPages.includes(currentPageName)) {
+          navigate(createPageUrl('PassengerLogin'));
+        }
       }
       setLoading(false);
     };
     loadUser();
-  }, []);
+  }, [currentPageName, navigate]);
 
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [
@@ -271,11 +277,8 @@ export default function Layout({ children, currentPageName }) {
               {user && (
                 <button
                   onClick={async () => {
-                    try {
-                      await base44.auth.logout(createPageUrl('PassengerLogin'));
-                    } catch (e) {
-                      window.location.href = createPageUrl('PassengerLogin');
-                    }
+                    const loginUrl = window.location.origin + createPageUrl('PassengerLogin');
+                    await base44.auth.logout(loginUrl);
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >
