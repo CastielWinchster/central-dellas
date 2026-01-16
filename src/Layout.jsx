@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
         console.log('User not logged in');
         // Redirecionar para login se não estiver autenticado e não estiver em páginas públicas
         const publicPages = ['PassengerLogin', 'DriverLogin'];
-        if (!publicPages.includes(currentPageName)) {
+        if (!loginPages.includes(currentPageName)) {
           navigate(createPageUrl('PassengerLogin'));
         }
       }
