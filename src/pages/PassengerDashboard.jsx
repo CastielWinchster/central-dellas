@@ -257,7 +257,12 @@ export default function PassengerDashboard() {
           </Card>
         </motion.div>
         
-        <KeyboardShortcutsHelp shortcuts={shortcuts} />
+        <KeyboardShortcutsHelp shortcuts={[
+          { description: 'Solicitar corrida', keys: ['Ctrl', 'R'] },
+          { description: 'Ver histórico', keys: ['Ctrl', 'H'] },
+          { description: 'Clube Dellas', keys: ['Ctrl', 'C'] },
+          { description: 'Perfil', keys: ['Ctrl', 'P'] },
+        ]} />
       </div>
     </div>
   );
