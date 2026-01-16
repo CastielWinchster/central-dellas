@@ -32,6 +32,36 @@ export default function DriverLogin() {
     birth_date: '',
   });
   const [canSubmit, setCanSubmit] = useState(false);
+  const [validations, setValidations] = useState({
+    email: false,
+    username: false,
+    password: false,
+    passwordsMatch: false
+  });
+
+  // Validar campos em tempo real
+  React.useEffect(() => {
+    if (isRegister) {
+      const emailValid = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email);
+      const usernameValid = formData.username.length >= 3 && /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(formData.username);
+      const passwordValid = formData.password.length >= 8 && 
+                           /[A-Z]/.test(formData.password) &&
+                           /[a-z]/.test(formData.password) &&
+                           /[0-9]/.test(formData.password) &&
+                           /[!@#$%^&*]/.test(formData.password) &&
+                           !/\s/.test(formData.password);
+      const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
+      const photoValid = photoFile !== null;
+      const basicFieldsValid = formData.full_name && formData.cpf && formData.birth_date;
+      
+      setValidations({ email: emailValid, username: usernameValid, password: passwordValid, passwordsMatch });
+      setCanSubmit(emailValid && usernameValid && passwordValid && passwordsMatch && photoValid && basicFieldsValid);
+    } else {
+      const emailValid = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email);
+      const passwordValid = formData.password.length > 0;
+      setCanSubmit(emailValid && passwordValid);
+    }
+  }, [formData, isRegister, photoFile]);
 
   const handlePhotoCapture = async (e) => {
     const file = e.target.files?.[0];
@@ -321,7 +351,15 @@ export default function DriverLogin() {
                 onConfirmChange={(value) => setFormData({ ...formData, confirmPassword: value })}
               />
 
-              <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
+              <Button 
+                type="submit" 
+                disabled={loading || !canSubmit} 
+                className={`w-full py-6 text-lg shadow-lg ${
+                  !canSubmit 
+                    ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed opacity-50' 
+                    : 'btn-gradient shadow-[#F22998]/30'
+                }`}
+              >
                 {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
               </Button>
             </form>
