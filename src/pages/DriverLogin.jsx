@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Car, Mail, Lock, Eye, EyeOff, Camera, Upload, Smartphone } from 'lucide-react';
+import { Car, Camera, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
+import SocialLoginButtons from '../components/auth/SocialLoginButtons';
+import EmailInput from '../components/auth/EmailInput';
+import UsernameInput from '../components/auth/UsernameInput';
+import PasswordInput from '../components/auth/PasswordInput';
 
 export default function DriverLogin() {
   const navigate = useNavigate();
@@ -21,10 +25,13 @@ export default function DriverLogin() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
+    username: '',
     full_name: '',
     cpf: '',
     birth_date: '',
   });
+  const [canSubmit, setCanSubmit] = useState(false);
 
   const handlePhotoCapture = async (e) => {
     const file = e.target.files?.[0];
@@ -38,13 +45,33 @@ export default function DriverLogin() {
     }
   };
 
+  const handleSocialLogin = async (provider) => {
+    setLoading(true);
+    toast.info(`Redirecionando para login com ${provider}...`);
+    setTimeout(() => {
+      base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+    }, 1000);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    if (!canSubmit && isRegister) {
+      toast.error('Por favor, preencha todos os campos corretamente');
+      return;
+    }
+    
     setLoading(true);
     
     if (isRegister) {
       if (!photoFile) {
         toast.error('Por favor, tire uma foto para identificação');
+        setLoading(false);
+        return;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('As senhas não correspondem');
         setLoading(false);
         return;
       }
@@ -186,8 +213,13 @@ export default function DriverLogin() {
                 </button>
               </div>
             ) : (
-            <form onSubmit={handleLogin} className="space-y-4">
-              {isRegister && (
+              <>
+                {!isRegister && (
+                  <SocialLoginButtons onSocialLogin={handleSocialLogin} loading={loading} />
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {isRegister && (
                 <>
                   <div>
                     <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
@@ -266,50 +298,34 @@ export default function DriverLogin() {
                       )}
                     </div>
                   </div>
+
+                  <UsernameInput 
+                    value={formData.username}
+                    onChange={(value) => setFormData({ ...formData, username: value })}
+                  />
                 </>
               )}
 
-              <div>
-                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                    required
-                  />
-                </div>
-              </div>
+              <EmailInput 
+                value={formData.email}
+                onChange={(value) => setFormData({ ...formData, email: value })}
+                checkExistence={isRegister}
+              />
 
-              <div>
-                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Senha</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 pr-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998]"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
+              <PasswordInput
+                value={formData.password}
+                onChange={(value) => setFormData({ ...formData, password: value })}
+                showRequirements={isRegister}
+                showConfirm={isRegister}
+                confirmPassword={formData.confirmPassword}
+                onConfirmChange={(value) => setFormData({ ...formData, confirmPassword: value })}
+              />
 
               <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
                 {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
               </Button>
             </form>
+              </>
             )}
 
             <div className="mt-6 text-center">
