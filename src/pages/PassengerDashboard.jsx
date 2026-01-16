@@ -10,10 +10,22 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import MigrationIncentivePopup from '../components/MigrationIncentivePopup';
+import Breadcrumb from '../components/Breadcrumb';
+import { useKeyboardShortcuts } from '../components/useKeyboardShortcuts';
+import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
 
 export default function PassengerDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+
+  const shortcuts = [
+    { key: 'r', description: 'Solicitar corrida', action: () => navigate(createPageUrl('RequestRide')) },
+    { key: 'h', description: 'Ver histórico', action: () => navigate(createPageUrl('RideHistory')) },
+    { key: 'c', description: 'Clube Dellas', action: () => navigate(createPageUrl('ClubDellas')) },
+    { key: 'p', description: 'Perfil', action: () => navigate(createPageUrl('Profile')) },
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -109,6 +121,8 @@ export default function PassengerDashboard() {
     <div className={`min-h-screen pb-24 md:pb-10 ${isDark ? 'bg-[#0D0D0D]' : 'bg-gray-50'}`}>
       <MigrationIncentivePopup />
       <div className="max-w-7xl mx-auto px-4 py-6">
+        <Breadcrumb items={[{ label: 'Dashboard', page: 'PassengerDashboard' }]} />
+        
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -242,6 +256,8 @@ export default function PassengerDashboard() {
             </div>
           </Card>
         </motion.div>
+        
+        <KeyboardShortcutsHelp shortcuts={shortcuts} />
       </div>
     </div>
   );
