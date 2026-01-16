@@ -270,9 +270,12 @@ export default function Layout({ children, currentPageName }) {
 
               {user && (
                 <button
-                  onClick={() => {
-                    base44.auth.logout();
-                    window.location.href = createPageUrl('PassengerHome');
+                  onClick={async () => {
+                    try {
+                      await base44.auth.logout(createPageUrl('PassengerLogin'));
+                    } catch (e) {
+                      window.location.href = createPageUrl('PassengerLogin');
+                    }
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >

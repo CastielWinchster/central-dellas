@@ -1,8 +1,19 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '../../utils';
 
-export default function SocialLoginButtons({ onSocialLogin, loading }) {
+export default function SocialLoginButtons({ loading }) {
+  const handleSocialLogin = async (providerName) => {
+    try {
+      const provider = getProviderKey(providerName);
+      const redirectUrl = window.location.origin + createPageUrl('PassengerHome');
+      await base44.auth.signInWithOAuth(provider, redirectUrl);
+    } catch (error) {
+      console.error('Erro no login social:', error);
+    }
+  };
   const socialProviders = [
     {
       name: 'Google',

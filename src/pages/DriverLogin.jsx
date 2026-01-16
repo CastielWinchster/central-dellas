@@ -75,13 +75,7 @@ export default function DriverLogin() {
     }
   };
 
-  const handleSocialLogin = async (provider) => {
-    setLoading(true);
-    toast.info(`Redirecionando para login com ${provider}...`);
-    setTimeout(() => {
-      window.location.href = createPageUrl('DriverDashboard');
-    }, 1000);
-  };
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -245,7 +239,7 @@ export default function DriverLogin() {
             ) : (
               <>
                 {!isRegister && (
-                  <SocialLoginButtons onSocialLogin={handleSocialLogin} loading={loading} />
+                  <SocialLoginButtons loading={loading} />
                 )}
 
                 <form onSubmit={handleLogin} className="space-y-4">
