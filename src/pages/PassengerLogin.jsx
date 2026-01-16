@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Eye, EyeOff, Shield, Heart, Camera, Smartphone } from 'lucide-react';
+import { User, Camera, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
+import SocialLoginButtons from '../components/auth/SocialLoginButtons';
+import EmailInput from '../components/auth/EmailInput';
+import UsernameInput from '../components/auth/UsernameInput';
+import PasswordInput from '../components/auth/PasswordInput';
 
 export default function PassengerLogin() {
   const navigate = useNavigate();
@@ -21,10 +25,13 @@ export default function PassengerLogin() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
+    username: '',
     full_name: '',
     cpf: '',
     birth_date: '',
   });
+  const [canSubmit, setCanSubmit] = useState(false);
 
   const handlePhotoCapture = async (e) => {
     const file = e.target.files?.[0];
@@ -188,6 +195,11 @@ export default function PassengerLogin() {
                 </button>
               </div>
             ) : (
+            <>
+              {!isRegister && (
+                <SocialLoginButtons onSocialLogin={handleSocialLogin} loading={loading} />
+              )}
+
             <form onSubmit={handleLogin} className="space-y-4">
               {isRegister && (
                 <>
@@ -266,47 +278,30 @@ export default function PassengerLogin() {
                           </label>
                         </>
                       )}
-                    </div>
-                  </div>
-                </>
-              )}
+                      </div>
+                      </div>
 
-              <div>
-                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                    required
-                  />
-                </div>
-              </div>
+                      <UsernameInput 
+                      value={formData.username}
+                      onChange={(value) => setFormData({ ...formData, username: value })}
+                      />
+                      </>
+                      )}
 
-              <div>
-                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Senha</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 pr-10 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998]"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
+                      <EmailInput 
+                      value={formData.email}
+                      onChange={(value) => setFormData({ ...formData, email: value })}
+                      checkExistence={isRegister}
+                      />
+
+                      <PasswordInput
+                      value={formData.password}
+                      onChange={(value) => setFormData({ ...formData, password: value })}
+                      showRequirements={isRegister}
+                      showConfirm={isRegister}
+                      confirmPassword={formData.confirmPassword}
+                      onConfirmChange={(value) => setFormData({ ...formData, confirmPassword: value })}
+                      />
 
               <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
                 {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
