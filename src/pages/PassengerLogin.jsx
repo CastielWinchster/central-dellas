@@ -45,13 +45,33 @@ export default function PassengerLogin() {
     }
   };
 
+  const handleSocialLogin = async (provider) => {
+    setLoading(true);
+    toast.info(`Redirecionando para login com ${provider}...`);
+    setTimeout(() => {
+      base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
+    }, 1000);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    if (!canSubmit && isRegister) {
+      toast.error('Por favor, preencha todos os campos corretamente');
+      return;
+    }
+    
     setLoading(true);
     
     if (isRegister) {
       if (!photoFile) {
         toast.error('Por favor, tire uma foto para identificação');
+        setLoading(false);
+        return;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('As senhas não correspondem');
         setLoading(false);
         return;
       }
@@ -68,7 +88,6 @@ export default function PassengerLogin() {
       if (twoFactorStep) {
         try {
           if (verificationCode.length === 6) {
-            // Simular validação do código
             await new Promise(resolve => setTimeout(resolve, 1000));
             base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
           } else {
@@ -81,7 +100,6 @@ export default function PassengerLogin() {
         }
       } else {
         try {
-          // Simular envio de código
           await new Promise(resolve => setTimeout(resolve, 800));
           toast.success('Código de verificação enviado para seu email!');
           setTwoFactorStep(true);
@@ -195,119 +213,120 @@ export default function PassengerLogin() {
                 </button>
               </div>
             ) : (
-            <>
-              {!isRegister && (
-                <SocialLoginButtons onSocialLogin={handleSocialLogin} loading={loading} />
-              )}
+              <>
+                {!isRegister && (
+                  <SocialLoginButtons onSocialLogin={handleSocialLogin} loading={loading} />
+                )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              {isRegister && (
-                <>
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
-                    <Input
-                      placeholder="Seu nome completo"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">CPF</label>
-                    <Input
-                      placeholder="000.000.000-00"
-                      value={formData.cpf}
-                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
-                    <Input
-                      type="date"
-                      value={formData.birth_date}
-                      onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Foto de Identificação</label>
-                    <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-6 text-center">
-                      {photoPreview ? (
-                        <div className="space-y-3">
-                          <img 
-                            src={photoPreview} 
-                            alt="Preview" 
-                            className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#F22998]"
-                          />
-                          <label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              capture="user"
-                              className="hidden"
-                              onChange={handlePhotoCapture}
-                            />
-                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
-                              Tirar Outra Foto
-                            </Button>
-                          </label>
-                        </div>
-                      ) : (
-                        <>
-                          <Camera className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
-                          <p className="text-[#F2F2F2] mb-2">Tire uma foto para identificação</p>
-                          <label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              capture="user"
-                              className="hidden"
-                              onChange={handlePhotoCapture}
-                            />
-                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
-                              <Camera className="w-4 h-4 mr-2" />
-                              Tirar Foto
-                            </Button>
-                          </label>
-                        </>
-                      )}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {isRegister && (
+                    <>
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
+                        <Input
+                          placeholder="Seu nome completo"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                          required
+                        />
                       </div>
+
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block">CPF</label>
+                        <Input
+                          placeholder="000.000.000-00"
+                          value={formData.cpf}
+                          onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                          className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
+                        <Input
+                          type="date"
+                          value={formData.birth_date}
+                          onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                          className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Foto de Identificação</label>
+                        <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-6 text-center">
+                          {photoPreview ? (
+                            <div className="space-y-3">
+                              <img 
+                                src={photoPreview} 
+                                alt="Preview" 
+                                className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#F22998]"
+                              />
+                              <label>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="user"
+                                  className="hidden"
+                                  onChange={handlePhotoCapture}
+                                />
+                                <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                                  Tirar Outra Foto
+                                </Button>
+                              </label>
+                            </div>
+                          ) : (
+                            <>
+                              <Camera className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
+                              <p className="text-[#F2F2F2] mb-2">Tire uma foto para identificação</p>
+                              <label>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="user"
+                                  className="hidden"
+                                  onChange={handlePhotoCapture}
+                                />
+                                <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                                  <Camera className="w-4 h-4 mr-2" />
+                                  Tirar Foto
+                                </Button>
+                              </label>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       <UsernameInput 
-                      value={formData.username}
-                      onChange={(value) => setFormData({ ...formData, username: value })}
+                        value={formData.username}
+                        onChange={(value) => setFormData({ ...formData, username: value })}
                       />
-                      </>
-                      )}
+                    </>
+                  )}
 
-                      <EmailInput 
-                      value={formData.email}
-                      onChange={(value) => setFormData({ ...formData, email: value })}
-                      checkExistence={isRegister}
-                      />
+                  <EmailInput 
+                    value={formData.email}
+                    onChange={(value) => setFormData({ ...formData, email: value })}
+                    checkExistence={isRegister}
+                  />
 
-                      <PasswordInput
-                      value={formData.password}
-                      onChange={(value) => setFormData({ ...formData, password: value })}
-                      showRequirements={isRegister}
-                      showConfirm={isRegister}
-                      confirmPassword={formData.confirmPassword}
-                      onConfirmChange={(value) => setFormData({ ...formData, confirmPassword: value })}
-                      />
+                  <PasswordInput
+                    value={formData.password}
+                    onChange={(value) => setFormData({ ...formData, password: value })}
+                    showRequirements={isRegister}
+                    showConfirm={isRegister}
+                    confirmPassword={formData.confirmPassword}
+                    onConfirmChange={(value) => setFormData({ ...formData, confirmPassword: value })}
+                  />
 
-              <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
-                {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
-              </Button>
-              </form>
-              )}
+                  <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
+                    {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
+                  </Button>
+                </form>
+              </>
+            )}
 
             <div className="mt-6 text-center">
               <button
