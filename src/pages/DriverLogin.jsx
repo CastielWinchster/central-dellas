@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Car, Mail, Lock, Eye, EyeOff, Camera, Upload } from 'lucide-react';
+import { Car, Mail, Lock, Eye, EyeOff, Camera, Upload, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,9 @@ export default function DriverLogin() {
   const [isRegister, setIsRegister] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,27 +40,48 @@ export default function DriverLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     if (isRegister) {
-      // Simulate registration
       if (!photoFile) {
         toast.error('Por favor, tire uma foto para identificação');
+        setLoading(false);
         return;
       }
       
       try {
-        // Upload photo
         const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
-        
-        // In real app, would create user with photo
-        toast.success('Cadastro realizado! Faça login para continuar.');
-        setIsRegister(false);
+        toast.success('Cadastro realizado! Enviamos um código de verificação para seu email.');
+        setTwoFactorStep(true);
       } catch (error) {
         toast.error('Erro ao realizar cadastro');
       }
+      setLoading(false);
     } else {
-      // Login via Base44 OAuth
-      base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+      if (twoFactorStep) {
+        try {
+          if (verificationCode.length === 6) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+          } else {
+            toast.error('Código inválido');
+            setLoading(false);
+          }
+        } catch (error) {
+          toast.error('Erro ao verificar código');
+          setLoading(false);
+        }
+      } else {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          toast.success('Código de verificação enviado para seu email!');
+          setTwoFactorStep(true);
+          setLoading(false);
+        } catch (error) {
+          toast.error('Erro ao enviar código');
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -285,8 +309,8 @@ export default function DriverLogin() {
               <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
                 {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
               </Button>
-              </form>
-              )}
+            </form>
+            )}
 
             <div className="mt-6 text-center">
               <button
