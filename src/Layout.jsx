@@ -4,7 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
   Home, Car, MapPin, MessageCircle, User, Menu, X, 
-  LogOut, History, Shield, Wallet, Star, Settings
+  LogOut, History, Shield, Wallet, Star, Settings, Download as DownloadIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -49,7 +49,8 @@ export default function Layout({ children, currentPageName }) {
       name: 'Opções', 
       icon: Settings, 
       page: user ? 'PassengerDashboard' : 'PassengerLogin'
-    }
+    },
+    { name: 'Baixar App', icon: DownloadIcon, page: 'Download' }
   ];
 
   const driverLinks = [];
