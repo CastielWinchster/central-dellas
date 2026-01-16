@@ -5,6 +5,15 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '../../utils';
 
 export default function SocialLoginButtons({ loading }) {
+  const getProviderKey = (name) => {
+    const map = {
+      'google': 'google',
+      'facebook': 'facebook',
+      'microsoft': 'azure'
+    };
+    return map[name];
+  };
+
   const handleSocialLogin = async (providerName) => {
     try {
       const provider = getProviderKey(providerName);
@@ -14,6 +23,7 @@ export default function SocialLoginButtons({ loading }) {
       console.error('Erro no login social:', error);
     }
   };
+  
   const socialProviders = [
     {
       name: 'Google',
@@ -63,7 +73,7 @@ export default function SocialLoginButtons({ loading }) {
           >
             <Button
               type="button"
-              onClick={() => onSocialLogin(provider.name.toLowerCase())}
+              onClick={() => handleSocialLogin(provider.name.toLowerCase())}
               disabled={loading}
               className={`w-full ${provider.color} flex items-center justify-center gap-2 py-6`}
             >
