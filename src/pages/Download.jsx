@@ -52,7 +52,6 @@ export default function Download() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      showManualInstructions();
       return;
     }
 
@@ -74,18 +73,7 @@ export default function Download() {
     localStorage.setItem('installPromptDismissed', new Date().getTime().toString());
   };
 
-  const showManualInstructions = () => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
 
-    if (isIOS) {
-      alert('Para instalar no iOS:\n\n1. Toque no ícone de compartilhar (⬆️)\n2. Role para baixo e toque em "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
-    } else if (isAndroid) {
-      alert('Para instalar no Android:\n\n1. Toque no menu (⋮) no navegador Chrome\n2. Selecione "Instalar app"\n3. Confirme a instalação');
-    } else {
-      alert('Para instalar no computador:\n\n1. Clique no ícone de instalação na barra de endereços\n2. Ou use o menu do navegador e selecione "Instalar Central Dellas"');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] via-[#1a0a1a] to-[#0D0D0D] py-12 px-4">
@@ -186,12 +174,13 @@ export default function Download() {
                   Sem precisar de lojas de aplicativos. Instalação rápida e segura direto do seu navegador.
                 </p>
                 <Button
-                  onClick={canInstall ? handleInstallClick : showManualInstructions}
+                  onClick={handleInstallClick}
+                  disabled={!canInstall}
                   size="lg"
-                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
+                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <DownloadIcon className="w-5 h-5 mr-2" />
-                  Instalar Agora
+                  {canInstall ? 'Instalar Agora' : 'Aguarde...'}
                 </Button>
               </div>
             </Card>
