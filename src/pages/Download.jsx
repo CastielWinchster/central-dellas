@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 export default function Download() {
   const [installedPWA, setInstalledPWA] = useState(false);
 
-  const handleInstallPWA = () => {
+  const handleInstallPWA = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Detectar se é iOS ou Android
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
@@ -65,6 +68,7 @@ export default function Download() {
                     Instale o app diretamente do navegador sem precisar de loja de aplicativos
                   </p>
                   <Button
+                    type="button"
                     onClick={handleInstallPWA}
                     className="w-full btn-gradient"
                   >

@@ -14,11 +14,11 @@ export default function SocialLoginButtons({ loading }) {
     return map[name];
   };
 
-  const handleSocialLogin = async (providerName) => {
+  const handleSocialLogin = (providerName) => {
     try {
       const provider = getProviderKey(providerName);
       const redirectUrl = window.location.origin + createPageUrl('PassengerHome');
-      await base44.auth.signInWithOAuth(provider, redirectUrl);
+      base44.auth.signInWithOAuth(provider, redirectUrl);
     } catch (error) {
       console.error('Erro no login social:', error);
     }
