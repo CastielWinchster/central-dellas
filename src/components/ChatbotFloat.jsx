@@ -33,7 +33,7 @@ export default function ChatbotFloat() {
       const newConversation = await base44.agents.createConversation({
         agent_name: 'gheni',
         metadata: {
-          name: 'Chat com Gheni',
+          name: 'Chat com Delia',
           source: 'floating_chat'
         }
       });
@@ -43,7 +43,7 @@ export default function ChatbotFloat() {
       // Mensagem de boas-vindas
       setMessages([{
         role: 'assistant',
-        content: 'Olá! 👋 Sou a **Gheni**, sua assistente virtual da Central Dellas! 💖\n\nPosso te ajudar a:\n🚗 Agendar corridas\n💎 Conhecer nossos planos Clube Dellas\n🎁 Informar sobre promoções\n❓ Tirar dúvidas\n\nComo posso te ajudar hoje?',
+        content: 'Olá! 👋 Sou a **Delia**, sua assistente virtual da Central Dellas! 💖\n\nPosso te ajudar a:\n🚗 Agendar corridas\n💎 Conhecer nossos planos Clube Dellas\n🎁 Informar sobre promoções\n❓ Tirar dúvidas\n\nComo posso te ajudar hoje?',
         timestamp: new Date()
       }]);
 
@@ -57,7 +57,7 @@ export default function ChatbotFloat() {
       });
     } catch (error) {
       console.error('Erro ao iniciar conversa:', error);
-      toast.error('Erro ao conectar com Gheni');
+      toast.error('Erro ao conectar com Delia');
     }
   };
 
@@ -105,7 +105,7 @@ export default function ChatbotFloat() {
             <div className="relative">
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
-                alt="Gheni"
+                alt="Delia"
                 className="w-10 h-10 rounded-full object-cover"
               />
               <motion.div
@@ -136,13 +136,13 @@ export default function ChatbotFloat() {
               <div className="relative">
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
-                  alt="Gheni"
+                  alt="Delia"
                   className="w-12 h-12 rounded-full border-2 border-white object-cover"
                 />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
               </div>
               <div className="flex-1 text-center md:text-left">
-                <h3 className="text-white font-bold text-lg">Gheni</h3>
+                <h3 className="text-white font-bold text-lg">Delia</h3>
                 <p className="text-white/80 text-xs">Assistente Virtual • Online</p>
               </div>
               <button
@@ -230,7 +230,7 @@ export default function ChatbotFloat() {
                 </Button>
               </div>
               <p className="text-[#F2F2F2]/40 text-xs text-center mt-2">
-                Gheni pode cometer erros. Verifique informações importantes.
+                Delia pode cometer erros. Verifique informações importantes.
               </p>
             </div>
           </motion.div>
