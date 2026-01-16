@@ -52,6 +52,11 @@ export default function Download() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
+      // Rolar para as instruções
+      const instructionsEl = document.getElementById('install-instructions');
+      if (instructionsEl) {
+        instructionsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       return;
     }
 
@@ -175,13 +180,17 @@ export default function Download() {
                 </p>
                 <Button
                   onClick={handleInstallClick}
-                  disabled={!canInstall}
                   size="lg"
-                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
                 >
                   <DownloadIcon className="w-5 h-5 mr-2" />
-                  {canInstall ? 'Instalar Agora' : 'Aguarde...'}
+                  Instalar Agora
                 </Button>
+                {!canInstall && (
+                  <p className="text-[#F2F2F2]/60 text-sm mt-3">
+                    👇 Veja as instruções de instalação abaixo
+                  </p>
+                )}
               </div>
             </Card>
           </motion.div>
@@ -189,6 +198,7 @@ export default function Download() {
 
         {/* Installation Instructions */}
         <motion.div
+          id="install-instructions"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
