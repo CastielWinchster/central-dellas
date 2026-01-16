@@ -79,7 +79,7 @@ export default function DriverLogin() {
     setLoading(true);
     toast.info(`Redirecionando para login com ${provider}...`);
     setTimeout(() => {
-      base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+      window.location.href = createPageUrl('DriverDashboard');
     }, 1000);
   };
 
@@ -119,7 +119,7 @@ export default function DriverLogin() {
         try {
           if (verificationCode.length === 6) {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            base44.auth.redirectToLogin(window.location.origin + createPageUrl('DriverDashboard'));
+            window.location.href = createPageUrl('DriverDashboard');
           } else {
             toast.error('Código inválido');
             setLoading(false);

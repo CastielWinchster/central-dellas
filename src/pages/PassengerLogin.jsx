@@ -79,7 +79,7 @@ export default function PassengerLogin() {
     setLoading(true);
     toast.info(`Redirecionando para login com ${provider}...`);
     setTimeout(() => {
-      base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
+      window.location.href = createPageUrl('PassengerHome');
     }, 1000);
   };
 
@@ -119,7 +119,7 @@ export default function PassengerLogin() {
         try {
           if (verificationCode.length === 6) {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
+            window.location.href = createPageUrl('PassengerHome');
           } else {
             toast.error('Código inválido');
             setLoading(false);
