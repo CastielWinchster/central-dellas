@@ -298,18 +298,6 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
-      {/* Keyboard Shortcuts Help - Above Chatbot */}
-      <div className="fixed bottom-24 right-6 z-[70]">
-        <Suspense fallback={null}>
-          <KeyboardShortcutsHelp shortcuts={[
-            { description: 'Solicitar Corrida', keys: ['Ctrl', 'R'] },
-            { description: 'Ver Histórico', keys: ['Ctrl', 'H'] },
-            { description: 'Abrir Perfil', keys: ['Ctrl', 'P'] },
-            { description: 'Ajuda', keys: ['Ctrl', '?'] },
-          ]} />
-        </Suspense>
-      </div>
-
       {/* Chatbot Float */}
       <Suspense fallback={null}>
         <ChatbotFloat />

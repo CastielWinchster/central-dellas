@@ -8,15 +8,15 @@ export default function KeyboardShortcutsHelp({ shortcuts }) {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-[70] text-[#F2F2F2]/60 hover:text-[#F22998]"
+        className="fixed bottom-24 right-6 md:bottom-24 md:right-6 z-[86] w-14 h-14 rounded-full bg-[#F2F2F2]/10 backdrop-blur-sm border border-[#F22998]/30 shadow-lg flex items-center justify-center hover:bg-[#F22998]/20 transition-colors"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 176px)' }}
       >
-        <Keyboard className="w-4 h-4 mr-2" />
-        Atalhos
-      </Button>
+        <Keyboard className="w-6 h-6 text-[#F22998]" />
+      </motion.button>
 
       <AnimatePresence>
         {isOpen && (
@@ -46,24 +46,11 @@ export default function KeyboardShortcutsHelp({ shortcuts }) {
                   <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <span className="text-[#F2F2F2]/80">{shortcut.description}</span>
                     <div className="flex gap-1">
-                      {shortcut.ctrl && (
-                        <kbd className="px-2 py-1 bg-[#F22998]/20 text-[#F22998] rounded text-xs font-mono">
-                          Ctrl
+                      {shortcut.keys.map((key, i) => (
+                        <kbd key={i} className="px-2 py-1 bg-[#F22998]/20 text-[#F22998] rounded text-xs font-mono">
+                          {key}
                         </kbd>
-                      )}
-                      {shortcut.shift && (
-                        <kbd className="px-2 py-1 bg-[#F22998]/20 text-[#F22998] rounded text-xs font-mono">
-                          Shift
-                        </kbd>
-                      )}
-                      {shortcut.alt && (
-                        <kbd className="px-2 py-1 bg-[#F22998]/20 text-[#F22998] rounded text-xs font-mono">
-                          Alt
-                        </kbd>
-                      )}
-                      <kbd className="px-2 py-1 bg-[#F22998]/20 text-[#F22998] rounded text-xs font-mono">
-                        {shortcut.key.toUpperCase()}
-                      </kbd>
+                      ))}
                     </div>
                   </div>
                 ))}
