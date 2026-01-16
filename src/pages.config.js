@@ -1,6 +1,7 @@
 import AdminPanel from './pages/AdminPanel';
 import AvailableRides from './pages/AvailableRides';
 import ClubDellas from './pages/ClubDellas';
+import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverLogin from './pages/DriverLogin';
 import DriverProfile from './pages/DriverProfile';
@@ -22,7 +23,6 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
-import Download from './pages/Download';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +30,7 @@ export const PAGES = {
     "AdminPanel": AdminPanel,
     "AvailableRides": AvailableRides,
     "ClubDellas": ClubDellas,
+    "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverLogin": DriverLogin,
     "DriverProfile": DriverProfile,
@@ -51,7 +52,6 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
-    "Download": Download,
 }
 
 export const pagesConfig = {
