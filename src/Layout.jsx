@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 const NotificationBell = lazy(() => import('./components/NotificationBell'));
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
+const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -296,6 +297,18 @@ export default function Layout({ children, currentPageName }) {
       <main className="pt-20 min-h-screen">
         {children}
       </main>
+
+      {/* Keyboard Shortcuts Help - Above Chatbot */}
+      <div className="fixed bottom-24 right-6 z-[70]">
+        <Suspense fallback={null}>
+          <KeyboardShortcutsHelp shortcuts={[
+            { description: 'Solicitar Corrida', keys: ['Ctrl', 'R'] },
+            { description: 'Ver Histórico', keys: ['Ctrl', 'H'] },
+            { description: 'Abrir Perfil', keys: ['Ctrl', 'P'] },
+            { description: 'Ajuda', keys: ['Ctrl', '?'] },
+          ]} />
+        </Suspense>
+      </div>
 
       {/* Chatbot Float */}
       <Suspense fallback={null}>

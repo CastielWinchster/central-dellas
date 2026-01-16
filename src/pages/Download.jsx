@@ -185,25 +185,14 @@ export default function Download() {
                 <p className="text-[#F2F2F2]/70 text-lg mb-6">
                   Sem precisar de lojas de aplicativos. Instalação rápida e segura direto do seu navegador.
                 </p>
-                {canInstall ? (
-                  <Button
-                    onClick={handleInstallClick}
-                    size="lg"
-                    className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
-                  >
-                    <DownloadIcon className="w-5 h-5 mr-2" />
-                    Instalar App Agora
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={showManualInstructions}
-                    size="lg"
-                    variant="outline"
-                    className="border-[#F22998] text-[#F22998] hover:bg-[#F22998]/10 text-lg px-8 py-6"
-                  >
-                    Ver Instruções de Instalação
-                  </Button>
-                )}
+                <Button
+                  onClick={canInstall ? handleInstallClick : showManualInstructions}
+                  size="lg"
+                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
+                >
+                  <DownloadIcon className="w-5 h-5 mr-2" />
+                  Instalar Agora
+                </Button>
               </div>
             </Card>
           </motion.div>
