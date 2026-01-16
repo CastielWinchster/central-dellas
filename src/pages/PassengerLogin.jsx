@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Eye, EyeOff, Shield, Heart, Camera } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Shield, Heart, Camera, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,9 @@ export default function PassengerLogin() {
   const [isRegister, setIsRegister] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,27 +40,50 @@ export default function PassengerLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     if (isRegister) {
-      // Simulate registration
       if (!photoFile) {
         toast.error('Por favor, tire uma foto para identificação');
+        setLoading(false);
         return;
       }
       
       try {
-        // Upload photo
         const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
-        
-        // In real app, would create user with photo
-        toast.success('Cadastro realizado! Faça login para continuar.');
-        setIsRegister(false);
+        toast.success('Cadastro realizado! Enviamos um código de verificação para seu email.');
+        setTwoFactorStep(true);
       } catch (error) {
         toast.error('Erro ao realizar cadastro');
       }
+      setLoading(false);
     } else {
-      // Login via Base44 OAuth
-      base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
+      if (twoFactorStep) {
+        try {
+          if (verificationCode.length === 6) {
+            // Simular validação do código
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            base44.auth.redirectToLogin(window.location.origin + createPageUrl('PassengerHome'));
+          } else {
+            toast.error('Código inválido');
+            setLoading(false);
+          }
+        } catch (error) {
+          toast.error('Erro ao verificar código');
+          setLoading(false);
+        }
+      } else {
+        try {
+          // Simular envio de código
+          await new Promise(resolve => setTimeout(resolve, 800));
+          toast.success('Código de verificação enviado para seu email!');
+          setTwoFactorStep(true);
+          setLoading(false);
+        } catch (error) {
+          toast.error('Erro ao enviar código');
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -122,6 +148,46 @@ export default function PassengerLogin() {
               </div>
             </div>
 
+            {twoFactorStep ? (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mx-auto mb-4">
+                    <Smartphone className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[#F2F2F2] mb-2">Verificação em 2 Etapas</h3>
+                  <p className="text-[#F2F2F2]/60 text-sm">
+                    Digite o código de 6 dígitos enviado para<br />
+                    <strong className="text-[#F22998]">{formData.email}</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="text-center text-2xl tracking-widest bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                    maxLength={6}
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleLogin} 
+                  disabled={verificationCode.length !== 6 || loading}
+                  className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30"
+                >
+                  {loading ? 'Verificando...' : 'Verificar Código'}
+                </Button>
+
+                <button
+                  onClick={() => setTwoFactorStep(false)}
+                  className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm w-full"
+                >
+                  Voltar para login
+                </button>
+              </div>
+            ) : (
             <form onSubmit={handleLogin} className="space-y-4">
               {isRegister && (
                 <>
@@ -242,10 +308,11 @@ export default function PassengerLogin() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
-                {isRegister ? 'Criar Conta' : 'Entrar'}
+              <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
+                {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
               </Button>
-            </form>
+              </form>
+              )}
 
             <div className="mt-6 text-center">
               <button

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import NotificationBell from './components/NotificationBell';
-import ChatbotFloat from './components/ChatbotFloat';
+
+const NotificationBell = lazy(() => import('./components/NotificationBell'));
+const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -194,7 +195,9 @@ export default function Layout({ children, currentPageName }) {
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
-                  <NotificationBell userId={user.id} />
+                  <Suspense fallback={<div className="w-10 h-10" />}>
+                    <NotificationBell userId={user.id} />
+                  </Suspense>
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
@@ -285,7 +288,9 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Chatbot Float */}
-      <ChatbotFloat />
+      <Suspense fallback={null}>
+        <ChatbotFloat />
+      </Suspense>
 
       {/* Bottom Navigation - Mobile */}
       {user && (

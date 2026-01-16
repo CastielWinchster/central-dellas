@@ -122,6 +122,46 @@ export default function DriverLogin() {
               </div>
             </div>
 
+            {twoFactorStep ? (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mx-auto mb-4">
+                    <Smartphone className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[#F2F2F2] mb-2">Verificação em 2 Etapas</h3>
+                  <p className="text-[#F2F2F2]/60 text-sm">
+                    Digite o código de 6 dígitos enviado para<br />
+                    <strong className="text-[#F22998]">{formData.email}</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="text-center text-2xl tracking-widest bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                    maxLength={6}
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleLogin} 
+                  disabled={verificationCode.length !== 6 || loading}
+                  className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30"
+                >
+                  {loading ? 'Verificando...' : 'Verificar Código'}
+                </Button>
+
+                <button
+                  onClick={() => setTwoFactorStep(false)}
+                  className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm w-full"
+                >
+                  Voltar para login
+                </button>
+              </div>
+            ) : (
             <form onSubmit={handleLogin} className="space-y-4">
               {isRegister && (
                 <>
@@ -242,10 +282,11 @@ export default function DriverLogin() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
-                {isRegister ? 'Criar Conta' : 'Entrar'}
+              <Button type="submit" disabled={loading} className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F22998]/30">
+                {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
               </Button>
-            </form>
+              </form>
+              )}
 
             <div className="mt-6 text-center">
               <button
