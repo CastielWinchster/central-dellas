@@ -1,19 +1,52 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, CheckCircle, AlertCircle, X, Loader2, User, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import * as faceapi from '@vladmandic/face-api';
 
 export default function Step3FacialVerification({ data, onUpdate, onComplete, onBack }) {
-  const [stage, setStage] = useState('instructions'); // instructions, capturing, analyzing, verified, rejected, manual
+  const [stage, setStage] = useState('loading'); // loading, instructions, capturing, analyzing, verified, rejected, manual
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [attemptCount, setAttemptCount] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const videoRef = useRef(null);
   const [stream, setStream] = useState(null);
+
+  // Carregar modelos do face-api.js
+  useEffect(() => {
+    loadModels();
+  }, []);
+
+  const loadModels = async () => {
+    try {
+      setLoadingProgress(0);
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+      
+      setLoadingProgress(25);
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      
+      setLoadingProgress(50);
+      await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+      
+      setLoadingProgress(75);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      
+      setLoadingProgress(100);
+      setModelsLoaded(true);
+      setStage('instructions');
+      toast.success('Sistema de verificação pronto!');
+    } catch (error) {
+      console.error('Erro ao carregar modelos:', error);
+      toast.error('Erro ao inicializar sistema de verificação');
+      setStage('instructions');
+    }
+  };
 
   const handleStartCamera = async () => {
     try {
@@ -72,61 +105,94 @@ export default function Step3FacialVerification({ data, onUpdate, onComplete, on
     setAttemptCount(prev => prev + 1);
 
     try {
+      // Criar imagem para análise
+      const img = await faceapi.bufferToImage(file);
+      
+      // Detectar rosto com gênero e idade
+      const detection = await faceapi
+        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withAgeAndGender();
+
+      if (!detection) {
+        toast.error('❌ Nenhum rosto detectado. Tente outra foto.');
+        setStage('instructions');
+        setAnalyzing(false);
+        return;
+      }
+
+      // Validar qualidade da detecção
+      const { box } = detection.detection;
+      const faceSize = (box.width * box.height) / (img.width * img.height);
+      const confidence = detection.detection.score;
+
+      // Validar tamanho do rosto
+      if (faceSize < 0.10) {
+        toast.error('⚠️ Seu rosto está muito pequeno. Chegue mais perto.');
+        setStage('instructions');
+        setAnalyzing(false);
+        return;
+      }
+
+      if (faceSize > 0.90) {
+        toast.error('⚠️ Seu rosto está muito grande. Afaste um pouco.');
+        setStage('instructions');
+        setAnalyzing(false);
+        return;
+      }
+
+      // Validar confiança
+      if (confidence < 0.85) {
+        toast.error('⚠️ Foto não está clara. Tente com melhor iluminação.');
+        setStage('instructions');
+        setAnalyzing(false);
+        return;
+      }
+
+      // Analisar gênero
+      const gender = detection.gender;
+      const genderProbability = detection.genderProbability;
+      const age = Math.round(detection.age);
+
+      console.log(`Gênero: ${gender}, Confiança: ${Math.round(genderProbability * 100)}%, Idade: ${age}`);
+
       // Upload da foto
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Simular análise facial com IA
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Simulação de detecção de gênero
-      // Em produção, usaria uma API real (TensorFlow.js, Azure Face API, etc.)
-      const detectionResult = simulateGenderDetection();
-
-      if (detectionResult.gender === 'female' && detectionResult.confidence >= 0.85) {
-        // Sucesso!
+      // Verificar gênero
+      if (gender === 'female' && genderProbability >= 0.75) {
+        // ✅ Sucesso - é mulher
         onUpdate({
           ...data,
           facial_verification: {
             verified: true,
             photo: file_url,
             gender: 'female',
-            confidence: detectionResult.confidence,
+            confidence: genderProbability,
+            age: age,
             timestamp: new Date().toISOString()
           }
         });
         setStage('verified');
-        toast.success('Identidade verificada com sucesso!');
-      } else if (detectionResult.gender === 'male') {
-        // Rejeitado - gênero masculino
-        setStage('rejected');
-      } else {
-        // Inconclusivo
+        toast.success('✅ Identidade verificada com sucesso!');
+      } else if (gender === 'female' && genderProbability >= 0.60) {
+        // ⚠️ Inconclusivo - pedir nova foto
         if (attemptCount >= 3) {
-          // Após 3 tentativas, oferecer verificação manual
           setStage('manual');
         } else {
-          toast.error('Não foi possível verificar. Tente novamente.');
+          toast.error(`⚠️ Foto pouco clara (confiança: ${Math.round(genderProbability * 100)}%). Tente com melhor iluminação.`);
           setStage('instructions');
         }
+      } else {
+        // ❌ Não é mulher
+        setStage('rejected');
       }
     } catch (error) {
-      toast.error('Erro ao analisar foto');
+      console.error('Erro ao analisar foto:', error);
+      toast.error('Erro ao processar foto. Tente novamente.');
       setStage('instructions');
     }
     setAnalyzing(false);
-  };
-
-  // Simulação de detecção de gênero (em produção, seria uma API real)
-  const simulateGenderDetection = () => {
-    // Simular resultado aleatório para demonstração
-    const random = Math.random();
-    if (random > 0.7) {
-      return { gender: 'female', confidence: 0.85 + Math.random() * 0.15 };
-    } else if (random > 0.4) {
-      return { gender: 'female', confidence: 0.5 + Math.random() * 0.35 };
-    } else {
-      return { gender: 'male', confidence: 0.85 + Math.random() * 0.15 };
-    }
   };
 
   const stopCamera = () => {
@@ -168,6 +234,36 @@ export default function Step3FacialVerification({ data, onUpdate, onComplete, on
         </CardHeader>
         <CardContent className="space-y-4">
           <AnimatePresence mode="wait">
+            {/* Carregando modelos */}
+            {stage === 'loading' && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-12"
+              >
+                <Loader2 className="w-16 h-16 text-[#F22998] mx-auto mb-4 animate-spin" />
+                <h3 className="text-xl font-bold text-[#F2F2F2] mb-2">
+                  Carregando Sistema de Verificação
+                </h3>
+                <p className="text-[#F2F2F2]/60 mb-4">
+                  Inicializando modelos de IA...
+                </p>
+                <div className="max-w-xs mx-auto">
+                  <div className="h-2 bg-[#0D0D0D] rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-[#BF3B79] to-[#F22998]"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${loadingProgress}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                  <p className="text-sm text-[#F2F2F2]/50 mt-2">{loadingProgress}%</p>
+                </div>
+              </motion.div>
+            )}
+
             {/* Instruções */}
             {stage === 'instructions' && (
               <motion.div
