@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Send, User, Circle } from 'lucide-react';
+import { Send, User, Circle, Archive, ArchiveRestore, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 export default function Messages() {
   const [user, setUser] = useState(null);
@@ -12,6 +13,8 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,31 +34,47 @@ export default function Messages() {
 
     const loadMessages = async () => {
       const msgs = await base44.entities.Message.filter({ 
-        ride_id: selectedConversation.ride_id 
+        ride_id: selectedConversation.id 
       }, '-created_date');
       setMessages(msgs);
+      markMessagesAsRead(selectedConversation.id);
     };
 
     loadMessages();
 
     // Real-time subscription
     const unsubscribe = base44.entities.Message.subscribe((event) => {
-      if (event.data.ride_id === selectedConversation.ride_id) {
+      if (event.data.ride_id === selectedConversation.id) {
         if (event.type === 'create') {
           setMessages(prev => [event.data, ...prev]);
+          if (event.data.receiver_id === user.id) {
+            markMessagesAsRead(selectedConversation.id);
+          }
+        } else if (event.type === 'update') {
+          setMessages(prev => prev.map(m => 
+            m.id === event.data.id ? event.data : m
+          ));
         }
       }
     });
 
     return () => unsubscribe();
-  }, [selectedConversation]);
+  }, [selectedConversation, user]);
 
   const loadConversations = async (userId) => {
     const userRides = await base44.entities.Ride.filter({
       $or: [{ passenger_id: userId }, { driver_id: userId }]
-    }, '-updated_date', 20);
+    }, '-updated_date', 50);
     
-    setConversations(userRides.filter(r => r.status !== 'cancelled'));
+    const filtered = userRides.filter(r => r.status !== 'cancelled');
+    setConversations(filtered);
+    
+    // Count unread messages
+    const msgs = await base44.entities.Message.filter({
+      receiver_id: userId,
+      is_read: false
+    });
+    setUnreadCount(msgs.length);
   };
 
   const handleSendMessage = async () => {
@@ -73,12 +92,66 @@ export default function Messages() {
       });
 
       setNewMessage('');
+      
+      // Send notification to receiver
+      const receiverId = selectedConversation.passenger_id === user.id 
+        ? selectedConversation.driver_id 
+        : selectedConversation.passenger_id;
+      
+      await base44.entities.Notification.create({
+        user_id: receiverId,
+        title: 'Nova mensagem',
+        message: `${user.full_name}: ${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}`,
+        type: 'message',
+        related_id: selectedConversation.id
+      });
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error('Erro ao enviar mensagem');
+    }
+  };
+
+  const handleArchiveConversation = async (rideId, archive = true) => {
+    try {
+      await base44.entities.Ride.update(rideId, { 
+        archived: archive 
+      });
+      
+      setConversations(prev => prev.map(c => 
+        c.id === rideId ? { ...c, archived: archive } : c
+      ));
+      
+      if (selectedConversation?.id === rideId) {
+        setSelectedConversation(null);
+      }
+      
+      toast.success(archive ? 'Conversa arquivada' : 'Conversa restaurada');
+    } catch (error) {
+      toast.error('Erro ao arquivar conversa');
+    }
+  };
+
+  const markMessagesAsRead = async (rideId) => {
+    try {
+      const unreadMessages = messages.filter(m => 
+        m.receiver_id === user.id && !m.is_read
+      );
+      
+      for (const msg of unreadMessages) {
+        await base44.entities.Message.update(msg.id, { is_read: true });
+      }
+      
+      setUnreadCount(prev => Math.max(0, prev - unreadMessages.length));
+    } catch (error) {
+      console.error('Error marking as read:', error);
     }
   };
 
   const isDark = user?.theme !== 'light';
+  
+  const displayedConversations = conversations.filter(c => 
+    showArchived ? c.archived : !c.archived
+  );
 
   return (
     <div className={`min-h-screen pb-24 md:pb-10 ${isDark ? 'bg-[#0D0D0D]' : 'bg-gray-50'}`}>
@@ -86,49 +159,101 @@ export default function Messages() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-6 flex items-center justify-between"
         >
-          <h1 className={`text-3xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-            Mensagens
-          </h1>
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
+              Mensagens
+            </h1>
+            {unreadCount > 0 && (
+              <p className={`text-sm mt-1 ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
+                {unreadCount} mensagem{unreadCount > 1 ? 's' : ''} não lida{unreadCount > 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={() => setShowArchived(!showArchived)}
+            variant="outline"
+            className="border-[#F22998]/30 text-[#F22998]"
+          >
+            {showArchived ? (
+              <>
+                <ArchiveRestore className="w-4 h-4 mr-2" />
+                Ver Ativas
+              </>
+            ) : (
+              <>
+                <Archive className="w-4 h-4 mr-2" />
+                Ver Arquivadas
+              </>
+            )}
+          </Button>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Conversations List */}
           <Card className={`p-4 rounded-3xl h-[600px] overflow-y-auto ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white border-gray-200'}`}>
             <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-              Conversas
+              {showArchived ? 'Conversas Arquivadas' : 'Conversas Ativas'}
             </h3>
-            <div className="space-y-2">
-              {conversations.map((conv) => (
-                <button
+            {displayedConversations.length === 0 ? (
+              <p className={`text-center py-8 ${isDark ? 'text-[#F2F2F2]/50' : 'text-gray-500'}`}>
+                {showArchived ? 'Nenhuma conversa arquivada' : 'Nenhuma conversa ativa'}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {displayedConversations.map((conv) => (
+                <div
                   key={conv.id}
-                  onClick={() => setSelectedConversation(conv)}
-                  className={`w-full p-3 rounded-xl text-left transition-all ${
+                  className={`relative group ${
                     selectedConversation?.id === conv.id
                       ? 'bg-[#F22998]/20 border border-[#F22998]/30'
-                      : isDark ? 'hover:bg-[#F22998]/10' : 'hover:bg-gray-100'
-                  }`}
+                      : ''
+                  } rounded-xl`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-[#F22998]/20' : 'bg-gray-200'}`}>
-                      <User className="w-5 h-5 text-[#F22998]" />
+                  <button
+                    onClick={() => setSelectedConversation(conv)}
+                    className={`w-full p-3 text-left transition-all ${
+                      isDark ? 'hover:bg-[#F22998]/10' : 'hover:bg-gray-100'
+                    } rounded-xl`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-[#F22998]/20' : 'bg-gray-200'}`}>
+                        <User className="w-5 h-5 text-[#F22998]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium text-sm truncate ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
+                          Corrida para {conv.destination_address?.substring(0, 20)}...
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
+                          {conv.status === 'completed' ? 'Concluída' : 'Em andamento'}
+                        </p>
+                      </div>
+                      {conv.status === 'in_progress' && (
+                        <Circle className="w-2 h-2 fill-green-500 text-green-500" />
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <p className={`font-medium text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-                        Corrida para {conv.destination_address?.substring(0, 20)}...
-                      </p>
-                      <p className={`text-xs ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
-                        {conv.status === 'completed' ? 'Concluída' : 'Em andamento'}
-                      </p>
-                    </div>
-                    {conv.status === 'in_progress' && (
-                      <Circle className="w-2 h-2 fill-green-500 text-green-500" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleArchiveConversation(conv.id, !showArchived);
+                    }}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isDark ? 'hover:bg-[#F22998]/20' : 'hover:bg-gray-200'
+                    }`}
+                    title={showArchived ? 'Restaurar' : 'Arquivar'}
+                  >
+                    {showArchived ? (
+                      <ArchiveRestore className="w-4 h-4 text-[#F22998]" />
+                    ) : (
+                      <Archive className="w-4 h-4 text-[#F22998]" />
                     )}
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Chat Area */}
@@ -136,13 +261,33 @@ export default function Messages() {
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className={`p-4 border-b ${isDark ? 'border-[#F22998]/10' : 'border-gray-200'}`}>
-                  <p className={`font-semibold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-                    {selectedConversation.destination_address}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
-                    {selectedConversation.status === 'completed' ? 'Corrida concluída' : 'Corrida ativa'}
-                  </p>
+                <div className={`p-4 border-b ${isDark ? 'border-[#F22998]/10' : 'border-gray-200'} flex items-center justify-between`}>
+                  <div>
+                    <p className={`font-semibold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
+                      {selectedConversation.destination_address}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
+                      {selectedConversation.status === 'completed' ? 'Corrida concluída' : 'Corrida ativa'}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleArchiveConversation(selectedConversation.id, !selectedConversation.archived)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-[#F22998]"
+                  >
+                    {selectedConversation.archived ? (
+                      <>
+                        <ArchiveRestore className="w-4 h-4 mr-1" />
+                        Restaurar
+                      </>
+                    ) : (
+                      <>
+                        <Archive className="w-4 h-4 mr-1" />
+                        Arquivar
+                      </>
+                    )}
+                  </Button>
                 </div>
 
                 {/* Messages */}

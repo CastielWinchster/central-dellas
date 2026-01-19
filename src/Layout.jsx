@@ -57,12 +57,13 @@ export default function Layout({ children, currentPageName }) {
   const driverLinks = [
     { name: 'Home', icon: Home, page: 'DriverDashboard' },
     { name: 'Corridas', icon: MapPin, page: 'AvailableRides' },
+    { name: 'Mensagens', icon: MessageCircle, page: 'Messages' },
     { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
     { name: 'Avaliações', icon: Star, page: 'MyReviews' },
     { name: 'Opções', icon: Settings, page: 'DriverOptions' }
   ];
 
-  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
+  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Messages', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
   if (loading) {
     return (
