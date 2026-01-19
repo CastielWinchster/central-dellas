@@ -489,15 +489,15 @@ export default function PassengerChat() {
           >
             <Send className="w-5 h-5" />
           </Button>
+          </div>
+          
+          {newMessage.length > 400 && (
+            <p className="text-xs text-[#F2F2F2]/40 text-center mt-2">
+              {500 - newMessage.length} caracteres restantes
+            </p>
+          )}
         </div>
-        
-        {newMessage.length > 400 && (
-          <p className="text-xs text-[#F2F2F2]/40 text-center mt-2">
-            {500 - newMessage.length} caracteres restantes
-          </p>
-        )}
-        </div>
-        </div>
-        )}
+      )}
+    </div>
   );
 }
