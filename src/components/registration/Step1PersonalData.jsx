@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User, CheckCircle, AlertCircle, Loader2, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 export default function Step1PersonalData({ data, onUpdate, onNext }) {
   const [formData, setFormData] = useState({
@@ -136,7 +137,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     });
   }, [formData]);
 
-  // Enviar código de verificação
+  // Enviar código de verificação via WhatsApp
   const handleSendCode = async () => {
     if (!validation.phone) {
       toast.error('Digite um telefone válido');
@@ -145,26 +146,48 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     
     setSendingCode(true);
     try {
-      // Simulação de envio de código
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setShowVerificationInput(true);
-      toast.success('Código enviado para o WhatsApp!');
+      const response = await base44.functions.invoke('sendWhatsAppCode', {
+        telefone: formData.phone
+      });
+      
+      if (response.data.sucesso) {
+        setShowVerificationInput(true);
+        toast.success(response.data.mensagem);
+      } else {
+        toast.error(response.data.erro || 'Erro ao enviar código');
+      }
     } catch (error) {
-      toast.error('Erro ao enviar código');
+      console.error('Erro ao enviar código:', error);
+      toast.error('Erro ao enviar código. Tente novamente.');
     }
     setSendingCode(false);
   };
 
-  // Verificar código
-  const handleVerifyCode = () => {
-    // TODO: Integrar com backend real de verificação SMS/WhatsApp
-    // Por enquanto, aceitar qualquer código de 6 dígitos apenas em desenvolvimento
-    if (verificationCode.length === 6) {
-      setFormData({ ...formData, phone_verified: true });
-      onUpdate({ ...data, phone_verified: true });
-      toast.success('Telefone verificado!');
-    } else {
-      toast.error('Código inválido - digite 6 dígitos');
+  // Verificar código via WhatsApp
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 6) {
+      toast.error('Digite um código de 6 dígitos');
+      return;
+    }
+
+    try {
+      const response = await base44.functions.invoke('verifyWhatsAppCode', {
+        telefone: formData.phone,
+        codigo: verificationCode
+      });
+
+      if (response.data.sucesso) {
+        setFormData({ ...formData, phone_verified: true });
+        onUpdate({ ...data, phone_verified: true });
+        toast.success(response.data.mensagem);
+        setShowVerificationInput(false);
+        setVerificationCode('');
+      } else {
+        toast.error(response.data.erro || 'Código incorreto');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar código:', error);
+      toast.error('Erro ao verificar código. Tente novamente.');
     }
   };
 
