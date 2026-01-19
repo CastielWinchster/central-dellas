@@ -25,6 +25,7 @@ import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
 import PassengerChat from './pages/PassengerChat';
+import PassengerMessages from './pages/PassengerMessages';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "TrackRide": TrackRide,
     "Wallet": Wallet,
     "PassengerChat": PassengerChat,
+    "PassengerMessages": PassengerMessages,
 }
 
 export const pagesConfig = {

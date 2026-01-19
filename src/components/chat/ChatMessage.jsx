@@ -22,6 +22,42 @@ export default function ChatMessage({ message, isOwn, onReport }) {
   };
 
   const renderContent = () => {
+    if (message.message_type === 'image') {
+      return (
+        <a 
+          href={message.content} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="block"
+        >
+          <img 
+            src={message.content} 
+            alt="Imagem enviada" 
+            className="max-w-full rounded-lg max-h-80 object-contain"
+          />
+        </a>
+      );
+    }
+
+    if (message.message_type === 'audio') {
+      const duration = message.metadata?.duration || 0;
+      return (
+        <div className="flex flex-col gap-2 min-w-[200px]">
+          <audio 
+            src={message.content} 
+            controls 
+            className="w-full"
+            style={{ height: '40px' }}
+          />
+          {duration > 0 && (
+            <span className="text-xs opacity-60">
+              {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
+            </span>
+          )}
+        </div>
+      );
+    }
+
     if (message.message_type === 'attachment') {
       return (
         <a 

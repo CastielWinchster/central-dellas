@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
   Send, Paperclip, Phone, AlertCircle, Flag, ArrowLeft,
-  MapPin, Star, MoreVertical, X, Check
+  MapPin, Star, MoreVertical, X, Check, Mic, Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import ChatMessage from '../components/chat/ChatMessage';
 import TypingIndicator from '../components/chat/TypingIndicator';
 import SmartReplies from '../components/chat/SmartReplies';
+import AudioRecorder from '../components/chat/AudioRecorder';
 
 export default function PassengerChat() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function PassengerChat() {
   const [uploading, setUploading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [lastSent, setLastSent] = useState(0);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,19 +38,32 @@ export default function PassengerChat() {
         const userData = await base44.auth.me();
         setUser(userData);
 
-        // Get active ride
-        const activeRides = await base44.entities.Ride.filter({
-          passenger_id: userData.id,
-          status: { $in: ['accepted', 'arriving', 'in_progress'] }
-        }, '-created_date', 1);
+        // Get ride ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const rideId = urlParams.get('ride');
 
-        if (activeRides.length === 0) {
-          toast.error('Nenhuma corrida ativa encontrada');
-          navigate(createPageUrl('PassengerDashboard'));
-          return;
+        let currentRide;
+        
+        if (rideId) {
+          const rides = await base44.entities.Ride.filter({ id: rideId });
+          if (rides.length > 0) {
+            currentRide = rides[0];
+          }
+        } else {
+          // Fallback to active ride
+          const activeRides = await base44.entities.Ride.filter({
+            passenger_id: userData.id,
+            status: { $in: ['accepted', 'arriving', 'in_progress'] }
+          }, '-created_date', 1);
+
+          if (activeRides.length === 0) {
+            toast.error('Nenhuma corrida encontrada');
+            navigate(createPageUrl('PassengerMessages'));
+            return;
+          }
+          currentRide = activeRides[0];
         }
 
-        const currentRide = activeRides[0];
         setRide(currentRide);
 
         // Get driver info
@@ -156,12 +171,17 @@ export default function PassengerChat() {
     }
   };
 
-  const handleFileUpload = async (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      toast.error('Apenas imagens são permitidas');
+      return;
+    }
+
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Arquivo muito grande (máximo 5MB)');
+      toast.error('Imagem muito grande (máximo 5MB)');
       return;
     }
 
@@ -174,12 +194,54 @@ export default function PassengerChat() {
         sender_id: user.id,
         receiver_id: ride.driver_id,
         content: file_url,
-        message_type: 'attachment'
+        message_type: 'image'
       });
 
-      toast.success('Arquivo enviado');
+      await base44.entities.Notification.create({
+        user_id: ride.driver_id,
+        title: 'Nova imagem',
+        message: `${user.full_name} enviou uma imagem`,
+        type: 'message',
+        related_id: ride.id
+      });
+
+      toast.success('Imagem enviada');
     } catch (error) {
-      toast.error('Erro ao enviar arquivo');
+      toast.error('Erro ao enviar imagem');
+    }
+    setUploading(false);
+  };
+
+  const handleAudioSend = async (audioBlob, duration) => {
+    if (!audioBlob || !ride) return;
+
+    setUploading(true);
+    try {
+      // Convert blob to file
+      const audioFile = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: audioFile });
+      
+      await base44.entities.Message.create({
+        ride_id: ride.id,
+        sender_id: user.id,
+        receiver_id: ride.driver_id,
+        content: file_url,
+        message_type: 'audio',
+        metadata: { duration }
+      });
+
+      await base44.entities.Notification.create({
+        user_id: ride.driver_id,
+        title: 'Novo áudio',
+        message: `${user.full_name} enviou um áudio`,
+        type: 'message',
+        related_id: ride.id
+      });
+
+      setShowAudioRecorder(false);
+      toast.success('Áudio enviado');
+    } catch (error) {
+      toast.error('Erro ao enviar áudio');
     }
     setUploading(false);
   };
@@ -369,25 +431,41 @@ export default function PassengerChat() {
         }}
       />
 
+      {/* Audio Recorder */}
+      {showAudioRecorder && (
+        <AudioRecorder
+          onSend={handleAudioSend}
+          onCancel={() => setShowAudioRecorder(false)}
+        />
+      )}
+
       {/* Input Area */}
-      <div className="bg-[#1A1A1A] border-t border-[#8C0D60] p-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-2">
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/*,.pdf"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={uploading}
-            />
-            <div className={`p-3 rounded-xl ${uploading ? 'bg-[#F22998]/20' : 'hover:bg-[#F22998]/10'} transition-colors`}>
-              {uploading ? (
-                <div className="w-5 h-5 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
-              ) : (
-                <Paperclip className="w-5 h-5 text-[#F2F2F2]/60" />
-              )}
-            </div>
-          </label>
+      {!showAudioRecorder && (
+        <div className="bg-[#1A1A1A] border-t border-[#8C0D60] p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-2">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+                disabled={uploading}
+              />
+              <div className={`p-3 rounded-xl ${uploading ? 'bg-[#F22998]/20' : 'hover:bg-[#F22998]/10'} transition-colors`}>
+                {uploading ? (
+                  <div className="w-5 h-5 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+                ) : (
+                  <ImageIcon className="w-5 h-5 text-[#F2F2F2]/60" />
+                )}
+              </div>
+            </label>
+
+            <button
+              onClick={() => setShowAudioRecorder(true)}
+              className="p-3 rounded-xl hover:bg-[#F22998]/10 transition-colors"
+            >
+              <Mic className="w-5 h-5 text-[#F2F2F2]/60" />
+            </button>
 
           <Input
             ref={inputRef}
@@ -418,7 +496,8 @@ export default function PassengerChat() {
             {500 - newMessage.length} caracteres restantes
           </p>
         )}
-      </div>
-    </div>
+        </div>
+        </div>
+        )}
   );
 }

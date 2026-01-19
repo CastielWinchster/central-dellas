@@ -46,7 +46,7 @@ export default function Layout({ children, currentPageName }) {
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [
     { name: 'Home', icon: Home, page: 'PassengerHome' },
-    { name: 'Mensagens', icon: MessageCircle, page: 'Messages' },
+    { name: 'Mensagens', icon: MessageCircle, page: 'PassengerMessages' },
     { 
       name: 'Opções', 
       icon: Settings, 
