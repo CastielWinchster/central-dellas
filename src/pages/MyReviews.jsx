@@ -93,7 +93,7 @@ export default function MyReviews() {
   ];
 
   return (
-    <div className="min-h-screen pb-24 md:pb-10">
+    <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <motion.div

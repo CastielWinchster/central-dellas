@@ -23,6 +23,7 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
+import DriverOptions from './pages/DriverOptions';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
+    "DriverOptions": DriverOptions,
 }
 
 export const pagesConfig = {

@@ -54,9 +54,15 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Baixar App', icon: DownloadIcon, page: 'Download' }
   ];
 
-  const driverLinks = [];
+  const driverLinks = [
+    { name: 'Home', icon: Home, page: 'DriverDashboard' },
+    { name: 'Corridas', icon: MapPin, page: 'AvailableRides' },
+    { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
+    { name: 'Avaliações', icon: Star, page: 'MyReviews' },
+    { name: 'Opções', icon: Settings, page: 'DriverOptions' }
+  ];
 
-  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews'].includes(currentPageName);
+  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
   if (loading) {
     return (
