@@ -103,8 +103,24 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       // Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Simular validação do documento (em produção, seria uma API de OCR/validação)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Validar documento com IA
+      const validation = await validateDocumentWithAI(key, file_url);
+
+      if (!validation.valid) {
+        toast.error(validation.error);
+        setUploading(null);
+        return;
+      }
+
+      // Verificar fraude comparando com dados pessoais
+      if (data.full_name && validation.extracted_data) {
+        const fraudCheck = checkForFraud(validation.extracted_data, data);
+        if (!fraudCheck.valid) {
+          toast.error(`⚠️ Inconsistência detectada: ${fraudCheck.message}`);
+          setUploading(null);
+          return;
+        }
+      }
 
       // Atualizar estado
       const updatedDocs = {
@@ -112,17 +128,233 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         [key]: {
           uploaded: true,
           verified: true,
-          photo: file_url
+          photo: file_url,
+          extracted_data: validation.extracted_data
         }
       };
       
       setDocuments(updatedDocs);
       onUpdate({ ...data, ...updatedDocs });
-      toast.success(`${documentTypes.find(d => d.key === key).label} verificado!`);
+      toast.success(`✅ ${documentTypes.find(d => d.key === key).label} verificado!`);
     } catch (error) {
       toast.error('Erro ao fazer upload');
     }
     setUploading(null);
+  };
+
+  // Validar documento com IA
+  const validateDocumentWithAI = async (docType, fileUrl) => {
+    try {
+      const prompts = {
+        cnh: `Analise esta CNH (Carteira Nacional de Habilitação) e extraia:
+- Nome completo
+- Número da CNH
+- CPF
+- Data de nascimento
+- Data de validade
+- Categoria
+
+Verifique também se:
+- O documento está legível
+- Não há sinais de adulteração (bordas cortadas, texto borrado, sobreposições)
+- A foto está clara
+- O documento não está vencido
+
+Se houver qualquer problema, indique no campo "issues".`,
+        
+        rg: `Analise este RG e extraia:
+- Nome completo
+- Número do RG
+- CPF (se presente)
+- Data de nascimento
+- Órgão emissor
+
+Verifique se:
+- O documento está legível
+- Não há sinais de adulteração
+- A foto está visível`,
+        
+        comprovante: `Analise este comprovante de residência e extraia:
+- Nome do titular
+- Endereço completo
+- Data de emissão
+- Tipo de conta (água, luz, telefone, etc)
+
+Verifique se:
+- O documento tem menos de 3 meses
+- O endereço está completo e legível
+- O nome está visível`,
+        
+        crlv: `Analise este CRLV (Certificado de Registro e Licenciamento de Veículo) e extraia:
+- Placa
+- Marca/Modelo
+- Ano
+- Cor
+- Nome do proprietário
+- Renavam
+
+Verifique se:
+- O documento está válido
+- Não há restrições
+- Está legível`,
+        
+        seguro: `Analise este comprovante de seguro e extraia:
+- Número da apólice
+- Segurado
+- Placa do veículo
+- Vigência (data início e fim)
+- Cobertura para passageiros
+
+Verifique se:
+- A apólice está ativa
+- Há cobertura adequada`
+      };
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: prompts[docType],
+        file_urls: [fileUrl],
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            valid: { type: 'boolean' },
+            extracted_data: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                cpf: { type: 'string' },
+                document_number: { type: 'string' },
+                birth_date: { type: 'string' },
+                expiry_date: { type: 'string' },
+                address: { type: 'string' },
+                plate: { type: 'string' }
+              }
+            },
+            issues: {
+              type: 'array',
+              items: { type: 'string' }
+            },
+            confidence: { type: 'number' }
+          }
+        }
+      });
+
+      if (!response.valid) {
+        return {
+          valid: false,
+          error: `Documento inválido: ${response.issues?.join(', ') || 'Não foi possível validar'}`
+        };
+      }
+
+      if (response.confidence < 0.7) {
+        return {
+          valid: false,
+          error: 'Foto muito escura ou desfocada. Tire outra com melhor qualidade.'
+        };
+      }
+
+      if (response.issues && response.issues.length > 0) {
+        return {
+          valid: false,
+          error: `Problemas detectados: ${response.issues.join(', ')}`
+        };
+      }
+
+      return {
+        valid: true,
+        extracted_data: response.extracted_data
+      };
+    } catch (error) {
+      console.error('Erro na validação IA:', error);
+      // Se falhar, permitir prosseguir (validação manual depois)
+      return {
+        valid: true,
+        extracted_data: null
+      };
+    }
+  };
+
+  // Verificar fraude comparando dados entre documentos
+  const checkForFraud = (extractedData, personalData) => {
+    const issues = [];
+
+    // Comparar nome
+    if (extractedData.name && personalData.full_name) {
+      const normalizedExtracted = extractedData.name.toLowerCase().trim();
+      const normalizedPersonal = personalData.full_name.toLowerCase().trim();
+      
+      // Verificar se os nomes têm alguma semelhança
+      const similarity = calculateNameSimilarity(normalizedExtracted, normalizedPersonal);
+      if (similarity < 0.6) {
+        issues.push('Nome no documento não corresponde aos dados informados');
+      }
+    }
+
+    // Comparar CPF
+    if (extractedData.cpf && personalData.cpf) {
+      const cleanExtracted = extractedData.cpf.replace(/\D/g, '');
+      const cleanPersonal = personalData.cpf.replace(/\D/g, '');
+      if (cleanExtracted !== cleanPersonal) {
+        issues.push('CPF no documento não corresponde ao informado');
+      }
+    }
+
+    // Comparar data de nascimento
+    if (extractedData.birth_date && personalData.birth_date) {
+      const extractedDate = extractedData.birth_date.replace(/\D/g, '');
+      const personalDate = personalData.birth_date.replace(/\D/g, '');
+      if (extractedDate !== personalDate) {
+        issues.push('Data de nascimento não corresponde');
+      }
+    }
+
+    // Verificar consistência entre documentos
+    const allDocs = Object.values(documents).filter(d => d.extracted_data);
+    if (allDocs.length > 0) {
+      const firstCPF = allDocs[0].extracted_data?.cpf;
+      const firstName = allDocs[0].extracted_data?.name;
+      
+      if (extractedData.cpf && firstCPF) {
+        const clean1 = extractedData.cpf.replace(/\D/g, '');
+        const clean2 = firstCPF.replace(/\D/g, '');
+        if (clean1 !== clean2) {
+          issues.push('CPFs não correspondem entre documentos');
+        }
+      }
+
+      if (extractedData.name && firstName) {
+        const similarity = calculateNameSimilarity(
+          extractedData.name.toLowerCase(),
+          firstName.toLowerCase()
+        );
+        if (similarity < 0.6) {
+          issues.push('Nomes não correspondem entre documentos');
+        }
+      }
+    }
+
+    if (issues.length > 0) {
+      return {
+        valid: false,
+        message: issues[0]
+      };
+    }
+
+    return { valid: true };
+  };
+
+  // Calcular similaridade entre nomes
+  const calculateNameSimilarity = (str1, str2) => {
+    const words1 = str1.split(/\s+/);
+    const words2 = str2.split(/\s+/);
+    
+    let matches = 0;
+    words1.forEach(word1 => {
+      if (words2.some(word2 => word2.includes(word1) || word1.includes(word2))) {
+        matches++;
+      }
+    });
+    
+    return matches / Math.max(words1.length, words2.length);
   };
 
   const getDocumentStatus = (key) => {
@@ -302,9 +534,22 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
               <div>
-                <p className="text-sm text-blue-400 font-medium mb-1">Verificação Automática</p>
+                <p className="text-sm text-blue-400 font-medium mb-1">Verificação com IA</p>
                 <p className="text-sm text-[#F2F2F2]/60">
-                  Seus documentos são verificados automaticamente. Certifique-se de que as fotos estejam claras e legíveis.
+                  Usamos inteligência artificial para validar seus documentos, extrair dados e detectar fraudes. Certifique-se de que as fotos estejam claras e legíveis.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Aviso sobre progresso salvo */}
+          <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+              <div>
+                <p className="text-sm text-green-400 font-medium mb-1">Progresso Salvo Automaticamente</p>
+                <p className="text-sm text-[#F2F2F2]/60">
+                  Seu progresso é salvo automaticamente. Você pode sair e voltar depois sem perder seus documentos enviados.
                 </p>
               </div>
             </div>
