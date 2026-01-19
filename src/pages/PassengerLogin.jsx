@@ -189,7 +189,7 @@ export default function PassengerLogin() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-[#F2F2F2]">
-                  {isRegister ? 'Cadastrar-se como Passageira' : 'Login de Passageira'}
+                  {isRegister ? 'Cadastrar-se como Passageiro' : 'Login de Passageiro'}
                 </h2>
                 <p className="text-[#F2F2F2]/60 text-sm">
                   {isRegister ? 'Complete seu cadastro' : 'Acesse sua conta'}
