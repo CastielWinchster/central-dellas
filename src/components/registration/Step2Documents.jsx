@@ -402,7 +402,7 @@ Verifique se:
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
     >
-      <Card className="glass-effect border-[#F22998]/30 mb-6">
+      <Card className="bg-[#0D0D0D] border-[#F22998]/30 mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
             <FileText className="w-5 h-5 text-[#F22998]" />
