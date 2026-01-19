@@ -5,7 +5,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
   User, CreditCard, Heart, MapPin, Shield, Lock, Bell, 
-  Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift
+  Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
+  Clock, Star, History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -35,6 +36,52 @@ export default function PassengerOptions() {
   }, []);
 
   const menuSections = [
+    {
+      title: '🚀 AÇÕES RÁPIDAS',
+      items: [
+        { 
+          icon: MapPin, 
+          label: 'Chamar Agora', 
+          description: 'Corrida imediata',
+          page: 'RequestRide'
+        },
+        { 
+          icon: Clock, 
+          label: 'Agendar Corrida', 
+          description: 'Até 30 dias',
+          page: 'ScheduleRide'
+        },
+        { 
+          icon: Heart, 
+          label: 'Favoritas', 
+          description: 'Ver motoristas',
+          page: 'FavoriteDrivers'
+        }
+      ]
+    },
+    {
+      title: '📊 PRINCIPAL',
+      items: [
+        { 
+          icon: Star, 
+          label: 'Clube Dellas', 
+          description: 'Planos e benefícios',
+          page: 'ClubDellas'
+        },
+        { 
+          icon: History, 
+          label: 'Histórico', 
+          description: 'Ver minhas corridas',
+          page: 'RideHistory'
+        },
+        { 
+          icon: Wallet, 
+          label: 'Carteira', 
+          description: 'Saldo e recargas',
+          page: 'Wallet'
+        }
+      ]
+    },
     {
       title: '👤 MEU PERFIL',
       items: [
@@ -160,9 +207,8 @@ export default function PassengerOptions() {
     <div className="fixed inset-0 bg-[#0D0D0D] flex flex-col">
       {/* Fixed Header */}
       <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#BF3B79] p-4 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[#F2F2F2]">⚙️ Opções - Passageira</h1>
-          <Link to={createPageUrl('PassengerDashboard')}>
+        <div className="max-w-4xl mx-auto flex items-center justify-end">
+          <Link to={createPageUrl('PassengerHome')}>
             <Button variant="ghost" size="sm" className="text-[#F2F2F2]">
               ✕
             </Button>
