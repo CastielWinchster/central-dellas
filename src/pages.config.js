@@ -12,9 +12,11 @@ import LoyaltyProgram from './pages/LoyaltyProgram';
 import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
+import PassengerChat from './pages/PassengerChat';
 import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
+import PassengerMessages from './pages/PassengerMessages';
 import PassengerProfile from './pages/PassengerProfile';
 import Profile from './pages/Profile';
 import RequestRide from './pages/RequestRide';
@@ -24,8 +26,7 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
-import PassengerChat from './pages/PassengerChat';
-import PassengerMessages from './pages/PassengerMessages';
+import PassengerOptions from './pages/PassengerOptions';
 import __Layout from './Layout.jsx';
 
 
@@ -44,9 +45,11 @@ export const PAGES = {
     "Messages": Messages,
     "MyReviews": MyReviews,
     "Notifications": Notifications,
+    "PassengerChat": PassengerChat,
     "PassengerDashboard": PassengerDashboard,
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
+    "PassengerMessages": PassengerMessages,
     "PassengerProfile": PassengerProfile,
     "Profile": Profile,
     "RequestRide": RequestRide,
@@ -56,8 +59,7 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
-    "PassengerChat": PassengerChat,
-    "PassengerMessages": PassengerMessages,
+    "PassengerOptions": PassengerOptions,
 }
 
 export const pagesConfig = {

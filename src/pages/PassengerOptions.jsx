@@ -4,14 +4,13 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
-  User, FileText, CreditCard, Shield, Lock, Bell, 
-  Settings, HelpCircle, LogOut, ChevronRight, Camera,
-  DollarSign, Car, Package, Star
+  User, CreditCard, Heart, MapPin, Shield, Lock, Bell, 
+  Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export default function DriverOptions() {
+export default function PassengerOptions() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
@@ -20,8 +19,8 @@ export default function DriverOptions() {
       try {
         const userData = await base44.auth.me();
         
-        // Verificar se é motorista
-        if (userData.user_type !== 'driver' && userData.user_type !== 'both') {
+        // Verificar se é passageira
+        if (userData.user_type === 'driver') {
           toast.error('Você não tem permissão para acessar esta página');
           await base44.auth.logout();
           return;
@@ -43,80 +42,63 @@ export default function DriverOptions() {
           icon: User, 
           label: 'Editar Perfil', 
           description: 'Atualizar informações pessoais',
-          page: 'DriverProfile'
+          page: 'PassengerProfile'
         }
       ]
     },
     {
-      title: '📋 DOCUMENTOS',
+      title: '💳 PAGAMENTO',
       items: [
         { 
-          icon: FileText, 
-          label: 'Documentos', 
-          description: 'CNH, RG, CRLV e Seguro',
-          page: 'DriverDocuments'
-        }
-      ]
-    },
-    {
-      title: '🚗 MEU VEÍCULO',
-      items: [
-        { 
-          icon: Car, 
-          label: 'Informações do Veículo', 
-          description: 'Placa, modelo e documentação',
-          page: 'DriverVehicle'
+          icon: Wallet, 
+          label: 'Carteira Digital', 
+          description: 'Saldo e recargas',
+          page: 'Wallet'
         },
-        { 
-          icon: Package, 
-          label: 'Serviços', 
-          description: 'Frete e pets',
-          page: 'DriverProfile'
-        }
-      ]
-    },
-    {
-      title: '💰 FINANCEIRO',
-      items: [
         { 
           icon: CreditCard, 
-          label: 'Conta Bancária', 
-          description: 'Gerenciar dados bancários',
-          page: 'DriverBanking'
-        },
-        { 
-          icon: DollarSign, 
-          label: 'Meus Ganhos', 
-          description: 'Saldo e histórico de saques',
-          page: 'Earnings'
+          label: 'Cartões', 
+          description: 'Gerenciar formas de pagamento',
+          page: 'PassengerPayment'
         }
       ]
     },
     {
-      title: '⭐ AVALIAÇÕES',
+      title: '⭐ FAVORITOS',
       items: [
         { 
-          icon: Star, 
-          label: 'Minhas Avaliações', 
-          description: 'Ver notas e comentários',
-          page: 'MyReviews'
+          icon: Heart, 
+          label: 'Motoristas Favoritas', 
+          description: 'Minhas motoristas preferidas',
+          page: 'FavoriteDrivers'
+        },
+        { 
+          icon: MapPin, 
+          label: 'Locais Favoritos', 
+          description: 'Casa, trabalho e mais',
+          page: 'SavedAddresses'
         }
       ]
     },
     {
-      title: '🔐 SEGURANÇA',
+      title: '🆘 SEGURANÇA',
+      items: [
+        { 
+          icon: Shield, 
+          label: 'Emergência', 
+          description: 'Contatos e recursos de segurança',
+          page: 'PassengerSafety'
+        }
+      ]
+    },
+    {
+      title: '🔐 CONTA',
       items: [
         { 
           icon: Lock, 
           label: 'Alterar Senha', 
           description: 'Atualizar senha de acesso',
-          page: 'DriverSecurity'
-        },
-        { 
-          icon: Shield, 
-          label: 'Autenticação 2FA', 
-          description: 'Segurança extra',
-          page: 'Driver2FA'
+          page: 'PassengerSecurity'
         }
       ]
     },
@@ -127,7 +109,7 @@ export default function DriverOptions() {
           icon: Bell, 
           label: 'Notificações', 
           description: 'Gerenciar alertas',
-          page: 'DriverNotifications'
+          page: 'PassengerNotifications'
         }
       ]
     },
@@ -143,13 +125,24 @@ export default function DriverOptions() {
       ]
     },
     {
-      title: '❓ SUPORTE',
+      title: '🎁 BENEFÍCIOS',
+      items: [
+        { 
+          icon: Gift, 
+          label: 'Programa de Fidelidade', 
+          description: 'Pontos e recompensas',
+          page: 'LoyaltyProgram'
+        }
+      ]
+    },
+    {
+      title: '💬 SUPORTE',
       items: [
         { 
           icon: HelpCircle, 
           label: 'Central de Ajuda', 
           description: 'FAQ e suporte',
-          page: 'DriverHelp'
+          page: 'PassengerHelp'
         }
       ]
     }
@@ -166,10 +159,10 @@ export default function DriverOptions() {
   return (
     <div className="fixed inset-0 bg-[#0D0D0D] flex flex-col">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#8C0D60] p-4 sticky top-0 z-50">
+      <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#BF3B79] p-4 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[#F2F2F2]">⚙️ Opções - Motorista</h1>
-          <Link to={createPageUrl('DriverDashboard')}>
+          <h1 className="text-xl font-bold text-[#F2F2F2]">⚙️ Opções - Passageira</h1>
+          <Link to={createPageUrl('PassengerDashboard')}>
             <Button variant="ghost" size="sm" className="text-[#F2F2F2]">
               ✕
             </Button>
@@ -184,7 +177,7 @@ export default function DriverOptions() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#8C0D60]"
+            className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]"
           >
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#F22998]">
@@ -200,8 +193,8 @@ export default function DriverOptions() {
                 <h2 className="text-xl font-bold text-[#F2F2F2]">{user.full_name}</h2>
                 <p className="text-[#F2F2F2]/60">{user.email}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Shield className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-green-400">Verificada</span>
+                  <Shield className="w-4 h-4 text-[#F22998]" />
+                  <span className="text-sm text-[#F22998]">Passageira VIP</span>
                 </div>
               </div>
             </div>
@@ -216,10 +209,10 @@ export default function DriverOptions() {
               transition={{ delay: sectionIndex * 0.05 }}
               className="mb-6"
             >
-              <h3 className="text-xs font-bold text-[#8C0D60] mb-3 uppercase tracking-wider px-2">
+              <h3 className="text-xs font-bold text-[#BF3B79] mb-3 uppercase tracking-wider px-2">
                 {section.title}
               </h3>
-              <div className="bg-[#1A1A1A] border border-[#8C0D60] rounded-2xl overflow-hidden">
+              <div className="bg-[#1A1A1A] border border-[#BF3B79] rounded-2xl overflow-hidden">
                 {section.items.map((item, index) => (
                   <Link
                     key={index}
@@ -252,7 +245,7 @@ export default function DriverOptions() {
           >
             <Button
               onClick={async () => {
-                const loginUrl = window.location.origin + createPageUrl('DriverLogin');
+                const loginUrl = window.location.origin + createPageUrl('PassengerLogin');
                 await base44.auth.logout(loginUrl);
               }}
               variant="outline"

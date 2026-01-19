@@ -82,7 +82,7 @@ export default function PassengerDashboard() {
       icon: MessageCircle,
       label: 'Mensagens',
       description: 'Conversar com motoristas',
-      page: 'Messages',
+      page: 'PassengerMessages',
       color: 'bg-gradient-to-br from-[#8C0D60] to-[#BF3B79]'
     },
     {

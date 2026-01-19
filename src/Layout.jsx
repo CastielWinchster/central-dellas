@@ -50,7 +50,7 @@ export default function Layout({ children, currentPageName }) {
     { 
       name: 'Opções', 
       icon: Settings, 
-      page: user ? 'PassengerDashboard' : 'PassengerLogin'
+      page: user ? 'PassengerOptions' : 'PassengerLogin'
     },
     { name: 'Baixar App', icon: DownloadIcon, page: 'Download' }
   ];
@@ -60,7 +60,6 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Corridas', icon: MapPin, page: 'AvailableRides' },
     { name: 'Mensagens', icon: MessageCircle, page: 'Messages' },
     { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
-    { name: 'Avaliações', icon: Star, page: 'MyReviews' },
     { name: 'Opções', icon: Settings, page: 'DriverOptions' }
   ];
 
