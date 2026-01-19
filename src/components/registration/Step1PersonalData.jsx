@@ -39,7 +39,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     return true;
   };
 
-  // Validar idade (mínimo 21 anos)
+  // Validar idade (mínimo 18 anos)
   const validateAge = (date) => {
     if (!date) return null;
     const birth = new Date(date);
@@ -49,7 +49,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-    return age >= 21;
+    return age >= 18;
   };
 
   // Validar CPF
@@ -184,7 +184,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     const birth = new Date(formData.birth_date);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
-    if (age < 21) return 'Idade mínima é 21 anos para ser motorista';
+    if (age < 18) return 'Idade mínima é 18 anos para ser motorista';
     if (age > 65) return 'Aviso: Motoristas com mais de 65 anos requerem verificação adicional';
     return null;
   };
