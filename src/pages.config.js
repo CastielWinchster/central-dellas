@@ -4,6 +4,7 @@ import ClubDellas from './pages/ClubDellas';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverLogin from './pages/DriverLogin';
+import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
 import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
@@ -23,7 +24,6 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
-import DriverOptions from './pages/DriverOptions';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +34,7 @@ export const PAGES = {
     "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverLogin": DriverLogin,
+    "DriverOptions": DriverOptions,
     "DriverProfile": DriverProfile,
     "DriverRegistration": DriverRegistration,
     "Earnings": Earnings,
@@ -53,7 +54,6 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
-    "DriverOptions": DriverOptions,
 }
 
 export const pagesConfig = {

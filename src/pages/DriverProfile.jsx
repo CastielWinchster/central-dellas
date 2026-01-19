@@ -108,8 +108,8 @@ export default function DriverProfile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="glass-effect border-[#F22998]/30 mb-6">
-            <CardContent className="p-6">
+          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
+            <CardContent className="p-6 bg-transparent">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Photo */}
                 <div className="relative">
@@ -214,11 +214,11 @@ export default function DriverProfile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-[#F22998]/30 mb-6">
-            <CardHeader>
+          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
+            <CardHeader className="bg-transparent">
               <CardTitle className="text-[#F2F2F2]">Serviços Oferecidos</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 bg-transparent">
               {/* Freight */}
               <div className="flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5">
                 <div className="flex items-center gap-4">
@@ -268,14 +268,14 @@ export default function DriverProfile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-effect border-[#F22998]/30">
-            <CardHeader>
+          <Card className="glass-effect border-[#F22998]/30 bg-[#0D0D0D]">
+            <CardHeader className="bg-transparent">
               <CardTitle className="text-[#F2F2F2] flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#F22998]" />
                 Estatísticas
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-transparent">
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <Car className="w-6 h-6 text-[#F22998] mx-auto mb-2" />
