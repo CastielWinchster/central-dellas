@@ -189,7 +189,7 @@ export default function DriverLogin() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-[#F2F2F2]">
-                  {isRegister ? 'Cadastro de Motorista' : 'Login de Motorista'}
+                  {isRegister ? 'Cadastrar-se como Motorista' : 'Login de Motorista'}
                 </h2>
                 <p className="text-[#F2F2F2]/60 text-sm">
                   {isRegister ? 'Complete seu cadastro' : 'Acesse sua conta'}
