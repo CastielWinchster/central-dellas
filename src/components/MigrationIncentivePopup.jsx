@@ -8,7 +8,21 @@ import { toast } from 'sonner';
 export default function MigrationIncentivePopup() {
   const [showPopup, setShowPopup] = useState(false);
   const [copied, setCopied] = useState(false);
-  const promoCode = 'WHATSAPP10';
+  const [promoCode, setPromoCode] = useState('LOADING...');
+
+  useEffect(() => {
+    // Buscar código promocional do backend ou configuração
+    const fetchPromoCode = async () => {
+      try {
+        // Por enquanto, usar um código padrão
+        // TODO: Implementar backend para gerenciar códigos promocionais dinamicamente
+        setPromoCode('WHATSAPP10');
+      } catch (error) {
+        setPromoCode('ERRO');
+      }
+    };
+    fetchPromoCode();
+  }, []);
 
   useEffect(() => {
     // Verificar se já viu o popup hoje

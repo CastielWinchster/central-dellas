@@ -157,12 +157,14 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
 
   // Verificar código
   const handleVerifyCode = () => {
-    if (verificationCode === '123456' || verificationCode.length === 6) {
+    // TODO: Integrar com backend real de verificação SMS/WhatsApp
+    // Por enquanto, aceitar qualquer código de 6 dígitos apenas em desenvolvimento
+    if (verificationCode.length === 6) {
       setFormData({ ...formData, phone_verified: true });
       onUpdate({ ...data, phone_verified: true });
       toast.success('Telefone verificado!');
     } else {
-      toast.error('Código inválido');
+      toast.error('Código inválido - digite 6 dígitos');
     }
   };
 

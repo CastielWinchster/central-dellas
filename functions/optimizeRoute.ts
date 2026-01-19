@@ -20,10 +20,28 @@ Deno.serve(async (req) => {
     const coordinates = waypoints.map(wp => [wp.lng, wp.lat]);
     
     // Get optimized route with traffic data
+    const apiKey = Deno.env.get('OPENROUTE_API_KEY');
+    
+    if (!apiKey) {
+      console.error('OPENROUTE_API_KEY not configured');
+      // Fallback to simple route calculation
+      return Response.json({
+        success: true,
+        route: {
+          distance: calculateDistance(waypoints),
+          duration: calculateDuration(waypoints),
+          waypoints: waypoints,
+          geometry: null,
+          instructions: generateSimpleInstructions(waypoints),
+          optimized: false
+        }
+      });
+    }
+
     const routeResponse = await fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
       method: 'POST',
       headers: {
-        'Authorization': Deno.env.get('OPENROUTE_API_KEY') || '5b3ce3597851110001cf6248YOUR_KEY_HERE',
+        'Authorization': apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
