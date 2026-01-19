@@ -165,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-[10000] ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-b border-gray-200'}`}
+        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-md ${isDark ? 'bg-[#0D0D0D]/70 border-b border-[#F22998]/20' : 'bg-white/70 border-b border-gray-200'}`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
