@@ -5,15 +5,16 @@ Deno.serve(async (req) => {
     const { scheduledRideId, message } = await req.json();
     const base44 = createClientFromRequest(req);
 
+    // Esta função é chamada por automação/scheduler, então usa service role
     // Buscar corrida agendada
-    const ride = await base44.entities.ScheduledRide.get(scheduledRideId);
+    const ride = await base44.asServiceRole.entities.ScheduledRide.get(scheduledRideId);
     
     if (!ride) {
       return Response.json({ error: 'Corrida não encontrada' }, { status: 404 });
     }
 
     // Buscar usuário
-    const user = await base44.entities.User.get(ride.passenger_id);
+    const user = await base44.asServiceRole.entities.User.get(ride.passenger_id);
     
     if (!user) {
       return Response.json({ error: 'Usuário não encontrado' }, { status: 404 });
