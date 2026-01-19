@@ -391,7 +391,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
                   setFormData({ ...formData, agrees_woman: checked });
                   onUpdate({ ...data, agrees_woman: checked });
                 }}
-                className="mt-1"
+                className="mt-1 border-white data-[state=checked]:bg-[#F22998] data-[state=checked]:border-[#F22998]"
               />
               <label className="text-sm text-[#F2F2F2] cursor-pointer">
                 Eu sou uma mulher e declaro que sou motorista profissional. Entendo que a Central Dellas é exclusiva para mulheres motoristas.
