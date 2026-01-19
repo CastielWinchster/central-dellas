@@ -104,7 +104,7 @@ export default function ChatbotFloat() {
           >
             <div className="relative">
               <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a4506990a_vania.jpeg"
                 alt="Delia"
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -135,7 +135,7 @@ export default function ChatbotFloat() {
             <div className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] p-4 flex items-center justify-center md:justify-start gap-3 relative">
               <div className="relative">
                 <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/944fa142e_Columbina.png"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a4506990a_vania.jpeg"
                   alt="Delia"
                   className="w-12 h-12 rounded-full border-2 border-white object-cover"
                 />
