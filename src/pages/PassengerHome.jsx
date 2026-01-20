@@ -171,7 +171,7 @@ export default function PassengerHome() {
         >
           <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">Por que escolher a Central Dellas?</h2>
           <p className="text-[#F2F2F2]/60 max-w-lg mx-auto">
-            Criamos um ambiente exclusivo e seguro para mulheres se deslocarem pela cidade.
+            Criamos um ambiente seguro para que mulheres possam se deslocarem pela cidade.
           </p>
         </motion.div>
 
