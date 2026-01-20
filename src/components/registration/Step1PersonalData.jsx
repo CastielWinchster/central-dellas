@@ -137,7 +137,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     });
   }, [formData]);
 
-  // Enviar código de verificação via WhatsApp
+  // Enviar código de verificação via SMS
   const handleSendCode = async () => {
     if (!validation.phone) {
       toast.error('Digite um telefone válido');
@@ -146,7 +146,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     
     setSendingCode(true);
     try {
-      const response = await base44.functions.invoke('sendWhatsAppCode', {
+      const response = await base44.functions.invoke('sendSMSCode', {
         telefone: formData.phone
       });
       
@@ -163,7 +163,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     setSendingCode(false);
   };
 
-  // Verificar código via WhatsApp
+  // Verificar código via SMS
   const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
       toast.error('Digite um código de 6 dígitos');
@@ -171,7 +171,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     }
 
     try {
-      const response = await base44.functions.invoke('verifyWhatsAppCode', {
+      const response = await base44.functions.invoke('verifySMSCode', {
         telefone: formData.phone,
         codigo: verificationCode
       });

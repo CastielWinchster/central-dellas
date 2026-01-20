@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { codigosAtivos } from './sendWhatsAppCode.js';
+import { codigosAtivos } from './sendSMSCode.js';
 
 Deno.serve(async (req) => {
   try {
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Erro ao verificar código WhatsApp:', error);
+    console.error('Erro ao verificar código SMS:', error);
     return Response.json({ 
       sucesso: false, 
       erro: 'Erro ao verificar código: ' + error.message 
