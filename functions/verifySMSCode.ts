@@ -1,5 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { codigosAtivos } from './sendSMSCode.js';
+
+// Map compartilhado para armazenar códigos temporariamente
+const codigosAtivos = new Map();
+
+// Limpar códigos expirados periodicamente
+setInterval(() => {
+  const agora = Date.now();
+  for (const [numero, dados] of codigosAtivos.entries()) {
+    if (agora > dados.expira) {
+      codigosAtivos.delete(numero);
+    }
+  }
+}, 60000); // Verifica a cada minuto
 
 Deno.serve(async (req) => {
   try {
@@ -10,12 +22,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { telefone, codigo } = await req.json();
+    const body = await req.json();
+    const { telefone, codigo, action } = body;
 
-    if (!telefone || !codigo) {
+    if (!telefone) {
       return Response.json({ 
         sucesso: false, 
-        erro: 'Telefone e código são obrigatórios' 
+        erro: 'Telefone é obrigatório' 
       }, { status: 400 });
     }
 
@@ -23,6 +36,24 @@ Deno.serve(async (req) => {
     let numero = telefone.replace(/\D/g, '');
     if (!numero.startsWith('55')) {
       numero = '55' + numero;
+    }
+
+    // Se for para armazenar código (chamado por sendSMSCode)
+    if (action === 'store') {
+      codigosAtivos.set(numero, {
+        codigo: body.codigoGerado,
+        expira: Date.now() + 5 * 60 * 1000, // 5 minutos
+        tentativas: 0
+      });
+      return Response.json({ sucesso: true });
+    }
+
+    // Se for para verificar código
+    if (!codigo) {
+      return Response.json({ 
+        sucesso: false, 
+        erro: 'Código é obrigatório' 
+      }, { status: 400 });
     }
 
     // Buscar código armazenado
