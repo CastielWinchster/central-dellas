@@ -111,5 +111,5 @@ Deno.serve(async (req) => {
   }
 });
 
-// Exportar para uso em outras funções
+// Exportar para uso em verifySMSCode
 export { codigosAtivos };
