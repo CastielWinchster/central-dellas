@@ -30,6 +30,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerificationInput, setShowVerificationInput] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
 
   // Validar nome
   const validateName = (name) => {
@@ -163,17 +164,15 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     setSendingCode(false);
   };
 
-  // Verificar código via SMS
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 6) {
-      toast.error('Digite um código de 6 dígitos');
-      return;
-    }
+  // Verificar código via SMS automaticamente
+  const handleVerifyCode = async (codigo) => {
+    if (codigo.length !== 6) return;
 
+    setVerifyingCode(true);
     try {
       const response = await base44.functions.invoke('verifySMSCode', {
         telefone: formData.phone,
-        codigo: verificationCode
+        codigo: codigo
       });
 
       if (response.data.sucesso) {
@@ -189,6 +188,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       console.error('Erro ao verificar código:', error);
       toast.error('Erro ao verificar código. Tente novamente.');
     }
+    setVerifyingCode(false);
   };
 
   // Verificar se pode prosseguir
@@ -388,22 +388,32 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="flex gap-2"
+              className="space-y-2"
             >
-              <Input
-                placeholder="000000"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] text-center text-lg tracking-widest"
-                maxLength={6}
-              />
-              <Button
-                onClick={handleVerifyCode}
-                disabled={verificationCode.length !== 6}
-                className="btn-gradient"
-              >
-                Verificar
-              </Button>
+              <div className="relative">
+                <Input
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={(e) => {
+                    const codigo = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setVerificationCode(codigo);
+                    if (codigo.length === 6) {
+                      handleVerifyCode(codigo);
+                    }
+                  }}
+                  disabled={verifyingCode}
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] text-center text-lg tracking-widest pr-10"
+                  maxLength={6}
+                />
+                {verifyingCode && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998] animate-spin" />
+                )}
+              </div>
+              {verifyingCode && (
+                <p className="text-sm text-[#F22998] text-center">
+                  Verificando código...
+                </p>
+              )}
             </motion.div>
           )}
 
