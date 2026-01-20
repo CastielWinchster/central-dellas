@@ -193,16 +193,41 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
 
   // Verificar se pode prosseguir
   const canProceed = () => {
+    const isFullNameValid = validation.full_name === true;
+    const isBirthDateValid = validation.birth_date === true;
+    const isCpfValid = validation.cpf === true;
+    const isEmailValid = validation.email === true;
+    const isPhoneValid = validation.phone === true;
+    const isPhoneVerified = formData.phone_verified === true;
+    const agreesWoman = formData.agrees_woman === true;
+
+    console.log("🔍 Validação do Formulário:", {
+      isFullNameValid,
+      isBirthDateValid,
+      isCpfValid,
+      isEmailValid,
+      isPhoneValid,
+      isPhoneVerified,
+      agreesWoman,
+      formData,
+      validation
+    });
+
     return (
-      validation.full_name === true &&
-      validation.birth_date === true &&
-      validation.cpf === true &&
-      validation.email === true &&
-      validation.phone === true &&
-      formData.phone_verified === true &&
-      formData.agrees_woman === true
+      isFullNameValid &&
+      isBirthDateValid &&
+      isCpfValid &&
+      isEmailValid &&
+      isPhoneValid &&
+      isPhoneVerified &&
+      agreesWoman
     );
   };
+
+  useEffect(() => {
+    const result = canProceed();
+    console.log("✅ Pode prosseguir?", result);
+  }, [validation, formData]);
 
   const getAgeWarning = () => {
     if (!formData.birth_date) return null;
