@@ -195,16 +195,6 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
         toast.success('✅ Telefone verificado com sucesso!');
         setShowVerificationInput(false);
         setVerificationCode('');
-        
-        // Aguardar feedback do usuário
-        setTimeout(() => {
-          toast.info('⏳ Prosseguindo para próxima etapa...');
-          
-          // Avançar automaticamente
-          setTimeout(() => {
-            onNext(updatedData);
-          }, 1000);
-        }, 1500);
       } else {
         toast.error(response.data.erro || 'Código incorreto');
         setVerificationCode('');
@@ -467,10 +457,13 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
             </p>
           )}
 
-          {!formData.phone_verified && (
-            <div className="text-center text-sm text-[#F2F2F2]/70 mt-4">
-              ℹ️ Após verificar seu telefone, você avançará automaticamente para a próxima etapa
-            </div>
+          {formData.phone_verified && (
+            <Button
+              onClick={() => onNext(formData)}
+              className="w-full py-6 btn-gradient text-lg font-semibold"
+            >
+              📄 Prosseguir para Documentos
+            </Button>
           )}
         </CardContent>
       </Card>
