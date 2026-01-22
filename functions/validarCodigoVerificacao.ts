@@ -24,25 +24,24 @@ Deno.serve(async (req) => {
       numero = '55' + numero;
     }
 
-    // CHAVE: Usar globalThis para BUSCAR o Map compartilhado
-    if (!globalThis.codigosAtivos) {
-      globalThis.codigosAtivos = new Map();
-    }
+    // Buscar código no banco de dados
+    const codigos = await base44.asServiceRole.entities.VerificationCode.filter({ 
+      telefone: numero,
+      validado: false
+    });
 
-    // Buscar código no Map GLOBAL (mesmo onde foi salvo)
-    const dados = globalThis.codigosAtivos.get(numero);
-
-    // Validação 1: Código existe?
-    if (!dados) {
+    if (codigos.length === 0) {
       return Response.json({ 
         sucesso: false, 
         erro: '❌ Código não encontrado. Solicite um novo código.' 
       });
     }
 
+    const dados = codigos[0];
+
     // Validação 2: Código expirou?
-    if (Date.now() > dados.expira) {
-      globalThis.codigosAtivos.delete(numero);
+    if (new Date(dados.expira_em) < new Date()) {
+      await base44.asServiceRole.entities.VerificationCode.delete(dados.id);
       return Response.json({ 
         sucesso: false, 
         erro: '⏰ Código expirou (10 minutos). Solicite um novo código.' 
@@ -51,7 +50,7 @@ Deno.serve(async (req) => {
 
     // Validação 3: Máximo de tentativas?
     if (dados.tentativas >= 3) {
-      globalThis.codigosAtivos.delete(numero);
+      await base44.asServiceRole.entities.VerificationCode.delete(dados.id);
       return Response.json({ 
         sucesso: false, 
         erro: '🔒 Máximo de tentativas excedido. Solicite um novo código.' 
@@ -60,12 +59,11 @@ Deno.serve(async (req) => {
 
     // Validação 4: Código correto?
     if (dados.codigo !== codigo.trim()) {
-      dados.tentativas++;
+      await base44.asServiceRole.entities.VerificationCode.update(dados.id, {
+        tentativas: dados.tentativas + 1
+      });
       
-      // Atualizar tentativas no Map
-      globalThis.codigosAtivos.set(numero, dados);
-      
-      const restantes = 3 - dados.tentativas;
+      const restantes = 3 - (dados.tentativas + 1);
       return Response.json({ 
         sucesso: false, 
         erro: `❌ Código incorreto. ${restantes} tentativa(s) restante(s).` 
@@ -73,7 +71,9 @@ Deno.serve(async (req) => {
     }
 
     // SUCESSO: Código correto!
-    globalThis.codigosAtivos.delete(numero);
+    await base44.asServiceRole.entities.VerificationCode.update(dados.id, {
+      validado: true
+    });
 
     console.log(`✅ Código verificado com sucesso para ${numero}`);
 

@@ -197,12 +197,10 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
         setVerificationCode('');
       } else {
         toast.error(response.data.erro || 'Código incorreto');
-        setVerificationCode('');
       }
     } catch (error) {
       console.error('Erro ao verificar código:', error);
       toast.error('Erro ao verificar código. Tente novamente.');
-      setVerificationCode('');
     }
     setVerifyingCode(false);
   };

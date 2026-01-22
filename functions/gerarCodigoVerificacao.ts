@@ -30,19 +30,21 @@ Deno.serve(async (req) => {
 
     // Gerar código
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    const expira = Date.now() + 10 * 60 * 1000;
+    const expiraEm = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    // CHAVE: Usar globalThis para armazenamento compartilhado
-    if (!globalThis.codigosAtivos) {
-      globalThis.codigosAtivos = new Map();
+    // Deletar códigos antigos deste telefone
+    const codigosAntigos = await base44.asServiceRole.entities.VerificationCode.filter({ telefone: numero });
+    for (const old of codigosAntigos) {
+      await base44.asServiceRole.entities.VerificationCode.delete(old.id);
     }
 
-    // Salvar código no Map GLOBAL
-    globalThis.codigosAtivos.set(numero, {
+    // Salvar no banco de dados
+    await base44.asServiceRole.entities.VerificationCode.create({
+      telefone: numero,
       codigo: codigo,
-      expira: expira,
+      expira_em: expiraEm,
       tentativas: 0,
-      telefone: numero
+      validado: false
     });
 
     console.log(`✅ Código gerado para ${numero}: ${codigo}`);
