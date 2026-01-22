@@ -479,7 +479,7 @@ Verifique se:
                       {/* Upload buttons */}
                       {!documents[docType.key].verified && (
                         <div className="flex gap-2">
-                          <label className="flex-1">
+                          <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
                               accept="image/*"
@@ -488,18 +488,13 @@ Verifique se:
                               onChange={(e) => handleFileUpload(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}
                             />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full border-[#F22998]/30 text-[#F22998]"
-                              disabled={uploading === docType.key}
-                            >
-                              <Camera className="w-4 h-4 mr-2" />
+                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                              <Camera className="w-4 h-4" />
                               Tirar Foto
-                            </Button>
+                            </div>
                           </label>
 
-                          <label className="flex-1">
+                          <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
                               accept="image/*"
@@ -507,15 +502,10 @@ Verifique se:
                               onChange={(e) => handleFileUpload(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}
                             />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full border-[#F22998]/30 text-[#F22998]"
-                              disabled={uploading === docType.key}
-                            >
-                              <Upload className="w-4 h-4 mr-2" />
+                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                              <Upload className="w-4 h-4" />
                               Galeria
-                            </Button>
+                            </div>
                           </label>
                         </div>
                       )}
