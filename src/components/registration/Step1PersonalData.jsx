@@ -190,6 +190,11 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
         toast.success('✅ Telefone verificado com sucesso!');
         setShowVerificationInput(false);
         setVerificationCode('');
+        
+        // Avançar automaticamente para próxima etapa
+        setTimeout(() => {
+          onNext(updatedData);
+        }, 500);
       } else {
         toast.error(response.data.erro || 'Código incorreto');
       }
@@ -200,27 +205,14 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     setVerifyingCode(false);
   };
 
-  // Verificar se pode prosseguir
+  // Verificar se pode prosseguir (sem verificação de telefone)
   const canProceed = () => {
     const isFullNameValid = validation.full_name === true;
     const isBirthDateValid = validation.birth_date === true;
     const isCpfValid = validation.cpf === true;
     const isEmailValid = validation.email === true;
     const isPhoneValid = validation.phone === true;
-    const isPhoneVerified = formData.phone_verified === true;
     const agreesWoman = formData.agrees_woman === true;
-
-    console.log("🔍 Validação do Formulário:", {
-      isFullNameValid,
-      isBirthDateValid,
-      isCpfValid,
-      isEmailValid,
-      isPhoneValid,
-      isPhoneVerified,
-      agreesWoman,
-      formData,
-      validation
-    });
 
     return (
       isFullNameValid &&
@@ -228,15 +220,11 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       isCpfValid &&
       isEmailValid &&
       isPhoneValid &&
-      isPhoneVerified &&
       agreesWoman
     );
   };
 
-  useEffect(() => {
-    const result = canProceed();
-    console.log("✅ Pode prosseguir?", result);
-  }, [validation, formData]);
+
 
   const getAgeWarning = () => {
     if (!formData.birth_date) return null;
@@ -476,7 +464,13 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
 
           {/* Botão Próximo */}
           <Button
-            onClick={() => onNext(formData)}
+            onClick={() => {
+              if (!formData.phone_verified) {
+                toast.error('⚠️ Por favor, verifique seu telefone antes de prosseguir!');
+                return;
+              }
+              onNext(formData);
+            }}
             disabled={!canProceed()}
             className={`w-full py-6 ${
               canProceed() ? 'btn-gradient' : 'bg-gray-600 cursor-not-allowed opacity-50'
