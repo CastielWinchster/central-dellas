@@ -55,51 +55,11 @@ Deno.serve(async (req) => {
       tentativas: 0
     });
 
-    // Obter credenciais Twilio
-    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-    const twilioPhone = Deno.env.get('TWILIO_PHONE_NUMBER');
-
-    if (!accountSid || !authToken || !twilioPhone) {
-      console.error('Credenciais Twilio não configuradas');
-      return Response.json({ 
-        sucesso: false, 
-        erro: 'Serviço de SMS não configurado. Entre em contato com o suporte.' 
-      }, { status: 500 });
-    }
-
-    // Enviar SMS via Twilio
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    const auth = btoa(`${accountSid}:${authToken}`);
-
-    const formData = new URLSearchParams();
-    formData.append('From', twilioPhone);
-    formData.append('To', `+${numero}`);
-    formData.append('Body', `Central Dellas - Seu código de verificação: ${codigo}. Válido por 10 minutos.`);
-
-    const twilioResponse = await fetch(twilioUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formData
-    });
-
-    if (!twilioResponse.ok) {
-      const errorText = await twilioResponse.text();
-      console.error('Erro Twilio:', errorText);
-      return Response.json({ 
-        sucesso: false, 
-        erro: 'Erro ao enviar SMS. Verifique se o número está correto.' 
-      }, { status: 500 });
-    }
-
-    console.log(`Código enviado para ${numero}: ${codigo}`);
+    console.log(`Código gerado para ${numero}: ${codigo}`);
 
     return Response.json({ 
       sucesso: true, 
-      mensagem: '📨 Código enviado! Verifique suas mensagens SMS' 
+      mensagem: '✅ Código gerado! Converse com a Délia no chat para recebê-lo' 
     });
 
   } catch (error) {
