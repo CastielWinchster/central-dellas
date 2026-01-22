@@ -172,9 +172,12 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     setSendingCode(false);
   };
 
-  // Verificar código automaticamente
+  // Verificar código
   const handleVerifyCode = async (codigo) => {
-    if (codigo.length !== 6) return;
+    if (codigo.length !== 6) {
+      toast.error('Código deve ter 6 dígitos');
+      return;
+    }
 
     setVerifyingCode(true);
     try {
@@ -187,42 +190,34 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
         const updatedData = { ...formData, phone_verified: true };
         setFormData(updatedData);
         onUpdate({ ...data, phone_verified: true });
+        
+        // Feedback positivo
         toast.success('✅ Telefone verificado com sucesso!');
         setShowVerificationInput(false);
         setVerificationCode('');
         
-        // Avançar automaticamente para próxima etapa
+        // Aguardar feedback do usuário
         setTimeout(() => {
-          onNext(updatedData);
-        }, 500);
+          toast.info('⏳ Prosseguindo para próxima etapa...');
+          
+          // Avançar automaticamente
+          setTimeout(() => {
+            onNext(updatedData);
+          }, 1000);
+        }, 1500);
       } else {
         toast.error(response.data.erro || 'Código incorreto');
+        setVerificationCode('');
       }
     } catch (error) {
       console.error('Erro ao verificar código:', error);
       toast.error('Erro ao verificar código. Tente novamente.');
+      setVerificationCode('');
     }
     setVerifyingCode(false);
   };
 
-  // Verificar se pode prosseguir (sem verificação de telefone)
-  const canProceed = () => {
-    const isFullNameValid = validation.full_name === true;
-    const isBirthDateValid = validation.birth_date === true;
-    const isCpfValid = validation.cpf === true;
-    const isEmailValid = validation.email === true;
-    const isPhoneValid = validation.phone === true;
-    const agreesWoman = formData.agrees_woman === true;
 
-    return (
-      isFullNameValid &&
-      isBirthDateValid &&
-      isCpfValid &&
-      isEmailValid &&
-      isPhoneValid &&
-      agreesWoman
-    );
-  };
 
 
 
@@ -410,8 +405,11 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="space-y-2"
+              className="space-y-3"
             >
+              <label className="text-sm text-[#F2F2F2]/70 block text-center">
+                Digite o código recebido de Délia *
+              </label>
               <div className="relative">
                 <Input
                   placeholder="000000"
@@ -419,23 +417,30 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
                   onChange={(e) => {
                     const codigo = e.target.value.replace(/\D/g, '').slice(0, 6);
                     setVerificationCode(codigo);
-                    if (codigo.length === 6) {
-                      handleVerifyCode(codigo);
-                    }
                   }}
                   disabled={verifyingCode}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] text-center text-lg tracking-widest pr-10"
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] text-center text-2xl tracking-widest font-mono"
                   maxLength={6}
                 />
-                {verifyingCode && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998] animate-spin" />
-                )}
               </div>
-              {verifyingCode && (
-                <p className="text-sm text-[#F22998] text-center">
-                  Verificando código...
-                </p>
-              )}
+              <Button
+                onClick={() => handleVerifyCode(verificationCode)}
+                disabled={verificationCode.length !== 6 || verifyingCode}
+                className={`w-full py-6 ${
+                  verificationCode.length === 6 && !verifyingCode
+                    ? 'btn-gradient'
+                    : 'bg-gray-600 cursor-not-allowed opacity-50'
+                }`}
+              >
+                {verifyingCode ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Validando...
+                  </>
+                ) : (
+                  '✅ Validar Código'
+                )}
+              </Button>
             </motion.div>
           )}
 
@@ -462,22 +467,11 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
             </p>
           )}
 
-          {/* Botão Próximo */}
-          <Button
-            onClick={() => {
-              if (!formData.phone_verified) {
-                toast.error('⚠️ Por favor, verifique seu telefone antes de prosseguir!');
-                return;
-              }
-              onNext(formData);
-            }}
-            disabled={!canProceed()}
-            className={`w-full py-6 ${
-              canProceed() ? 'btn-gradient' : 'bg-gray-600 cursor-not-allowed opacity-50'
-            }`}
-          >
-            Próximo
-          </Button>
+          {!formData.phone_verified && (
+            <div className="text-center text-sm text-[#F2F2F2]/70 mt-4">
+              ℹ️ Após verificar seu telefone, você avançará automaticamente para a próxima etapa
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
