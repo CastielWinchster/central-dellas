@@ -138,7 +138,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     });
   }, [formData]);
 
-  // Enviar código de verificação via SMS
+  // Enviar código de verificação
   const handleSendCode = async () => {
     if (!validation.phone) {
       toast.error('Digite um telefone válido');
@@ -147,13 +147,13 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     
     setSendingCode(true);
     try {
-      const response = await base44.functions.invoke('sendSMSCode', {
+      const response = await base44.functions.invoke('gerarCodigoVerificacao', {
         telefone: formData.phone
       });
       
       if (response.data.sucesso) {
         setShowVerificationInput(true);
-        toast.success(response.data.mensagem);
+        toast.success('✅ Código gerado! Délia está enviando...');
         
         // Abrir chat e fazer Délia enviar código automaticamente
         window.dispatchEvent(new CustomEvent('openChatWithCode', {
@@ -163,22 +163,22 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
           }
         }));
       } else {
-        toast.error(response.data.erro || 'Erro ao enviar código');
+        toast.error(response.data.erro || 'Erro ao gerar código');
       }
     } catch (error) {
-      console.error('Erro ao enviar código:', error);
-      toast.error('Erro ao enviar código. Tente novamente.');
+      console.error('Erro ao gerar código:', error);
+      toast.error('Erro ao gerar código. Tente novamente.');
     }
     setSendingCode(false);
   };
 
-  // Verificar código via SMS automaticamente
+  // Verificar código automaticamente
   const handleVerifyCode = async (codigo) => {
     if (codigo.length !== 6) return;
 
     setVerifyingCode(true);
     try {
-      const response = await base44.functions.invoke('verifySMSCode', {
+      const response = await base44.functions.invoke('validarCodigoVerificacao', {
         telefone: formData.phone,
         codigo: codigo
       });

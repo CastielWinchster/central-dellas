@@ -22,28 +22,25 @@ export default function ChatbotFloat() {
 
   // Escutar evento para abrir chat e enviar código automaticamente
   useEffect(() => {
-    const handleOpenWithCode = async (event) => {
+    const handleOpenWithCode = (event) => {
       const { codigo, telefone } = event.detail;
       
       // Abrir chat
       setIsOpen(true);
       
-      // Aguardar conversa inicializar
-      setTimeout(async () => {
-        if (conversation) {
-          // Délia envia mensagem proativamente
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: `🔐 Seu código de verificação chegou!\n\n**${codigo}**\n\nDigite esse código no campo de verificação para continuar seu cadastro. O código é válido por 10 minutos! ⏰`,
-            timestamp: new Date()
-          }]);
-        }
-      }, 1000);
+      // Aguardar um pouco e adicionar mensagem da Délia
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `🎉 **Central Dellas**\n\nSeu código de verificação é:\n\n✅ **${codigo}**\n\n⏰ Válido por 10 minutos\n🔒 Não compartilhe este código!\n\nDigite esse código no campo de verificação para continuar seu cadastro.`,
+          timestamp: new Date()
+        }]);
+      }, 500);
     };
 
     window.addEventListener('openChatWithCode', handleOpenWithCode);
     return () => window.removeEventListener('openChatWithCode', handleOpenWithCode);
-  }, [conversation]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
