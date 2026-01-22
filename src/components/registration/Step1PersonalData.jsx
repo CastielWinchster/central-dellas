@@ -184,9 +184,10 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       });
 
       if (response.data.sucesso) {
-        setFormData({ ...formData, phone_verified: true });
+        const updatedData = { ...formData, phone_verified: true };
+        setFormData(updatedData);
         onUpdate({ ...data, phone_verified: true });
-        toast.success(response.data.mensagem);
+        toast.success('✅ Telefone verificado com sucesso!');
         setShowVerificationInput(false);
         setVerificationCode('');
       } else {
