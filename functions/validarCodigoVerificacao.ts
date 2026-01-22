@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Normalizar
+    // Normalizar telefone
     let numero = telefone.replace(/\D/g, '');
     if (!numero.startsWith('55')) {
       numero = '55' + numero;
@@ -29,17 +29,17 @@ Deno.serve(async (req) => {
 
     // Validações
     if (!dados) {
-      return Response.json({ sucesso: false, erro: 'Código não encontrado' });
+      return Response.json({ sucesso: false, erro: 'Código não encontrado ou expirado. Solicite um novo código.' });
     }
 
     if (Date.now() > dados.expira) {
       codigosAtivos.delete(numero);
-      return Response.json({ sucesso: false, erro: 'Código expirou (10 minutos)' });
+      return Response.json({ sucesso: false, erro: 'Código expirado. Solicite um novo código.' });
     }
 
     if (dados.tentativas >= 3) {
       codigosAtivos.delete(numero);
-      return Response.json({ sucesso: false, erro: 'Máximo de tentativas excedido' });
+      return Response.json({ sucesso: false, erro: 'Máximo de tentativas excedido. Solicite um novo código.' });
     }
 
     if (dados.codigo !== codigo.trim()) {
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ✅ SUCESSO
+    // ✅ SUCESSO - Limpar código usado
     codigosAtivos.delete(numero);
 
     return Response.json({ 
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('❌ Erro:', error);
-    return Response.json({ sucesso: false, erro: error.message }, { status: 500 });
+    console.error('❌ Erro ao validar código:', error);
+    return Response.json({ sucesso: false, erro: 'Erro ao validar código. Tente novamente.' }, { status: 500 });
   }
 });
