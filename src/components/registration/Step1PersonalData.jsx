@@ -154,7 +154,14 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       if (response.data.sucesso) {
         setShowVerificationInput(true);
         toast.success(response.data.mensagem);
-        toast.info('💬 Abra o chat com a Délia e peça: "qual é meu código?"', { duration: 6000 });
+        
+        // Abrir chat e fazer Délia enviar código automaticamente
+        window.dispatchEvent(new CustomEvent('openChatWithCode', {
+          detail: {
+            codigo: response.data.codigo,
+            telefone: formData.phone
+          }
+        }));
       } else {
         toast.error(response.data.erro || 'Erro ao enviar código');
       }

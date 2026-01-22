@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { telefone } = await req.json();
+    const { telefone, action } = await req.json();
 
     if (!telefone) {
       return Response.json({ error: 'Telefone não fornecido' }, { status: 400 });
@@ -44,6 +44,34 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Se action for 'get', apenas retornar código existente
+    if (action === 'get') {
+      const dadosCodigo = codigosAtivos.get(numero);
+      
+      if (!dadosCodigo) {
+        return Response.json({ 
+          sucesso: false, 
+          erro: 'Nenhum código encontrado. Solicite um novo código primeiro.' 
+        });
+      }
+
+      if (Date.now() > dadosCodigo.expira) {
+        codigosAtivos.delete(numero);
+        return Response.json({ 
+          sucesso: false, 
+          erro: 'Código expirado. Solicite um novo código.' 
+        });
+      }
+
+      const minutosRestantes = Math.ceil((dadosCodigo.expira - Date.now()) / 60000);
+      
+      return Response.json({ 
+        sucesso: true, 
+        codigo: dadosCodigo.codigo,
+        expiraEm: minutosRestantes
+      });
+    }
+
     // Gerar código de 6 dígitos
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -59,7 +87,9 @@ Deno.serve(async (req) => {
 
     return Response.json({ 
       sucesso: true, 
-      mensagem: '✅ Código gerado! Converse com a Délia no chat para recebê-lo' 
+      mensagem: '✅ Código gerado! A Délia irá enviar automaticamente',
+      codigo: codigo,
+      telefone: numero
     });
 
   } catch (error) {
@@ -70,6 +100,3 @@ Deno.serve(async (req) => {
     }, { status: 500 });
   }
 });
-
-// Exportar para uso em verifySMSCode
-export { codigosAtivos };

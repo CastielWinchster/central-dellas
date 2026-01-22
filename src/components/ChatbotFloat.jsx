@@ -20,6 +20,31 @@ export default function ChatbotFloat() {
     }
   }, [isOpen]);
 
+  // Escutar evento para abrir chat e enviar código automaticamente
+  useEffect(() => {
+    const handleOpenWithCode = async (event) => {
+      const { codigo, telefone } = event.detail;
+      
+      // Abrir chat
+      setIsOpen(true);
+      
+      // Aguardar conversa inicializar
+      setTimeout(async () => {
+        if (conversation) {
+          // Délia envia mensagem proativamente
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `🔐 Seu código de verificação chegou!\n\n**${codigo}**\n\nDigite esse código no campo de verificação para continuar seu cadastro. O código é válido por 10 minutos! ⏰`,
+            timestamp: new Date()
+          }]);
+        }
+      }, 1000);
+    };
+
+    window.addEventListener('openChatWithCode', handleOpenWithCode);
+    return () => window.removeEventListener('openChatWithCode', handleOpenWithCode);
+  }, [conversation]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { codigosAtivos } from './sendSMSCode.js';
 
 Deno.serve(async (req) => {
   try {
@@ -25,33 +24,17 @@ Deno.serve(async (req) => {
       numero = '55' + numero;
     }
 
-    // Buscar código para o telefone
-    const dadosCodigo = codigosAtivos.get(numero);
-
-    if (!dadosCodigo) {
-      return Response.json({ 
-        sucesso: false, 
-        erro: 'Nenhum código encontrado. Solicite um novo código primeiro.' 
-      });
-    }
-
-    // Verificar se expirou
-    if (Date.now() > dadosCodigo.expira) {
-      codigosAtivos.delete(numero);
-      return Response.json({ 
-        sucesso: false, 
-        erro: 'Código expirado. Solicite um novo código.' 
-      });
-    }
-
-    // Retornar o código
-    const minutosRestantes = Math.ceil((dadosCodigo.expira - Date.now()) / 60000);
-    
-    return Response.json({ 
-      sucesso: true, 
-      codigo: dadosCodigo.codigo,
-      expiraEm: minutosRestantes
+    // Buscar código via função interna
+    const response = await base44.asServiceRole.functions.invoke('sendSMSCode', { 
+      telefone: numero,
+      action: 'get' 
     });
+
+    if (!response.data.sucesso) {
+      return Response.json(response.data);
+    }
+
+    return Response.json(response.data);
 
   } catch (error) {
     console.error('Erro ao buscar código:', error);
