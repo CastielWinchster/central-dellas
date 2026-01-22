@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -397,6 +397,22 @@ Verifique se:
     return Object.values(documents).every(doc => doc.verified);
   };
 
+  // Avançar automaticamente quando todos os documentos forem verificados
+  useEffect(() => {
+    if (canProceed()) {
+      const timer = setTimeout(() => {
+        toast.success('✅ Todos os documentos verificados!');
+        setTimeout(() => {
+          toast.info('⏳ Prosseguindo para verificação facial...');
+          setTimeout(() => {
+            onNext(documents);
+          }, 1000);
+        }, 1500);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [documents]);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -564,16 +580,20 @@ Verifique se:
             >
               Voltar
             </Button>
-            <Button
-              onClick={() => onNext(documents)}
-              disabled={!canProceed()}
-              className={`flex-1 py-6 ${
-                canProceed() ? 'btn-gradient' : 'bg-gray-600 cursor-not-allowed opacity-50'
-              }`}
-            >
-              Próximo
-            </Button>
           </div>
+
+          {/* Mensagem de progresso quando todos os docs estiverem prontos */}
+          {canProceed() && (
+            <div className="text-center py-4">
+              <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-semibold">Todos os documentos verificados!</span>
+              </div>
+              <p className="text-sm text-[#F2F2F2]/60">
+                Avançando automaticamente...
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
