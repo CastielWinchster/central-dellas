@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { codigosAtivos } from './gerarCodigoVerificacao.js';
 
 Deno.serve(async (req) => {
   try {
@@ -25,42 +24,70 @@ Deno.serve(async (req) => {
       numero = '55' + numero;
     }
 
-    const dados = codigosAtivos.get(numero);
+    // CHAVE: Usar globalThis para BUSCAR o Map compartilhado
+    if (!globalThis.codigosAtivos) {
+      globalThis.codigosAtivos = new Map();
+    }
 
-    // Validações
+    // Buscar código no Map GLOBAL (mesmo onde foi salvo)
+    const dados = globalThis.codigosAtivos.get(numero);
+
+    // Validação 1: Código existe?
     if (!dados) {
-      return Response.json({ sucesso: false, erro: 'Código não encontrado ou expirado. Solicite um novo código.' });
-    }
-
-    if (Date.now() > dados.expira) {
-      codigosAtivos.delete(numero);
-      return Response.json({ sucesso: false, erro: 'Código expirado. Solicite um novo código.' });
-    }
-
-    if (dados.tentativas >= 3) {
-      codigosAtivos.delete(numero);
-      return Response.json({ sucesso: false, erro: 'Máximo de tentativas excedido. Solicite um novo código.' });
-    }
-
-    if (dados.codigo !== codigo.trim()) {
-      dados.tentativas++;
-      const restantes = 3 - dados.tentativas;
       return Response.json({ 
         sucesso: false, 
-        erro: `Código incorreto. ${restantes} tentativa(s) restante(s)` 
+        erro: '❌ Código não encontrado. Solicite um novo código.' 
       });
     }
 
-    // ✅ SUCESSO - Limpar código usado
-    codigosAtivos.delete(numero);
+    // Validação 2: Código expirou?
+    if (Date.now() > dados.expira) {
+      globalThis.codigosAtivos.delete(numero);
+      return Response.json({ 
+        sucesso: false, 
+        erro: '⏰ Código expirou (10 minutos). Solicite um novo código.' 
+      });
+    }
+
+    // Validação 3: Máximo de tentativas?
+    if (dados.tentativas >= 3) {
+      globalThis.codigosAtivos.delete(numero);
+      return Response.json({ 
+        sucesso: false, 
+        erro: '🔒 Máximo de tentativas excedido. Solicite um novo código.' 
+      });
+    }
+
+    // Validação 4: Código correto?
+    if (dados.codigo !== codigo.trim()) {
+      dados.tentativas++;
+      
+      // Atualizar tentativas no Map
+      globalThis.codigosAtivos.set(numero, dados);
+      
+      const restantes = 3 - dados.tentativas;
+      return Response.json({ 
+        sucesso: false, 
+        erro: `❌ Código incorreto. ${restantes} tentativa(s) restante(s).` 
+      });
+    }
+
+    // SUCESSO: Código correto!
+    globalThis.codigosAtivos.delete(numero);
+
+    console.log(`✅ Código verificado com sucesso para ${numero}`);
 
     return Response.json({ 
       sucesso: true,
-      mensagem: '✅ Telefone verificado com sucesso!'
+      mensagem: '✅ Telefone verificado com sucesso!',
+      telefoneVerificado: true
     });
 
   } catch (error) {
-    console.error('❌ Erro ao validar código:', error);
-    return Response.json({ sucesso: false, erro: 'Erro ao validar código. Tente novamente.' }, { status: 500 });
+    console.error('❌ Erro ao validar:', error);
+    return Response.json({ 
+      sucesso: false, 
+      erro: 'Erro ao validar código. Tente novamente.' 
+    }, { status: 500 });
   }
 });

@@ -1,18 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Armazenamento simples (Map em memória)
-const codigosAtivos = new Map();
-
-// Limpar códigos expirados a cada minuto
-setInterval(() => {
-  const agora = Date.now();
-  for (const [numero, dados] of codigosAtivos.entries()) {
-    if (agora > dados.expira) {
-      codigosAtivos.delete(numero);
-    }
-  }
-}, 60000);
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -38,18 +25,24 @@ Deno.serve(async (req) => {
       return Response.json({ 
         sucesso: false, 
         erro: 'Telefone inválido (11 dígitos)' 
-      }, { status: 400 });
+      });
     }
 
     // Gerar código
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    const expira = Date.now() + 10 * 60 * 1000; // 10 minutos
+    const expira = Date.now() + 10 * 60 * 1000;
 
-    // Armazenar
-    codigosAtivos.set(numero, {
-      codigo,
-      expira,
-      tentativas: 0
+    // CHAVE: Usar globalThis para armazenamento compartilhado
+    if (!globalThis.codigosAtivos) {
+      globalThis.codigosAtivos = new Map();
+    }
+
+    // Salvar código no Map GLOBAL
+    globalThis.codigosAtivos.set(numero, {
+      codigo: codigo,
+      expira: expira,
+      tentativas: 0,
+      telefone: numero
     });
 
     console.log(`✅ Código gerado para ${numero}: ${codigo}`);
@@ -57,7 +50,7 @@ Deno.serve(async (req) => {
     return Response.json({ 
       sucesso: true,
       codigo: codigo,
-      mensagem: `✅ Código gerado: ${codigo}`
+      mensagem: `✅ Código gerado: ${codigo}. Válido por 10 minutos.`
     });
 
   } catch (error) {
@@ -65,6 +58,3 @@ Deno.serve(async (req) => {
     return Response.json({ sucesso: false, erro: error.message }, { status: 500 });
   }
 });
-
-// Exportar para usar na outra função
-export { codigosAtivos };
