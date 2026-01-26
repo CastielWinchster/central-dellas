@@ -13,6 +13,12 @@ export default function ChatbotFloat() {
   const [isTyping, setIsTyping] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [registrationMode, setRegistrationMode] = useState(null);
+  const [documentsCollected, setDocumentsCollected] = useState({
+    cnh: null,
+    comprovante: null,
+    crlv: null
+  });
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -41,8 +47,27 @@ export default function ChatbotFloat() {
       }, 500);
     };
 
+    const handleOpenForRegistration = (event) => {
+      const { step, message } = event.detail;
+      
+      setIsOpen(true);
+      setRegistrationMode('documents');
+      
+      setTimeout(() => {
+        setMessages([{
+          role: 'assistant',
+          content: message,
+          timestamp: new Date()
+        }]);
+      }, 300);
+    };
+
     window.addEventListener('openChatWithCode', handleOpenWithCode);
-    return () => window.removeEventListener('openChatWithCode', handleOpenWithCode);
+    window.addEventListener('openDeliaForRegistration', handleOpenForRegistration);
+    return () => {
+      window.removeEventListener('openChatWithCode', handleOpenWithCode);
+      window.removeEventListener('openDeliaForRegistration', handleOpenForRegistration);
+    };
   }, []);
 
   useEffect(() => {
@@ -87,20 +112,85 @@ export default function ChatbotFloat() {
   };
 
   const handleSend = async () => {
-    if (!inputValue.trim() || !conversation) return;
+    if (!inputValue.trim()) return;
 
     const userMessage = inputValue.trim();
     setInputValue('');
     setIsTyping(true);
 
-    try {
-      await base44.agents.addMessage(conversation, {
+    // Se estiver em modo de cadastro e a resposta for 1 ou 2
+    if (registrationMode === 'documents' && (userMessage === '1' || userMessage === '2')) {
+      setMessages(prev => [...prev, {
         role: 'user',
-        content: userMessage
-      });
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      toast.error('Erro ao enviar mensagem');
+        content: userMessage,
+        timestamp: new Date()
+      }]);
+
+      if (userMessage === '1') {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '📸 Ok! Tire outra foto e me envie usando o botão de câmera abaixo.',
+          timestamp: new Date()
+        }]);
+      } else {
+        // Enviar para análise manual
+        try {
+          const user = await base44.auth.me();
+          const lastMsg = messages[messages.length - 1];
+          
+          if (lastMsg.file_url) {
+            const nextDoc = !documentsCollected.cnh ? 'cnh' :
+                            !documentsCollected.comprovante ? 'comprovante' : 'crlv';
+            
+            await base44.entities.PendingDocumentReview.create({
+              user_id: user.id,
+              document_type: nextDoc,
+              document_url: lastMsg.file_url,
+              status: 'pending_review'
+            });
+
+            setDocumentsCollected(prev => ({ ...prev, [nextDoc]: { url: lastMsg.file_url, manual: true } }));
+
+            const nextMessage = nextDoc === 'cnh' 
+              ? '✅ Ok! Enviei para análise manual.\n\n📸 Agora me envie o **Comprovante de Residência**.'
+              : nextDoc === 'comprovante'
+              ? '✅ Enviado para análise!\n\n📸 Agora me envie o **CRLV-e** do veículo.'
+              : '🎉 **Documentos recebidos!**\n\nAgora vá para a próxima etapa para tirar sua selfie!';
+
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: nextMessage,
+              timestamp: new Date()
+            }]);
+
+            if (nextDoc === 'crlv') {
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('documentsComplete'));
+                setIsOpen(false);
+              }, 2000);
+            }
+          }
+        } catch (error) {
+          console.error('Erro:', error);
+        }
+      }
+      setIsTyping(false);
+      return;
+    }
+
+    // Modo normal com agente
+    if (conversation) {
+      try {
+        await base44.agents.addMessage(conversation, {
+          role: 'user',
+          content: userMessage
+        });
+      } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        toast.error('Erro ao enviar mensagem');
+        setIsTyping(false);
+      }
+    } else {
       setIsTyping(false);
     }
   };
@@ -113,7 +203,7 @@ export default function ChatbotFloat() {
   };
 
   const handleFileSelect = async (file) => {
-    if (!file || !conversation) return;
+    if (!file) return;
 
     // Validar tipo
     if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
@@ -142,32 +232,32 @@ export default function ChatbotFloat() {
         // Adicionar mensagem com imagem
         setMessages(prev => [...prev, {
           role: 'user',
-          content: file.type === 'application/pdf' ? '📄 Documento PDF enviado' : '',
+          content: file.type === 'application/pdf' ? '📄 Documento enviado' : '📸 Foto enviada',
           file_url: file_url,
           file_type: file.type,
           preview: file.type.startsWith('image/') ? preview : null,
           timestamp: new Date()
         }]);
 
-        // Processar com Google Vision se for imagem
-        if (file.type.startsWith('image/')) {
-          toast.info('🔍 Analisando documento...');
-          
-          const visionResult = await analyzeDocumentWithVision(file_url);
-          
-          // Enviar resultado para o agente
-          await base44.agents.addMessage(conversation, {
-            role: 'user',
-            content: `Analisei um documento. Resultado: ${visionResult.text || 'Não foi possível extrair texto'}`,
-            file_urls: [file_url]
-          });
-        } else {
-          // Se for PDF, apenas enviar ao agente
-          await base44.agents.addMessage(conversation, {
-            role: 'user',
-            content: 'Enviei um documento PDF',
-            file_urls: [file_url]
-          });
+        // Se estiver em modo de cadastro de documentos
+        if (registrationMode === 'documents') {
+          await handleDocumentRegistration(file_url, file.type);
+        } else if (conversation) {
+          // Modo normal de chat com agente
+          if (file.type.startsWith('image/')) {
+            const visionResult = await analyzeDocumentWithVision(file_url);
+            await base44.agents.addMessage(conversation, {
+              role: 'user',
+              content: `Analisei um documento. Resultado: ${visionResult.text || 'Não foi possível extrair texto'}`,
+              file_urls: [file_url]
+            });
+          } else {
+            await base44.agents.addMessage(conversation, {
+              role: 'user',
+              content: 'Enviei um documento PDF',
+              file_urls: [file_url]
+            });
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -178,6 +268,77 @@ export default function ChatbotFloat() {
       setIsTyping(false);
     } finally {
       setUploadingFile(false);
+    }
+  };
+
+  const handleDocumentRegistration = async (fileUrl, fileType) => {
+    try {
+      // Determinar qual documento está sendo enviado
+      const nextDoc = !documentsCollected.cnh ? 'cnh' :
+                      !documentsCollected.comprovante ? 'comprovante' :
+                      !documentsCollected.crlv ? 'crlv' : null;
+
+      if (!nextDoc) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '✅ Todos os documentos já foram coletados! Finalizando cadastro...',
+          timestamp: new Date()
+        }]);
+        setIsTyping(false);
+        return;
+      }
+
+      // Processar com Google Vision
+      const visionResult = await analyzeDocumentWithVision(fileUrl);
+      const user = await base44.auth.me();
+
+      if (visionResult.text && visionResult.text.length > 20) {
+        // Sucesso na leitura
+        setDocumentsCollected(prev => ({ ...prev, [nextDoc]: { url: fileUrl, verified: true } }));
+        
+        // Salvar no banco
+        await base44.entities.DriverRegistration.update(user.id, {
+          [`${nextDoc}_photo`]: fileUrl,
+          [`${nextDoc}_data`]: { extracted_text: visionResult.text }
+        });
+
+        // Próximo documento
+        const nextMessage = nextDoc === 'cnh' 
+          ? '✅ **Perfeito!** Consegui ler seus dados da CNH.\n\n📸 Agora me envie uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).'
+          : nextDoc === 'comprovante'
+          ? '✅ **Ótimo!** Comprovante recebido.\n\n📸 Por último, me envie o **CRLV-e** do veículo.'
+          : '🎉 **Todos os documentos recebidos!**\n\nAgora preciso de uma **selfie sua** para confirmar sua identidade. Por favor, vá para a próxima etapa!';
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: nextMessage,
+          timestamp: new Date()
+        }]);
+
+        // Se terminou, avançar
+        if (nextDoc === 'crlv') {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('documentsComplete'));
+            setIsOpen(false);
+          }, 2000);
+        }
+      } else {
+        // Falha na leitura - oferecer análise manual
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '😕 A foto ficou um pouco borrada para mim.\n\n❓ Você quer:\n\n1️⃣ **Tentar enviar de novo** (tire outra foto)\n2️⃣ **Enviar assim mesmo** para nossa equipe analisar manualmente\n\nDigite **1** ou **2**',
+          timestamp: new Date()
+        }]);
+      }
+    } catch (error) {
+      console.error('Erro ao processar documento:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '❌ Ocorreu um erro ao processar. Pode tentar enviar novamente?',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsTyping(false);
     }
   };
 

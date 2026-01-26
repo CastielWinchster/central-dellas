@@ -744,21 +744,18 @@ FEEDBACK ESPECÍFICO se inválido:
     return Object.values(documents).every(doc => doc.verified);
   };
 
-  // Avançar automaticamente quando todos os documentos forem verificados
+  // Escutar evento de conclusão da Delia
   useEffect(() => {
-    if (canProceed()) {
-      const timer = setTimeout(() => {
-        toast.success('✅ Todos os documentos verificados!');
-        setTimeout(() => {
-          toast.info('⏳ Prosseguindo para verificação facial...');
-          setTimeout(() => {
-            onNext(documents);
-          }, 1000);
-        }, 1500);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [documents]);
+    const handleComplete = () => {
+      toast.success('✅ Documentos coletados pela Delia!');
+      setTimeout(() => {
+        onNext(documents);
+      }, 1000);
+    };
+
+    window.addEventListener('documentsComplete', handleComplete);
+    return () => window.removeEventListener('documentsComplete', handleComplete);
+  }, [documents, onNext]);
 
   return (
     <>
