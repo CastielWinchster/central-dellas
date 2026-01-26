@@ -22,6 +22,18 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     crlv: 0
   });
 
+  // Abrir Delia automaticamente ao entrar na etapa
+  useEffect(() => {
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('openDeliaForRegistration', {
+        detail: {
+          step: 'documents',
+          message: '👋 Oi! Sou a **Delia** e vou te ajudar com seu cadastro.\n\n📸 Para começar, me mande uma **foto bem clara** do primeiro documento:\n\n✅ **CNH** (Carteira Nacional de Habilitação)\n\nClique no ícone de câmera 📷 ou anexo 📎 abaixo para enviar!'
+        }
+      }));
+    }, 500);
+  }, []);
+
   const documentTypes = [
     {
       key: 'cnh',
@@ -767,10 +779,32 @@ FEEDBACK ESPECÍFICO se inválido:
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
             <FileText className="w-5 h-5 text-[#F22998]" />
-            Etapa 2: Documentos
+            Etapa 2: Documentos com Delia
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Mensagem principal */}
+          <div className="text-center py-8 space-y-4">
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] p-1">
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a4506990a_vania.jpeg"
+                alt="Delia"
+                className="w-full h-full rounded-full object-cover"
+              />
+            </div>
+            <h2 className="text-2xl font-bold text-[#F2F2F2]">Chat com Delia</h2>
+            <p className="text-[#F2F2F2]/60 max-w-md mx-auto">
+              Nossa assistente virtual já abriu automaticamente no canto da tela! 💬
+            </p>
+            <p className="text-[#F2F2F2]/80 text-lg">
+              👉 Envie suas fotos diretamente para a Delia usando o chat flutuante
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-[#F2F2F2]/50 mt-8">
+              <CheckCircle className="w-4 h-4" />
+              <span>Processo 100% conversacional e sem travamentos</span>
+            </div>
+          </div>
+
           {/* Lista de documentos */}
           {documentTypes.map((docType, index) => (
             <div
