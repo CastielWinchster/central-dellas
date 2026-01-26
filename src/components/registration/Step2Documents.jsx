@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, AlertCircle, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import DocumentCamera from './DocumentCamera';
 
 export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
   const [documents, setDocuments] = useState({
@@ -15,6 +16,8 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
 
   const [uploading, setUploading] = useState(null);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [showCamera, setShowCamera] = useState(null);
+  const [pendingFile, setPendingFile] = useState({});
 
   const documentTypes = [
     {
@@ -55,25 +58,54 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     }
   ];
 
-  const handleFileUpload = async (key, file) => {
+  // Selecionar arquivo (apenas preview)
+  const handleFileSelect = async (key, file) => {
     if (!file) return;
 
-    setUploading(key);
     try {
       // Validar tamanho do arquivo
       if (file.size > 10 * 1024 * 1024) {
         toast.error('Arquivo muito grande. Máximo 10MB.');
-        setUploading(null);
         return;
       }
 
       // Validar tipo de arquivo
       if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
         toast.error('Apenas imagens ou PDF são aceitos');
-        setUploading(null);
         return;
       }
 
+      // Criar preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const updatedDocs = {
+          ...documents,
+          [key]: {
+            uploaded: true,
+            verified: false,
+            photo: e.target.result,
+            file: file
+          }
+        };
+        setDocuments(updatedDocs);
+        setPendingFile({ ...pendingFile, [key]: file });
+      };
+      reader.readAsDataURL(file);
+      
+      toast.success('Documento carregado! Revise e envie para análise.');
+    } catch (error) {
+      console.error('Erro ao selecionar arquivo:', error);
+      toast.error('Erro ao carregar arquivo');
+    }
+  };
+
+  // Enviar documento para análise
+  const handleSubmitDocument = async (key) => {
+    const file = pendingFile[key];
+    if (!file) return;
+
+    setUploading(key);
+    try {
       // Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
@@ -115,12 +147,62 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       
       setDocuments(updatedDocs);
       onUpdate({ ...data, ...updatedDocs });
-      } catch (error) {
+      
+      // Limpar arquivo pendente
+      const newPending = { ...pendingFile };
+      delete newPending[key];
+      setPendingFile(newPending);
+    } catch (error) {
       console.error('Erro no upload:', error);
       toast.error('❌ Erro ao fazer upload. Tente novamente.', { duration: 4000 });
+    }
+    setUploading(null);
+  };
+
+  // Cancelar upload
+  const handleCancelUpload = (key) => {
+    const updatedDocs = {
+      ...documents,
+      [key]: { uploaded: false, verified: false, photo: null }
+    };
+    setDocuments(updatedDocs);
+    
+    const newPending = { ...pendingFile };
+    delete newPending[key];
+    setPendingFile(newPending);
+    
+    toast.info('Upload cancelado');
+  };
+
+  // Abrir câmera inteligente
+  const handleCameraCapture = (key) => {
+    setShowCamera(key);
+  };
+
+  // Callback da câmera
+  const handleCameraResult = (key, imageData) => {
+    const updatedDocs = {
+      ...documents,
+      [key]: {
+        uploaded: true,
+        verified: false,
+        photo: imageData,
+        isCamera: true
       }
-      setUploading(null);
-      };
+    };
+    setDocuments(updatedDocs);
+    setShowCamera(null);
+    
+    // Converter base64 para File
+    fetch(imageData)
+      .then(res => res.blob())
+      .then(blob => {
+        const file = new File([blob], `${key}.jpg`, { type: 'image/jpeg' });
+        setPendingFile({ ...pendingFile, [key]: file });
+      });
+    
+    toast.success('Foto capturada! Revise e envie para análise.');
+  };
 
   // Validar documento com IA
   const validateDocumentWithAI = async (docType, fileUrl) => {
@@ -371,11 +453,21 @@ Verifique se:
   }, [documents]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-    >
-      <Card className="bg-[#0D0D0D] border-[#F22998]/30 mb-6">
+    <>
+      {/* Câmera Inteligente */}
+      {showCamera && (
+        <DocumentCamera
+          docType={showCamera}
+          onCapture={(imageData) => handleCameraResult(showCamera, imageData)}
+          onClose={() => setShowCamera(null)}
+        />
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+      >
+        <Card className="bg-[#0D0D0D] border-[#F22998]/30 mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
             <FileText className="w-5 h-5 text-[#F22998]" />
@@ -434,29 +526,23 @@ Verifique se:
                       </div>
 
                       {/* Upload buttons */}
-                      {!documents[docType.key].verified && (
+                      {!documents[docType.key].verified && !documents[docType.key].uploaded && (
                         <div className="flex gap-2">
-                          <label className="flex-1 cursor-pointer">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              capture="environment"
-                              className="hidden"
-                              onChange={(e) => handleFileUpload(docType.key, e.target.files[0])}
-                              disabled={uploading === docType.key}
-                            />
-                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                              <Camera className="w-4 h-4" />
-                              Tirar Foto
-                            </div>
-                          </label>
+                          <button
+                            onClick={() => handleCameraCapture(docType.key)}
+                            disabled={uploading === docType.key}
+                            className={`flex-1 btn-gradient py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <Camera className="w-4 h-4" />
+                            Tirar Foto
+                          </button>
 
                           <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
                               accept="image/*,application/pdf"
                               className="hidden"
-                              onChange={(e) => handleFileUpload(docType.key, e.target.files[0])}
+                              onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}
                             />
                             <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
@@ -465,6 +551,41 @@ Verifique se:
                             </div>
                           </label>
                         </div>
+                      )}
+
+                      {/* Botão de envio após seleção */}
+                      {documents[docType.key].uploaded && !documents[docType.key].verified && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-3"
+                        >
+                          <Button
+                            onClick={() => handleSubmitDocument(docType.key)}
+                            disabled={uploading === docType.key}
+                            className="w-full btn-gradient py-6 text-lg font-semibold"
+                          >
+                            {uploading === docType.key ? (
+                              <>
+                                <Clock className="w-5 h-5 mr-2 animate-spin" />
+                                Analisando com IA...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                Enviar para Análise
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handleCancelUpload(docType.key)}
+                            disabled={uploading === docType.key}
+                            variant="outline"
+                            className="w-full border-[#F22998]/30 text-[#F22998]"
+                          >
+                            Escolher Outro Arquivo
+                          </Button>
+                        </motion.div>
                       )}
 
                       {/* Preview da foto */}
@@ -543,6 +664,7 @@ Verifique se:
           )}
         </CardContent>
       </Card>
-    </motion.div>
-  );
-}
+      </motion.div>
+      </>
+      );
+      }
