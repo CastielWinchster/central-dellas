@@ -71,16 +71,36 @@ export default function DriverRegistration() {
     try {
       const user = await base44.auth.me();
       
+      // Salvar todos os dados no banco DriverRegistration
+      await base44.entities.DriverRegistration.create({
+        user_id: user.id,
+        full_name: formData.full_name,
+        birth_date: formData.birth_date,
+        cpf: formData.cpf,
+        phone: formData.phone,
+        phone_verified: formData.phone_verified,
+        cnh_photo: formData.cnh?.photo,
+        cnh_data: formData.cnh?.extracted_data,
+        comprovante_photo: formData.comprovante?.photo,
+        comprovante_data: formData.comprovante?.extracted_data,
+        crlv_photo: formData.crlv?.photo,
+        crlv_data: formData.crlv?.extracted_data,
+        facial_photo: data.facial_photo,
+        facial_verification_data: data.facial_verification_data,
+        registration_status: 'pending_review',
+        registration_completed_at: new Date().toISOString()
+      });
+      
       // Criar registro de documentos
       await base44.entities.DriverDocument.create({
         user_id: user.id,
-        driver_license_photo: data.cnh.photo,
-        driver_license_number: 'Pending',
-        vehicle_plate: 'Pending',
-        vehicle_model: 'Pending',
+        driver_license_photo: formData.cnh?.photo,
+        driver_license_number: formData.cnh?.extracted_data?.document_number || 'Pendente',
+        vehicle_plate: formData.crlv?.extracted_data?.plate || 'Pendente',
+        vehicle_model: formData.crlv?.extracted_data?.model || 'Pendente',
         vehicle_year: 2020,
-        vehicle_color: 'Pending',
-        vehicle_document_photo: data.crlv.photo,
+        vehicle_color: 'Pendente',
+        vehicle_document_photo: formData.crlv?.photo,
         verification_status: 'pending'
       });
 
@@ -88,9 +108,9 @@ export default function DriverRegistration() {
       await base44.auth.updateMe({ 
         user_type: 'both',
         driver_application_status: 'pending',
-        phone: data.phone,
-        cpf: data.cpf,
-        birth_date: data.birth_date
+        phone: formData.phone,
+        cpf: formData.cpf,
+        birth_date: formData.birth_date
       });
 
       // Limpar progresso salvo
@@ -99,6 +119,7 @@ export default function DriverRegistration() {
       toast.success('Cadastro concluído! Aguarde aprovação em até 48h.');
       navigate(createPageUrl('Profile'));
     } catch (error) {
+      console.error('Erro ao finalizar:', error);
       toast.error('Erro ao finalizar cadastro');
     }
   };

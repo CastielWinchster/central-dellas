@@ -17,6 +17,7 @@ import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerMessages from './pages/PassengerMessages';
+import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
 import Profile from './pages/Profile';
 import RequestRide from './pages/RequestRide';
@@ -26,7 +27,6 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
-import PassengerOptions from './pages/PassengerOptions';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +50,7 @@ export const PAGES = {
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
     "PassengerMessages": PassengerMessages,
+    "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
     "Profile": Profile,
     "RequestRide": RequestRide,
@@ -59,7 +60,6 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
-    "PassengerOptions": PassengerOptions,
 }
 
 export const pagesConfig = {
