@@ -61,7 +61,7 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     }
   ];
 
-  // Selecionar arquivo e processar automaticamente
+  // Selecionar arquivo - apenas preview, sem processamento automático
   const handleFileSelect = async (key, file) => {
     if (!file) return;
 
@@ -95,11 +95,7 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         setPendingFile({ ...pendingFile, [key]: file });
         onUpdate({ [key]: updatedDocs[key] });
         
-        // Processar automaticamente com Google Vision
-        toast.info('📤 Enviando para análise...', { duration: 2000 });
-        setTimeout(() => {
-          handleSubmitDocument(key);
-        }, 500);
+        toast.success('✅ Arquivo carregado! Clique em "Enviar para Análise"');
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -803,79 +799,88 @@ FEEDBACK ESPECÍFICO se inválido:
                       </div>
 
                       {/* Upload buttons */}
-                      {!documents[docType.key].verified && !documents[docType.key].uploaded && (
-                        <div className="flex gap-2">
-                          {/* Botão Tirar Foto - Câmera Nativa */}
-                          <label className="flex-1 cursor-pointer">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              capture="environment"
-                              className="hidden"
-                              onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
-                              disabled={uploading === docType.key}
-                            />
-                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                              <Camera className="w-4 h-4" />
-                              Tirar Foto
-                            </div>
-                          </label>
-
-                          {/* Botão Carregar Documento - Galeria */}
-                          <label className="flex-1 cursor-pointer">
+                      {!documents[docType.key].verified && !documents[docType.key].uploaded && !uploading && (
+                        <div className="space-y-3">
+                          {/* Botão Carregar Documento - Galeria/Arquivos */}
+                          <label className="cursor-pointer block">
                             <input
                               type="file"
                               accept="image/*,application/pdf"
                               className="hidden"
                               onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
-                              disabled={uploading === docType.key}
                             />
-                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                              <Upload className="w-4 h-4" />
-                              Carregar Arquivo
+                            <div className="btn-gradient w-full py-4 px-6 rounded-lg flex items-center justify-center gap-3 text-white font-semibold text-lg transition-all hover:scale-105 cursor-pointer">
+                              <Upload className="w-6 h-6" />
+                              Carregar Documento
                             </div>
                           </label>
+                          <p className="text-xs text-center text-[#F2F2F2]/50">
+                            Escolha de onde enviar: câmera, galeria ou arquivos
+                          </p>
                         </div>
                       )}
 
-                      {/* Feedback de processamento */}
+                      {/* Botão Enviar para Análise */}
+                      {documents[docType.key].uploaded && !documents[docType.key].verified && !uploading && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-3"
+                        >
+                          <Button
+                            onClick={() => handleSubmitDocument(docType.key)}
+                            className="w-full bg-[#F22998] hover:bg-[#BF3B79] text-white py-6 text-lg font-semibold"
+                          >
+                            <CheckCircle className="w-6 h-6 mr-2" />
+                            Enviar para Análise
+                          </Button>
+
+                          <Button
+                            onClick={() => handleCancelUpload(docType.key)}
+                            variant="outline"
+                            className="w-full border-[#F22998]/30 text-[#F22998]"
+                          >
+                            Escolher Outro Arquivo
+                          </Button>
+                        </motion.div>
+                      )}
+
+                      {/* Feedback de processamento - Spinner simples */}
                       {uploading === docType.key && (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="space-y-3"
+                          className="flex flex-col items-center gap-3 py-8"
                         >
-                          <div className="flex flex-col items-center gap-3 py-6">
-                            <div className="w-12 h-12 border-4 border-[#F22998] border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-sm text-[#F2F2F2]/70">Enviando e analisando documento...</p>
-                          </div>
+                          <div className="w-16 h-16 border-4 border-[#F22998] border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-base text-[#F2F2F2] font-medium">Enviando...</p>
                         </motion.div>
                       )}
 
-                      {/* Opções após erro */}
+                      {/* Opções após erro - Fallback com análise manual */}
                       {documents[docType.key].error && !documents[docType.key].verified && !uploading && (
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-3"
                         >
-                          {/* Botão de análise manual após 2 tentativas */}
-                          {verificationAttempts[docType.key] >= 2 && (
-                            <>
-                              <Button
-                                onClick={() => handleRequestManualReview(docType.key)}
-                                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
-                              >
-                                <AlertCircle className="w-5 h-5 mr-2" />
-                                Solicitar Análise Manual
-                              </Button>
-                              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                                <p className="text-xs text-yellow-400">
-                                  💡 Após {verificationAttempts[docType.key]} tentativas, você pode solicitar análise manual para prosseguir.
-                                </p>
-                              </div>
-                            </>
-                          )}
+                          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 mb-3">
+                            <p className="text-sm text-red-400 text-center">
+                              ❌ {documents[docType.key].error}
+                            </p>
+                          </div>
+
+                          <Button
+                            onClick={() => handleRequestManualReview(docType.key)}
+                            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
+                          >
+                            <AlertCircle className="w-6 h-6 mr-2" />
+                            Enviar para Aprovação Manual
+                          </Button>
+
+                          <p className="text-xs text-center text-yellow-400">
+                            Não foi possível validar automaticamente. Envie para análise manual e prossiga.
+                          </p>
 
                           <Button
                             onClick={() => handleCancelUpload(docType.key)}
@@ -887,13 +892,13 @@ FEEDBACK ESPECÍFICO se inválido:
                         </motion.div>
                       )}
 
-                      {/* Preview da foto */}
+                      {/* Preview da foto com object-fit: contain */}
                       {documents[docType.key].photo && (
                         <div className="mt-3">
                           <img
                             src={documents[docType.key].photo}
                             alt={docType.title}
-                            className="w-full h-40 object-cover rounded-lg border-2 border-[#F22998]/30"
+                            className="w-full max-h-[300px] object-contain rounded-lg border-2 border-[#F22998]/30 bg-black/5"
                           />
                         </div>
                       )}
@@ -919,18 +924,7 @@ FEEDBACK ESPECÍFICO se inválido:
             </div>
           </div>
 
-          {/* Aviso sobre progresso salvo */}
-          <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-green-400 font-medium mb-1">Progresso Salvo Automaticamente</p>
-                <p className="text-sm text-[#F2F2F2]/60">
-                  Seu progresso é salvo automaticamente. Você pode sair e voltar depois sem perder seus documentos enviados.
-                </p>
-              </div>
-            </div>
-          </div>
+
 
           {/* Botões */}
           <div className="flex gap-3">
