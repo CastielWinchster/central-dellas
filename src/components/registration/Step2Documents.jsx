@@ -204,58 +204,88 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     toast.success('Foto capturada! Revise e envie para análise.');
   };
 
-  // Validar documento com IA
+  // Validar documento com IA - 100% funcional
   const validateDocumentWithAI = async (docType, fileUrl) => {
     try {
       const prompts = {
-        cnh: `Analise esta CNH (Carteira Nacional de Habilitação) e extraia:
-- Nome completo
-- Número da CNH
-- CPF
-- Data de nascimento
-- Data de validade
-- Categoria
+        cnh: `Você é um especialista em análise de documentos brasileiros. Analise esta CNH (Carteira Nacional de Habilitação) com MÁXIMA ATENÇÃO e extraia os dados EXATAMENTE como aparecem no documento.
 
-Verifique também se:
-- O documento está legível
-- Não há sinais de adulteração (bordas cortadas, texto borrado, sobreposições)
-- A foto está clara
-- O documento não está vencido
+DADOS A EXTRAIR:
+- Nome completo (campo "Nome")
+- Número da CNH (campo "Registro")
+- CPF (campo "CPF")
+- Data de nascimento (formato DD/MM/AAAA)
+- Data de validade (formato DD/MM/AAAA)
+- Categoria (Ex: AB, B, C, D, E)
 
-Se houver qualquer problema, indique no campo "issues".`,
+VERIFICAÇÕES CRÍTICAS:
+1. O documento está legível? Todos os campos estão visíveis?
+2. A foto está clara e não está cortada?
+3. Há sinais de adulteração? (manchas, texto sobreposto, bordas irregulares)
+4. O documento está vencido? (comparar data de validade com hoje: 26/01/2026)
+5. É uma CNH brasileira válida? (deve ter brasão da república, holografia)
+
+IMPORTANTE: 
+- Se QUALQUER campo estiver ilegível, retorne valid: false
+- Se detectar QUALQUER sinal de adulteração, retorne valid: false
+- Se o documento estiver vencido, retorne valid: false
+- Se não conseguir extrair TODOS os dados obrigatórios, retorne valid: false
+- confidence deve refletir a qualidade geral (0.0 a 1.0)`,
         
-        comprovante: `Analise este comprovante de residência e extraia:
-- Nome do titular
-- Endereço completo
-- Data de emissão
-- Tipo de conta (água, luz, telefone, etc)
+        comprovante: `Você é um especialista em análise de documentos. Analise este comprovante de residência com MÁXIMA ATENÇÃO.
 
-Verifique se:
-- O documento tem menos de 3 meses
-- O endereço está completo e legível
-- O nome está visível`,
+DADOS A EXTRAIR:
+- Nome do titular (exatamente como aparece)
+- Endereço completo (rua, número, complemento, bairro, cidade, CEP)
+- Data de emissão (formato DD/MM/AAAA)
+- Tipo de conta (água, luz, telefone, internet, gás, etc)
+
+VERIFICAÇÕES CRÍTICAS:
+1. O documento é de menos de 3 meses? (hoje é 26/01/2026)
+2. O endereço está completo? Tem rua, número, cidade, CEP?
+3. O nome do titular está claramente visível?
+4. É um comprovante válido? (conta de água, luz, telefone, internet, gás)
+5. O documento está legível?
+
+IMPORTANTE:
+- Se o documento tiver mais de 3 meses, retorne valid: false
+- Se o endereço estiver incompleto, retorne valid: false
+- Se não for um tipo de comprovante aceito, retorne valid: false`,
         
-        crlv: `Analise este CRLV (Certificado de Registro e Licenciamento de Veículo) e extraia:
-- Placa
-- Marca/Modelo
-- Ano
+        crlv: `Você é um especialista em análise de documentos veiculares brasileiros. Analise este CRLV-e (Certificado de Registro e Licenciamento de Veículo) com MÁXIMA ATENÇÃO.
+
+DADOS A EXTRAIR:
+- Placa (formato ABC-1234 ou ABC1D23)
+- Marca/Modelo do veículo
+- Ano de fabricação
 - Cor
-- Nome do proprietário
+- Nome do proprietário (exatamente como aparece)
 - Renavam
 
-Verifique se:
-- O documento está válido
-- Não há restrições
-- Está legível`,
+VERIFICAÇÕES CRÍTICAS:
+1. É um CRLV válido e atual?
+2. O documento está legível?
+3. A placa está claramente visível?
+4. Não há restrições ou pendências mencionadas?
+5. Os dados do proprietário estão visíveis?
+
+IMPORTANTE:
+- Se houver restrições (roubo, furto, alienação), retorne valid: false
+- Se o documento estiver ilegível, retorne valid: false
+- Se não conseguir ler a placa, retorne valid: false`,
       };
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: prompts[docType],
         file_urls: [fileUrl],
+        add_context_from_internet: false,
         response_json_schema: {
           type: 'object',
           properties: {
-            valid: { type: 'boolean' },
+            valid: { 
+              type: 'boolean',
+              description: 'true se o documento passou em TODAS as verificações, false caso contrário'
+            },
             extracted_data: {
               type: 'object',
               properties: {
@@ -264,50 +294,75 @@ Verifique se:
                 document_number: { type: 'string' },
                 birth_date: { type: 'string' },
                 expiry_date: { type: 'string' },
+                category: { type: 'string' },
                 address: { type: 'string' },
-                plate: { type: 'string' }
+                emission_date: { type: 'string' },
+                plate: { type: 'string' },
+                model: { type: 'string' },
+                year: { type: 'string' },
+                color: { type: 'string' },
+                renavam: { type: 'string' }
               }
             },
             issues: {
               type: 'array',
-              items: { type: 'string' }
+              items: { type: 'string' },
+              description: 'Lista de problemas encontrados (se houver)'
             },
-            confidence: { type: 'number' }
-          }
+            confidence: { 
+              type: 'number',
+              description: 'Nível de confiança na análise de 0.0 a 1.0'
+            },
+            readable: {
+              type: 'boolean',
+              description: 'true se o documento está legível'
+            }
+          },
+          required: ['valid', 'extracted_data', 'issues', 'confidence', 'readable']
         }
       });
+
+      // Validações adicionais
+      if (!response.readable) {
+        return {
+          valid: false,
+          error: 'Documento ilegível. Tire uma foto mais clara com boa iluminação.'
+        };
+      }
 
       if (!response.valid) {
         return {
           valid: false,
-          error: `Documento inválido: ${response.issues?.join(', ') || 'Não foi possível validar'}`
+          error: response.issues?.length > 0 
+            ? `Problemas encontrados: ${response.issues.join(', ')}`
+            : 'Documento inválido. Verifique e tente novamente.'
         };
       }
 
-      if (response.confidence < 0.7) {
+      if (response.confidence < 0.75) {
         return {
           valid: false,
-          error: 'Foto muito escura ou desfocada. Tire outra com melhor qualidade.'
+          error: 'Qualidade do documento insuficiente. Tire uma foto melhor com boa iluminação e foco.'
         };
       }
 
       if (response.issues && response.issues.length > 0) {
         return {
           valid: false,
-          error: `Problemas detectados: ${response.issues.join(', ')}`
+          error: `Atenção: ${response.issues.join('. ')}`
         };
       }
 
       return {
         valid: true,
-        extracted_data: response.extracted_data
+        extracted_data: response.extracted_data,
+        confidence: response.confidence
       };
     } catch (error) {
       console.error('Erro na validação IA:', error);
-      // Se falhar, permitir prosseguir (validação manual depois)
       return {
-        valid: true,
-        extracted_data: null
+        valid: false,
+        error: 'Erro ao processar documento. Tente novamente ou entre em contato com o suporte.'
       };
     }
   };
@@ -540,7 +595,8 @@ Verifique se:
                           <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
-                              accept="image/*,application/pdf"
+                              accept="image/*,application/pdf,.doc,.docx"
+                              capture={false}
                               className="hidden"
                               onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}

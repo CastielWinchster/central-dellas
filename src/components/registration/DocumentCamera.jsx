@@ -11,6 +11,7 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
   const [isReady, setIsReady] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [corners, setCorners] = useState(null);
+  const [detectionInterval, setDetectionInterval] = useState(null);
 
   useEffect(() => {
     startCamera();
@@ -19,11 +20,14 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
 
   const startCamera = async () => {
     try {
+      // Solicitar a melhor resolução possível do dispositivo
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 3840, min: 1920 },
+          height: { ideal: 2160, min: 1080 },
+          aspectRatio: { ideal: 16/9 },
+          frameRate: { ideal: 30 }
         }
       });
       
@@ -32,8 +36,10 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
         setStream(mediaStream);
         
         videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play();
           setIsReady(true);
-          startDetection();
+          const interval = startDetection();
+          setDetectionInterval(interval);
         };
       }
     } catch (error) {
@@ -44,40 +50,97 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
   };
 
   const stopCamera = () => {
+    if (detectionInterval) {
+      clearInterval(detectionInterval);
+    }
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
   };
 
-  // Detecção básica de documento (simulação)
+  // Detecção real de documento usando análise de bordas
   const startDetection = () => {
     const interval = setInterval(() => {
       if (videoRef.current && videoRef.current.readyState === 4) {
         detectDocument();
       }
-    }, 500);
+    }, 200); // Detecção a cada 200ms para fluidez
 
-    return () => clearInterval(interval);
+    return interval;
   };
 
   const detectDocument = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
-    const videoWidth = video.videoWidth;
-    const videoHeight = video.videoHeight;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-    // Simular detecção de bordas (área central)
-    const margin = 0.15;
-    const detectedCorners = {
-      topLeft: { x: videoWidth * margin, y: videoHeight * margin },
-      topRight: { x: videoWidth * (1 - margin), y: videoHeight * margin },
-      bottomRight: { x: videoWidth * (1 - margin), y: videoHeight * (1 - margin) },
-      bottomLeft: { x: videoWidth * margin, y: videoHeight * (1 - margin) }
-    };
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    setCorners(detectedCorners);
-    setDetecting(true);
+    // Desenhar frame atual
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Obter dados da imagem
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Detectar bordas usando algoritmo simples de detecção de contraste
+    let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+    let edgeCount = 0;
+    const threshold = 80;
+
+    // Varrer a imagem em busca de bordas fortes
+    for (let y = 0; y < canvas.height; y += 10) {
+      for (let x = 0; x < canvas.width; x += 10) {
+        const i = (y * canvas.width + x) * 4;
+        const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        
+        // Verificar contraste com pixel adjacente
+        const i2 = ((y + 5) * canvas.width + (x + 5)) * 4;
+        if (i2 < data.length) {
+          const brightness2 = (data[i2] + data[i2 + 1] + data[i2 + 2]) / 3;
+          const contrast = Math.abs(brightness - brightness2);
+          
+          if (contrast > threshold) {
+            edgeCount++;
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+        }
+      }
+    }
+
+    // Se detectou bordas suficientes (documento presente)
+    if (edgeCount > 50) {
+      // Adicionar margem
+      const margin = 20;
+      const detectedCorners = {
+        topLeft: { x: Math.max(0, minX - margin), y: Math.max(0, minY - margin) },
+        topRight: { x: Math.min(canvas.width, maxX + margin), y: Math.max(0, minY - margin) },
+        bottomRight: { x: Math.min(canvas.width, maxX + margin), y: Math.min(canvas.height, maxY + margin) },
+        bottomLeft: { x: Math.max(0, minX - margin), y: Math.min(canvas.height, maxY + margin) }
+      };
+
+      // Verificar se é um retângulo válido (proporções de documento)
+      const width = maxX - minX;
+      const height = maxY - minY;
+      const aspectRatio = width / height;
+      
+      // CNH tem proporção aproximada de 1.58:1 (85.6mm x 54mm)
+      const isValidDocument = aspectRatio > 1.2 && aspectRatio < 2.0 && 
+                              width > canvas.width * 0.4 && 
+                              height > canvas.height * 0.25;
+
+      setCorners(detectedCorners);
+      setDetecting(isValidDocument);
+    } else {
+      setCorners(null);
+      setDetecting(false);
+    }
   };
 
   const capturePhoto = () => {
@@ -150,31 +213,40 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
             className="w-full h-full object-cover"
           />
 
-          {/* Overlay com guia */}
+          {/* Overlay com guia dinâmica */}
           {isReady && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg className="w-full h-full max-w-md max-h-md">
-                {/* Área de detecção */}
-                <rect
-                  x="10%"
-                  y="20%"
-                  width="80%"
-                  height="60%"
-                  fill="none"
-                  stroke={detecting ? "#22c55e" : "#F22998"}
-                  strokeWidth="3"
-                  strokeDasharray={detecting ? "0" : "10,5"}
-                  rx="10"
-                />
-                
-                {/* Cantos */}
-                {detecting && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg className="w-full h-full" viewBox={`0 0 ${videoRef.current?.videoWidth || 1920} ${videoRef.current?.videoHeight || 1080}`}>
+                {corners ? (
                   <>
-                    <circle cx="10%" cy="20%" r="8" fill="#22c55e" />
-                    <circle cx="90%" cy="20%" r="8" fill="#22c55e" />
-                    <circle cx="90%" cy="80%" r="8" fill="#22c55e" />
-                    <circle cx="10%" cy="80%" r="8" fill="#22c55e" />
+                    {/* Polígono detectado */}
+                    <polygon
+                      points={`${corners.topLeft.x},${corners.topLeft.y} ${corners.topRight.x},${corners.topRight.y} ${corners.bottomRight.x},${corners.bottomRight.y} ${corners.bottomLeft.x},${corners.bottomLeft.y}`}
+                      fill="none"
+                      stroke={detecting ? "#22c55e" : "#ef4444"}
+                      strokeWidth="4"
+                      strokeDasharray={detecting ? "0" : "15,10"}
+                    />
+                    
+                    {/* Cantos detectados */}
+                    <circle cx={corners.topLeft.x} cy={corners.topLeft.y} r="12" fill={detecting ? "#22c55e" : "#ef4444"} />
+                    <circle cx={corners.topRight.x} cy={corners.topRight.y} r="12" fill={detecting ? "#22c55e" : "#ef4444"} />
+                    <circle cx={corners.bottomRight.x} cy={corners.bottomRight.y} r="12" fill={detecting ? "#22c55e" : "#ef4444"} />
+                    <circle cx={corners.bottomLeft.x} cy={corners.bottomLeft.y} r="12" fill={detecting ? "#22c55e" : "#ef4444"} />
                   </>
+                ) : (
+                  /* Guia padrão quando não detecta nada */
+                  <rect
+                    x="10%"
+                    y="25%"
+                    width="80%"
+                    height="50%"
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="3"
+                    strokeDasharray="20,10"
+                    rx="15"
+                  />
                 )}
               </svg>
 
