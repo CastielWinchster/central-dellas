@@ -9,10 +9,8 @@ import { base44 } from '@/api/base44Client';
 export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
   const [documents, setDocuments] = useState({
     cnh: data.cnh || { uploaded: false, verified: false, photo: null },
-    rg: data.rg || { uploaded: false, verified: false, photo: null },
     comprovante: data.comprovante || { uploaded: false, verified: false, photo: null },
-    crlv: data.crlv || { uploaded: false, verified: false, photo: null },
-    seguro: data.seguro || { uploaded: false, verified: false, photo: null }
+    crlv: data.crlv || { uploaded: false, verified: false, photo: null }
   });
 
   const [uploading, setUploading] = useState(null);
@@ -23,24 +21,12 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       key: 'cnh',
       label: 'CNH',
       title: 'Carteira Nacional de Habilitação',
-      description: 'Tire uma foto clara da sua CNH',
+      description: 'Tire uma foto clara da sua CNH ou envie o PDF da CNH digital',
       checklist: [
         'Documento inteiro visível',
         'Texto legível',
         'Luz adequada',
         'Sem borrões'
-      ]
-    },
-    {
-      key: 'rg',
-      label: 'RG',
-      title: 'Registro Geral',
-      description: 'Foto do RG (frente)',
-      checklist: [
-        'Documento inteiro visível',
-        'Nome legível',
-        'Número do RG visível',
-        'Sem reflexos'
       ]
     },
     {
@@ -66,18 +52,6 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         'Seu nome ou autorização',
         'Texto legível'
       ]
-    },
-    {
-      key: 'seguro',
-      label: 'Seguro',
-      title: 'Comprovante de Seguro',
-      description: 'Comprovante de seguro do veículo',
-      checklist: [
-        'Apólice ativa',
-        'Cobertura para passageiros',
-        'Data de validade',
-        'Número da apólice visível'
-      ]
     }
   ];
 
@@ -87,15 +61,15 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     setUploading(key);
     try {
       // Validar tamanho do arquivo
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Arquivo muito grande. Máximo 5MB.');
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Arquivo muito grande. Máximo 10MB.');
         setUploading(null);
         return;
       }
 
       // Validar tipo de arquivo
-      if (!file.type.startsWith('image/')) {
-        toast.error('Apenas imagens são aceitas');
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        toast.error('Apenas imagens ou PDF são aceitos');
         setUploading(null);
         return;
       }
@@ -107,20 +81,26 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       const validation = await validateDocumentWithAI(key, file_url);
 
       if (!validation.valid) {
-        toast.error(validation.error);
+        toast.error(`❌ ${validation.error}`, { duration: 5000 });
         setUploading(null);
         return;
       }
+
+      // Feedback de sucesso da IA
+      toast.success('✅ Documento validado com sucesso pela IA!', { duration: 3000 });
 
       // Verificar fraude comparando com dados pessoais
       if (data.full_name && validation.extracted_data) {
         const fraudCheck = checkForFraud(validation.extracted_data, data);
         if (!fraudCheck.valid) {
-          toast.error(`⚠️ Inconsistência detectada: ${fraudCheck.message}`);
+          toast.error(`⚠️ Inconsistência detectada: ${fraudCheck.message}`, { duration: 5000 });
           setUploading(null);
           return;
         }
       }
+
+      // Feedback final de sucesso
+      toast.success(`✅ ${documentTypes.find(d => d.key === key).label} verificado com sucesso!`, { duration: 3000 });
 
       // Atualizar estado
       const updatedDocs = {
@@ -135,12 +115,12 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       
       setDocuments(updatedDocs);
       onUpdate({ ...data, ...updatedDocs });
-      toast.success(`✅ ${documentTypes.find(d => d.key === key).label} verificado!`);
-    } catch (error) {
-      toast.error('Erro ao fazer upload');
-    }
-    setUploading(null);
-  };
+      } catch (error) {
+      console.error('Erro no upload:', error);
+      toast.error('❌ Erro ao fazer upload. Tente novamente.', { duration: 4000 });
+      }
+      setUploading(null);
+      };
 
   // Validar documento com IA
   const validateDocumentWithAI = async (docType, fileUrl) => {
@@ -161,18 +141,6 @@ Verifique também se:
 - O documento não está vencido
 
 Se houver qualquer problema, indique no campo "issues".`,
-        
-        rg: `Analise este RG e extraia:
-- Nome completo
-- Número do RG
-- CPF (se presente)
-- Data de nascimento
-- Órgão emissor
-
-Verifique se:
-- O documento está legível
-- Não há sinais de adulteração
-- A foto está visível`,
         
         comprovante: `Analise este comprovante de residência e extraia:
 - Nome do titular
@@ -197,17 +165,6 @@ Verifique se:
 - O documento está válido
 - Não há restrições
 - Está legível`,
-        
-        seguro: `Analise este comprovante de seguro e extraia:
-- Número da apólice
-- Segurado
-- Placa do veículo
-- Vigência (data início e fim)
-- Cobertura para passageiros
-
-Verifique se:
-- A apólice está ativa
-- Há cobertura adequada`
       };
 
       const response = await base44.integrations.Core.InvokeLLM({
@@ -497,14 +454,14 @@ Verifique se:
                           <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="image/*,application/pdf"
                               className="hidden"
                               onChange={(e) => handleFileUpload(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}
                             />
                             <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                               <Upload className="w-4 h-4" />
-                              Galeria
+                              Carregar Documento
                             </div>
                           </label>
                         </div>

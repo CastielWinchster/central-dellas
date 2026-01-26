@@ -13,7 +13,6 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     full_name: data.full_name || '',
     birth_date: data.birth_date || '',
     cpf: data.cpf || '',
-    email: data.email || '',
     phone: data.phone || '',
     phone_verified: data.phone_verified || false,
     agrees_woman: data.agrees_woman || false
@@ -23,7 +22,6 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     full_name: null,
     birth_date: null,
     cpf: null,
-    email: null,
     phone: null
   });
 
@@ -82,12 +80,7 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
     return true;
   };
 
-  // Validar email
-  const validateEmail = (email) => {
-    if (!email) return null;
-    const emailRegex = /^[a-z][a-z0-9._-]*@[a-z0-9.-]+\.[a-z]{2,}$/i;
-    return emailRegex.test(email);
-  };
+
 
   // Validar telefone
   const validatePhone = (phone) => {
@@ -133,7 +126,6 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       full_name: validateName(formData.full_name),
       birth_date: validateAge(formData.birth_date),
       cpf: validateCPF(formData.cpf),
-      email: validateEmail(formData.email),
       phone: validatePhone(formData.phone)
     });
   }, [formData]);
@@ -316,34 +308,6 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
             )}
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="text-sm text-[#F2F2F2]/70 mb-2 block">
-              Email *
-            </label>
-            <div className="relative">
-              <Input
-                type="email"
-                placeholder="seu@email.com"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                className={`bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] pr-10 ${
-                  validation.email === true ? 'border-green-500' :
-                  validation.email === false ? 'border-red-500' : ''
-                }`}
-              />
-              {validation.email === true && (
-                <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />
-              )}
-              {validation.email === false && (
-                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400" />
-              )}
-            </div>
-            {validation.email === false && (
-              <p className="text-xs text-red-400 mt-1">Email inválido.</p>
-            )}
-          </div>
-
           {/* Telefone */}
           <div>
             <label className="text-sm text-[#F2F2F2]/70 mb-2 block">
@@ -369,8 +333,8 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
               {!formData.phone_verified && (
                 <Button
                   onClick={handleSendCode}
-                  disabled={!validation.phone || sendingCode}
-                  className="btn-gradient shrink-0"
+                  disabled={!validation.phone || sendingCode || !formData.agrees_woman}
+                  className={`shrink-0 ${formData.agrees_woman && validation.phone ? 'btn-gradient' : 'bg-gray-600 cursor-not-allowed'}`}
                 >
                   {sendingCode ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
