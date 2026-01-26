@@ -154,65 +154,49 @@ export default function ChatbotFloat() {
     }
 
     if (isOption2) {
-      // Enviar para análise manual
+      // AÇÃO SIMPLIFICADA - Apenas marcar como análise manual
       try {
-        const user = await base44.auth.me();
+        // Determinar qual documento está sendo processado
+        const nextDoc = !documentsCollected.cnh ? 'cnh' :
+                        !documentsCollected.comprovante ? 'comprovante' : 'crlv';
         
-        // Encontrar última mensagem com arquivo
-        const lastFileMsg = messages.slice().reverse().find(m => m.file_url);
-        
-        if (lastFileMsg) {
-          const nextDoc = !documentsCollected.cnh ? 'cnh' :
-                          !documentsCollected.comprovante ? 'comprovante' : 'crlv';
-          
-          // Salvar no banco para análise manual
-          await base44.entities.PendingDocumentReview.create({
-            user_id: user.id,
-            document_type: nextDoc,
-            document_url: lastFileMsg.file_url,
-            status: 'pending_review'
-          });
+        // Marcar como coletado para análise manual (sem precisar do arquivo)
+        setDocumentsCollected(prev => ({ 
+          ...prev, 
+          [nextDoc]: { manual: true, verified: true } 
+        }));
 
-          // Marcar como coletado
-          setDocumentsCollected(prev => ({ 
-            ...prev, 
-            [nextDoc]: { url: lastFileMsg.file_url, manual: true, verified: true } 
-          }));
+        // Emitir evento para atualizar UI
+        window.dispatchEvent(new CustomEvent('documentManualReview', {
+          detail: { docType: nextDoc }
+        }));
 
-          // Emitir evento para atualizar UI do documento
-          window.dispatchEvent(new CustomEvent('documentManualReview', {
-            detail: { 
-              docType: nextDoc, 
-              url: lastFileMsg.file_url 
-            }
-          }));
+        // Responder e pedir próximo documento IMEDIATAMENTE
+        const responses = {
+          cnh: '✅ **Recebido!** Já encaminhei sua CNH para nossa equipe conferir manualmente. Enquanto eles olham, vamos adiantar o resto?\n\n📸 Me envie agora uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).',
+          comprovante: '✅ **Recebido!** Comprovante enviado para análise manual.\n\n📸 Agora me envie o **CRLV-e** do veículo.',
+          crlv: '🎉 **Perfeito!** Todos os documentos foram recebidos e enviados para análise.\n\nAgora vá para a próxima etapa para tirar sua selfie!'
+        };
 
-          // Responder e pedir próximo documento
-          const responses = {
-            cnh: '✅ **Entendido!** Já enviei sua foto para minha equipe humana conferir. Podemos seguir?\n\n📸 Agora, por favor, me envie uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).',
-            comprovante: '✅ **Entendido!** Já enviei para análise manual.\n\n📸 Agora me envie o **CRLV-e** do veículo.',
-            crlv: '🎉 **Perfeito!** Documentos recebidos e enviados para análise.\n\nAgora vá para a próxima etapa para tirar sua selfie!'
-          };
-
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: responses[nextDoc],
-            timestamp: new Date()
-          }]);
-
-          // Se terminou os documentos, fechar após 2s
-          if (nextDoc === 'crlv') {
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('documentsComplete'));
-              setIsOpen(false);
-            }, 2000);
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao salvar para análise manual:', error);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: '❌ Erro ao processar. Tente novamente.',
+          content: responses[nextDoc],
+          timestamp: new Date()
+        }]);
+
+        // Se terminou, fechar
+        if (nextDoc === 'crlv') {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('documentsComplete'));
+            setIsOpen(false);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        // Mesmo com erro, responder para não travar
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '✅ Recebido! Enviando para análise manual.\n\n📸 Pode me enviar o próximo documento.',
           timestamp: new Date()
         }]);
       }

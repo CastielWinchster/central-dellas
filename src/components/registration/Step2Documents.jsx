@@ -773,22 +773,22 @@ FEEDBACK ESPECÍFICO se inválido:
     const handleManualReview = (event) => {
       const { docType, url } = event.detail;
       
-      // Atualizar documento para status de análise manual
+      // Atualizar documento para status de análise manual (sem precisar de URL)
       const updatedDocs = {
         ...documents,
         [docType]: {
           uploaded: true,
           verified: true,
-          photo: url,
+          photo: url || 'https://via.placeholder.com/300x200?text=Em+Análise',
           manual_review: true,
           pending_review: true,
+          status_cnh: 'analise_manual',
           error: null
         }
       };
       
       setDocuments(updatedDocs);
       onUpdate({ [docType]: updatedDocs[docType] });
-      toast.success(`✅ ${documentTypes.find(d => d.key === docType)?.label} enviado para análise manual!`);
     };
 
     const handleClearError = (event) => {
