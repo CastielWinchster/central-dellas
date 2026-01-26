@@ -104,15 +104,29 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     }
   };
 
-  // Solicitar análise manual
+  // Solicitar análise manual e avançar automaticamente
   const handleRequestManualReview = async (key) => {
     try {
       const file = pendingFile[key];
       if (!file) return;
 
       setUploading(key);
+      
+      // Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
+      // Obter usuário
+      const user = await base44.auth.me();
+
+      // Salvar na tabela de análise manual
+      await base44.entities.PendingDocumentReview.create({
+        user_id: user.id,
+        document_type: key,
+        document_url: file_url,
+        status: 'pending_review'
+      });
+
+      // Atualizar estado do documento
       const updatedDocs = {
         ...documents,
         [key]: {
@@ -127,11 +141,22 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       setDocuments(updatedDocs);
       onUpdate({ [key]: updatedDocs[key] });
 
-      toast.success('✅ Documento enviado para análise manual! Você pode prosseguir.', { duration: 4000 });
+      toast.success('✅ Documento enviado para análise humana! Avançando...', { duration: 2000 });
       
       const newPending = { ...pendingFile };
       delete newPending[key];
       setPendingFile(newPending);
+
+      // Verificar se todos os documentos foram verificados
+      const allDocs = { ...updatedDocs };
+      const allVerified = Object.values(allDocs).every(doc => doc.verified);
+      
+      if (allVerified) {
+        // Avançar automaticamente após 1 segundo
+        setTimeout(() => {
+          onNext(allDocs);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Erro ao enviar para análise manual:', error);
       toast.error('Erro ao enviar documento. Tente novamente.');
@@ -159,15 +184,13 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       const validation = await validateDocumentWithAI(key, file_url);
 
       if (!validation.valid) {
-        // Mostrar erro específico
-        toast.error(`❌ ${validation.specific_issue || validation.error}`, { duration: 6000 });
-        
+        // Erro simples - apenas atualizar estado
         const updatedDocsWithError = {
           ...documents,
           [key]: {
             ...documents[key],
             verified: false,
-            error: validation.specific_issue || validation.error,
+            error: 'ocr_failed',
             detailed_feedback: validation.feedback
           }
         };
@@ -531,10 +554,10 @@ FEEDBACK ESPECÍFICO se inválido:
     return matches / Math.max(words1.length, words2.length);
   };
 
-  // Validar CNH com Google Cloud Vision API
+  // Validar CNH com Google Cloud Vision API (timeout 10s)
   const validateCNHWithGoogleVision = async (fileUrl) => {
     try {
-      // Converter imagem para base64
+      // Converter imagem para base64 de alta qualidade
       const imageResponse = await fetch(fileUrl);
       const imageBlob = await imageResponse.blob();
       const base64Image = await new Promise((resolve) => {
@@ -546,7 +569,10 @@ FEEDBACK ESPECÍFICO se inválido:
         reader.readAsDataURL(imageBlob);
       });
 
-      // Chamar Google Cloud Vision API
+      // Chamar Google Cloud Vision API com timeout de 10 segundos
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const visionResponse = await fetch(
         'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAPH-bGo4FnzaXeA3onA1CtG_poSs01QH8',
         {
@@ -569,8 +595,11 @@ FEEDBACK ESPECÍFICO se inválido:
               },
             ],
           }),
+          signal: controller.signal
         }
       );
+
+      clearTimeout(timeoutId);
 
       const visionData = await visionResponse.json();
 
@@ -857,30 +886,26 @@ FEEDBACK ESPECÍFICO se inválido:
                         </motion.div>
                       )}
 
-                      {/* Opções após erro - Fallback com análise manual */}
+                      {/* Fallback com análise manual - Mensagem simplificada */}
                       {documents[docType.key].error && !documents[docType.key].verified && !uploading && (
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="space-y-3"
+                          className="space-y-4"
                         >
-                          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 mb-3">
-                            <p className="text-sm text-red-400 text-center">
-                              ❌ {documents[docType.key].error}
+                          <div className="p-5 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                            <p className="text-sm text-yellow-200 text-center leading-relaxed">
+                              😕 <strong>Ops!</strong> Nossa IA está com dificuldade de ler este documento. Clique abaixo para enviar para análise humana e prosseguir.
                             </p>
                           </div>
 
                           <Button
                             onClick={() => handleRequestManualReview(docType.key)}
-                            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
+                            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-bold shadow-lg"
                           >
                             <AlertCircle className="w-6 h-6 mr-2" />
-                            Enviar para Aprovação Manual
+                            Enviar para Análise Humana
                           </Button>
-
-                          <p className="text-xs text-center text-yellow-400">
-                            Não foi possível validar automaticamente. Envie para análise manual e prossiga.
-                          </p>
 
                           <Button
                             onClick={() => handleCancelUpload(docType.key)}
