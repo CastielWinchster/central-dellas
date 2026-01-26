@@ -606,9 +606,9 @@ FEEDBACK ESPECÍFICO se inválido:
       if (!visionData.responses || !visionData.responses[0].textAnnotations) {
         return {
           valid: false,
-          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
-          specific_issue: 'Texto não detectado na imagem',
-          feedback: 'Google Vision não conseguiu extrair texto'
+          error: 'ocr_failed',
+          specific_issue: 'ocr_failed',
+          feedback: 'OCR falhou'
         };
       }
 
@@ -631,9 +631,9 @@ FEEDBACK ESPECÍFICO se inválido:
       if (!hasCPF && !hasBrazilianKeywords) {
         return {
           valid: false,
-          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
-          specific_issue: 'Texto detectado mas não parece ser uma CNH brasileira',
-          feedback: 'Documento não reconhecido como CNH'
+          error: 'ocr_failed',
+          specific_issue: 'ocr_failed',
+          feedback: 'Documento não reconhecido'
         };
       }
 
@@ -663,21 +663,21 @@ FEEDBACK ESPECÍFICO se inválido:
         extractedData.expiry_date = expiryMatch[1];
       }
 
-      // Verificar se CNH está vencida
-      if (extractedData.expiry_date) {
-        const [day, month, year] = extractedData.expiry_date.split('/');
-        const expiryDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        const today = new Date();
-        
-        if (expiryDate < today) {
-          return {
-            valid: false,
-            error: `CNH vencida em ${extractedData.expiry_date}. Atualize seu documento.`,
-            specific_issue: 'CNH vencida',
-            feedback: 'Documento vencido'
-          };
-        }
-      }
+      // Verificar se CNH está vencida (desabilitado por enquanto para não bloquear)
+      // if (extractedData.expiry_date) {
+      //   const [day, month, year] = extractedData.expiry_date.split('/');
+      //   const expiryDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      //   const today = new Date();
+      //   
+      //   if (expiryDate < today) {
+      //     return {
+      //       valid: false,
+      //       error: 'ocr_failed',
+      //       specific_issue: 'ocr_failed',
+      //       feedback: 'Documento vencido'
+      //     };
+      //   }
+      // }
 
       // Sucesso!
       return {
@@ -692,8 +692,8 @@ FEEDBACK ESPECÍFICO se inválido:
       console.error('Erro ao validar CNH com Google Vision:', error);
       return {
         valid: false,
-        error: 'Erro ao processar documento. Tente novamente.',
-        specific_issue: 'Erro na chamada do Google Vision API',
+        error: 'ocr_failed',
+        specific_issue: 'ocr_failed',
         feedback: error.message
       };
     }
