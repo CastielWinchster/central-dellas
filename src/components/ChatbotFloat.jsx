@@ -114,65 +114,107 @@ export default function ChatbotFloat() {
   const handleSend = async () => {
     if (!inputValue.trim()) return;
 
-    const userMessage = inputValue.trim();
+    const userMessage = inputValue.trim().toLowerCase();
     setInputValue('');
     setIsTyping(true);
 
-    // Se estiver em modo de cadastro e a resposta for 1 ou 2
-    if (registrationMode === 'documents' && (userMessage === '1' || userMessage === '2')) {
+    // Adicionar mensagem do usuário
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date()
+    }]);
+
+    // Detectar opção 1 ou 2 em modo de cadastro
+    const isOption1 = registrationMode === 'documents' && 
+                       (userMessage === '1' || userMessage.includes('opção 1') || 
+                        userMessage.includes('opcao 1') || userMessage.includes('tentar') || 
+                        userMessage.includes('nova foto'));
+    
+    const isOption2 = registrationMode === 'documents' && 
+                       (userMessage === '2' || userMessage.includes('opção 2') || 
+                        userMessage.includes('opcao 2') || userMessage.includes('manual') ||
+                        userMessage.includes('enviar assim'));
+
+    if (isOption1) {
+      // Limpar último anexo e pedir nova foto
+      const nextDoc = !documentsCollected.cnh ? 'cnh' :
+                      !documentsCollected.comprovante ? 'comprovante' : 'crlv';
+      
+      // Emitir evento para limpar erro na UI
+      window.dispatchEvent(new CustomEvent('clearDocumentError', { detail: { docType: nextDoc } }));
+
       setMessages(prev => [...prev, {
-        role: 'user',
-        content: userMessage,
+        role: 'assistant',
+        content: '📸 Sem problemas! Pode me mandar a nova foto por aqui mesmo.',
         timestamp: new Date()
       }]);
+      setIsTyping(false);
+      return;
+    }
 
-      if (userMessage === '1') {
+    if (isOption2) {
+      // Enviar para análise manual
+      try {
+        const user = await base44.auth.me();
+        
+        // Encontrar última mensagem com arquivo
+        const lastFileMsg = messages.slice().reverse().find(m => m.file_url);
+        
+        if (lastFileMsg) {
+          const nextDoc = !documentsCollected.cnh ? 'cnh' :
+                          !documentsCollected.comprovante ? 'comprovante' : 'crlv';
+          
+          // Salvar no banco para análise manual
+          await base44.entities.PendingDocumentReview.create({
+            user_id: user.id,
+            document_type: nextDoc,
+            document_url: lastFileMsg.file_url,
+            status: 'pending_review'
+          });
+
+          // Marcar como coletado
+          setDocumentsCollected(prev => ({ 
+            ...prev, 
+            [nextDoc]: { url: lastFileMsg.file_url, manual: true, verified: true } 
+          }));
+
+          // Emitir evento para atualizar UI do documento
+          window.dispatchEvent(new CustomEvent('documentManualReview', {
+            detail: { 
+              docType: nextDoc, 
+              url: lastFileMsg.file_url 
+            }
+          }));
+
+          // Responder e pedir próximo documento
+          const responses = {
+            cnh: '✅ **Entendido!** Já enviei sua foto para minha equipe humana conferir. Podemos seguir?\n\n📸 Agora, por favor, me envie uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).',
+            comprovante: '✅ **Entendido!** Já enviei para análise manual.\n\n📸 Agora me envie o **CRLV-e** do veículo.',
+            crlv: '🎉 **Perfeito!** Documentos recebidos e enviados para análise.\n\nAgora vá para a próxima etapa para tirar sua selfie!'
+          };
+
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: responses[nextDoc],
+            timestamp: new Date()
+          }]);
+
+          // Se terminou os documentos, fechar após 2s
+          if (nextDoc === 'crlv') {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('documentsComplete'));
+              setIsOpen(false);
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao salvar para análise manual:', error);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: '📸 Ok! Tire outra foto e me envie usando o botão de câmera abaixo.',
+          content: '❌ Erro ao processar. Tente novamente.',
           timestamp: new Date()
         }]);
-      } else {
-        // Enviar para análise manual
-        try {
-          const user = await base44.auth.me();
-          const lastMsg = messages[messages.length - 1];
-          
-          if (lastMsg.file_url) {
-            const nextDoc = !documentsCollected.cnh ? 'cnh' :
-                            !documentsCollected.comprovante ? 'comprovante' : 'crlv';
-            
-            await base44.entities.PendingDocumentReview.create({
-              user_id: user.id,
-              document_type: nextDoc,
-              document_url: lastMsg.file_url,
-              status: 'pending_review'
-            });
-
-            setDocumentsCollected(prev => ({ ...prev, [nextDoc]: { url: lastMsg.file_url, manual: true } }));
-
-            const nextMessage = nextDoc === 'cnh' 
-              ? '✅ Ok! Enviei para análise manual.\n\n📸 Agora me envie o **Comprovante de Residência**.'
-              : nextDoc === 'comprovante'
-              ? '✅ Enviado para análise!\n\n📸 Agora me envie o **CRLV-e** do veículo.'
-              : '🎉 **Documentos recebidos!**\n\nAgora vá para a próxima etapa para tirar sua selfie!';
-
-            setMessages(prev => [...prev, {
-              role: 'assistant',
-              content: nextMessage,
-              timestamp: new Date()
-            }]);
-
-            if (nextDoc === 'crlv') {
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('documentsComplete'));
-                setIsOpen(false);
-              }, 2000);
-            }
-          }
-        } catch (error) {
-          console.error('Erro:', error);
-        }
       }
       setIsTyping(false);
       return;

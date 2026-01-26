@@ -714,6 +714,7 @@ FEEDBACK ESPECÍFICO se inválido:
   const getDocumentStatus = (key) => {
     const doc = documents[key];
     if (uploading === key) return 'uploading';
+    if (doc.pending_review) return 'pending_review';
     if (doc.verified) return 'verified';
     if (doc.error) return 'error';
     if (doc.uploaded && !doc.verified) return 'ready_to_send';
@@ -725,6 +726,8 @@ FEEDBACK ESPECÍFICO se inválido:
     switch (status) {
       case 'uploading':
         return <Clock className="w-5 h-5 text-blue-400 animate-spin" />;
+      case 'pending_review':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
       case 'verified':
         return <CheckCircle className="w-5 h-5 text-green-400" />;
       case 'ready_to_send':
@@ -741,6 +744,8 @@ FEEDBACK ESPECÍFICO se inválido:
     switch (status) {
       case 'uploading':
         return 'Analisando...';
+      case 'pending_review':
+        return 'Enviado para Análise Manual';
       case 'verified':
         return 'Verificado';
       case 'ready_to_send':
@@ -756,7 +761,7 @@ FEEDBACK ESPECÍFICO se inválido:
     return Object.values(documents).every(doc => doc.verified);
   };
 
-  // Escutar evento de conclusão da Delia
+  // Escutar eventos da Delia
   useEffect(() => {
     const handleComplete = () => {
       toast.success('✅ Documentos coletados pela Delia!');
@@ -765,9 +770,55 @@ FEEDBACK ESPECÍFICO se inválido:
       }, 1000);
     };
 
+    const handleManualReview = (event) => {
+      const { docType, url } = event.detail;
+      
+      // Atualizar documento para status de análise manual
+      const updatedDocs = {
+        ...documents,
+        [docType]: {
+          uploaded: true,
+          verified: true,
+          photo: url,
+          manual_review: true,
+          pending_review: true,
+          error: null
+        }
+      };
+      
+      setDocuments(updatedDocs);
+      onUpdate({ [docType]: updatedDocs[docType] });
+      toast.success(`✅ ${documentTypes.find(d => d.key === docType)?.label} enviado para análise manual!`);
+    };
+
+    const handleClearError = (event) => {
+      const { docType } = event.detail;
+      
+      // Limpar erro do documento
+      const updatedDocs = {
+        ...documents,
+        [docType]: {
+          uploaded: false,
+          verified: false,
+          photo: null,
+          error: null
+        }
+      };
+      
+      setDocuments(updatedDocs);
+      onUpdate({ [docType]: updatedDocs[docType] });
+    };
+
     window.addEventListener('documentsComplete', handleComplete);
-    return () => window.removeEventListener('documentsComplete', handleComplete);
-  }, [documents, onNext]);
+    window.addEventListener('documentManualReview', handleManualReview);
+    window.addEventListener('clearDocumentError', handleClearError);
+    
+    return () => {
+      window.removeEventListener('documentsComplete', handleComplete);
+      window.removeEventListener('documentManualReview', handleManualReview);
+      window.removeEventListener('clearDocumentError', handleClearError);
+    };
+  }, [documents, onNext, onUpdate]);
 
   return (
     <>
