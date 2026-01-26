@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, AlertCircle, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
-import DocumentCamera from './DocumentCamera';
 
 export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
   const [documents, setDocuments] = useState({
@@ -16,7 +15,6 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
 
   const [uploading, setUploading] = useState(null);
   const [selectedDoc, setSelectedDoc] = useState(null);
-  const [showCamera, setShowCamera] = useState(null);
   const [pendingFile, setPendingFile] = useState({});
   const [verificationAttempts, setVerificationAttempts] = useState({
     cnh: 0,
@@ -63,7 +61,7 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     }
   ];
 
-  // Selecionar arquivo (apenas preview)
+  // Selecionar arquivo e processar automaticamente
   const handleFileSelect = async (key, file) => {
     if (!file) return;
 
@@ -96,10 +94,14 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         setDocuments(updatedDocs);
         setPendingFile({ ...pendingFile, [key]: file });
         onUpdate({ [key]: updatedDocs[key] });
+        
+        // Processar automaticamente com Google Vision
+        toast.info('📤 Enviando para análise...', { duration: 2000 });
+        setTimeout(() => {
+          handleSubmitDocument(key);
+        }, 500);
       };
       reader.readAsDataURL(file);
-      
-      toast.success('Documento carregado! Revise e envie para análise.');
     } catch (error) {
       console.error('Erro ao selecionar arquivo:', error);
       toast.error('Erro ao carregar arquivo');
@@ -255,39 +257,10 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     delete newPending[key];
     setPendingFile(newPending);
     
+    // Resetar tentativas
+    setVerificationAttempts({ ...verificationAttempts, [key]: 0 });
+    
     toast.info('Upload cancelado');
-  };
-
-  // Abrir câmera inteligente
-  const handleCameraCapture = (key) => {
-    setShowCamera(key);
-  };
-
-  // Callback da câmera
-  const handleCameraResult = (key, imageData) => {
-    const updatedDocs = {
-      ...documents,
-      [key]: {
-        uploaded: true,
-        verified: false,
-        photo: imageData,
-        isCamera: true,
-        error: null
-      }
-    };
-    setDocuments(updatedDocs);
-    setShowCamera(null);
-    
-    // Converter base64 para File
-    fetch(imageData)
-      .then(res => res.blob())
-      .then(blob => {
-        const file = new File([blob], `${key}.jpg`, { type: 'image/jpeg' });
-        setPendingFile({ ...pendingFile, [key]: file });
-      });
-    
-    toast.success('Foto capturada! Revise e envie para análise.');
-    onUpdate({ [key]: updatedDocs[key] });
   };
 
   // Validar documento com Google Cloud Vision API
@@ -625,49 +598,44 @@ FEEDBACK ESPECÍFICO se inválido:
         expiry_date: null,
       };
 
-      // Buscar NOME
+      // VALIDAÇÃO SIMPLIFICADA: Se detectar CPF ou palavras-chave, considerar VÁLIDO
+      const hasCPF = /\d{3}\.?\d{3}\.?\d{3}-?\d{2}/.test(fullText);
+      const hasBrazilianKeywords = /BRASILEIRA|HABILITAÇÃO|REPÚBLICA|FEDERATIVA/i.test(fullText);
+      
+      // Se encontrou CPF ou palavras-chave da CNH, considerar válido
+      if (!hasCPF && !hasBrazilianKeywords) {
+        return {
+          valid: false,
+          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
+          specific_issue: 'Texto detectado mas não parece ser uma CNH brasileira',
+          feedback: 'Documento não reconhecido como CNH'
+        };
+      }
+
+      // Extrair dados opcionalmente (não obrigatório para validação)
       const nameMatch = fullText.match(/(?:NOME|NAME)[:\s]+([A-ZÀ-Ú\s]+?)(?:\n|CPF|RG|DATA)/);
       if (nameMatch) {
         extractedData.name = nameMatch[1].trim();
       }
 
-      // Buscar CPF (formato: 000.000.000-00 ou 00000000000)
-      const cpfMatch = fullText.match(/CPF[:\s]*(\d{3}\.?\d{3}\.?\d{3}-?\d{2})/);
+      const cpfMatch = fullText.match(/(\d{3}\.?\d{3}\.?\d{3}-?\d{2})/);
       if (cpfMatch) {
         extractedData.cpf = cpfMatch[1];
       }
 
-      // Buscar número da CNH/Registro
       const cnhMatch = fullText.match(/(?:REGISTRO|CNH|CARTEIRA)[:\s]*(\d{10,11})/);
       if (cnhMatch) {
         extractedData.document_number = cnhMatch[1];
       }
 
-      // Buscar DATA DE NASCIMENTO (formato DD/MM/AAAA)
       const birthDateMatch = fullText.match(/(?:DATA DE NASCIMENTO|NASCIMENTO|NASC)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
       if (birthDateMatch) {
         extractedData.birth_date = birthDateMatch[1];
       }
 
-      // Buscar VALIDADE (formato DD/MM/AAAA)
       const expiryMatch = fullText.match(/(?:VALIDADE|VALID)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
       if (expiryMatch) {
         extractedData.expiry_date = expiryMatch[1];
-      }
-
-      // Validar se campos essenciais foram encontrados
-      const missingFields = [];
-      if (!extractedData.name) missingFields.push('NOME');
-      if (!extractedData.cpf) missingFields.push('CPF');
-      if (!extractedData.document_number) missingFields.push('NÚMERO DA CNH');
-
-      if (missingFields.length > 0) {
-        return {
-          valid: false,
-          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
-          specific_issue: `Campos não encontrados: ${missingFields.join(', ')}`,
-          feedback: 'Campos essenciais não detectados'
-        };
       }
 
       // Verificar se CNH está vencida
@@ -769,15 +737,6 @@ FEEDBACK ESPECÍFICO se inválido:
 
   return (
     <>
-      {/* Câmera Inteligente */}
-      {showCamera && (
-        <DocumentCamera
-          docType={showCamera}
-          onCapture={(imageData) => handleCameraResult(showCamera, imageData)}
-          onClose={() => setShowCamera(null)}
-        />
-      )}
-
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -846,95 +805,85 @@ FEEDBACK ESPECÍFICO se inválido:
                       {/* Upload buttons */}
                       {!documents[docType.key].verified && !documents[docType.key].uploaded && (
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleCameraCapture(docType.key)}
-                            disabled={uploading === docType.key}
-                            className={`flex-1 btn-gradient py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <Camera className="w-4 h-4" />
-                            Tirar Foto
-                          </button>
-
+                          {/* Botão Tirar Foto - Câmera Nativa */}
                           <label className="flex-1 cursor-pointer">
                             <input
                               type="file"
-                              accept="image/*,application/pdf,.doc,.docx"
-                              capture={false}
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
+                              disabled={uploading === docType.key}
+                            />
+                            <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                              <Camera className="w-4 h-4" />
+                              Tirar Foto
+                            </div>
+                          </label>
+
+                          {/* Botão Carregar Documento - Galeria */}
+                          <label className="flex-1 cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
                               className="hidden"
                               onChange={(e) => handleFileSelect(docType.key, e.target.files[0])}
                               disabled={uploading === docType.key}
                             />
                             <div className={`btn-gradient w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-white font-medium transition-all hover:scale-105 ${uploading === docType.key ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                               <Upload className="w-4 h-4" />
-                              Carregar Documento
+                              Carregar Arquivo
                             </div>
                           </label>
                         </div>
                       )}
 
-                      {/* Botão de envio após seleção */}
-                      {documents[docType.key].uploaded && !documents[docType.key].verified && (
+                      {/* Feedback de processamento */}
+                      {uploading === docType.key && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="space-y-3"
+                        >
+                          <div className="flex flex-col items-center gap-3 py-6">
+                            <div className="w-12 h-12 border-4 border-[#F22998] border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-sm text-[#F2F2F2]/70">Enviando e analisando documento...</p>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Opções após erro */}
+                      {documents[docType.key].error && !documents[docType.key].verified && !uploading && (
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-3"
                         >
-                          <Button
-                            onClick={() => handleSubmitDocument(docType.key)}
-                            disabled={uploading === docType.key}
-                            className="w-full btn-gradient py-6 text-lg font-semibold"
-                          >
-                            {uploading === docType.key ? (
-                              <>
-                                <Clock className="w-5 h-5 mr-2 animate-spin" />
-                                Analisando com IA...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-5 h-5 mr-2" />
-                                Enviar para Análise {verificationAttempts[docType.key] > 0 ? `(Tentativa ${verificationAttempts[docType.key] + 1})` : ''}
-                              </>
-                            )}
-                          </Button>
-
                           {/* Botão de análise manual após 2 tentativas */}
                           {verificationAttempts[docType.key] >= 2 && (
-                            <Button
-                              onClick={() => handleRequestManualReview(docType.key)}
-                              disabled={uploading === docType.key}
-                              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
-                            >
-                              {uploading === docType.key ? (
-                                <>
-                                  <Clock className="w-5 h-5 mr-2 animate-spin" />
-                                  Enviando...
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="w-5 h-5 mr-2" />
-                                  Solicitar Análise Manual
-                                </>
-                              )}
-                            </Button>
+                            <>
+                              <Button
+                                onClick={() => handleRequestManualReview(docType.key)}
+                                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
+                              >
+                                <AlertCircle className="w-5 h-5 mr-2" />
+                                Solicitar Análise Manual
+                              </Button>
+                              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                                <p className="text-xs text-yellow-400">
+                                  💡 Após {verificationAttempts[docType.key]} tentativas, você pode solicitar análise manual para prosseguir.
+                                </p>
+                              </div>
+                            </>
                           )}
 
                           <Button
                             onClick={() => handleCancelUpload(docType.key)}
-                            disabled={uploading === docType.key}
                             variant="outline"
                             className="w-full border-[#F22998]/30 text-[#F22998]"
                           >
-                            Escolher Outro Arquivo
+                            Tentar Outro Documento
                           </Button>
-
-                          {/* Aviso de análise manual */}
-                          {verificationAttempts[docType.key] >= 2 && (
-                            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                              <p className="text-xs text-yellow-400">
-                                💡 A verificação automática falhou {verificationAttempts[docType.key]} vezes. Você pode solicitar análise manual para prosseguir.
-                              </p>
-                            </div>
-                          )}
                         </motion.div>
                       )}
 
@@ -949,13 +898,7 @@ FEEDBACK ESPECÍFICO se inválido:
                         </div>
                       )}
 
-                      {/* Status de validação */}
-                      {uploading === docType.key && (
-                        <div className="flex items-center gap-2 text-sm text-blue-400">
-                          <Clock className="w-4 h-4 animate-spin" />
-                          Analisando documento...
-                        </div>
-                      )}
+
                     </div>
                   </motion.div>
                 )}
