@@ -290,45 +290,16 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     onUpdate({ [key]: updatedDocs[key] });
   };
 
-  // Validar documento com IA - Sistema aprimorado com tratamento de imagem
+  // Validar documento com Google Cloud Vision API
   const validateDocumentWithAI = async (docType, fileUrl) => {
     try {
+      // Para CNH, usar Google Cloud Vision API
+      if (docType === 'cnh') {
+        return await validateCNHWithGoogleVision(fileUrl);
+      }
+
+      // Para outros documentos, manter lógica anterior
       const prompts = {
-        cnh: `Você é um especialista em análise de documentos brasileiros com processamento avançado de imagem. Analise esta CNH (Carteira Nacional de Habilitação).
-
-PROCESSAMENTO DE IMAGEM (CRÍTICO):
-1. ROTAÇÃO: Se o texto estiver vertical ou diagonal, IDENTIFIQUE a orientação correta e EXTRAIA os dados considerando a rotação necessária
-2. REFLEXOS: Identifique áreas com reflexo de luz e tente ler ao redor delas
-3. FOCO: Se partes estão desfocadas mas o ESSENCIAL está legível, considere válido
-
-DADOS A EXTRAIR (ordem de prioridade):
-- Nome completo (ESSENCIAL)
-- CPF (ESSENCIAL)  
-- Número da CNH / Registro (ESSENCIAL)
-- Data de nascimento (IMPORTANTE)
-- Data de validade (IMPORTANTE)
-- Categoria (SECUNDÁRIO - Ex: AB, B, C, D, E)
-
-VALIDAÇÃO FLEXÍVEL - CONSIDERE VÁLIDO SE:
-- Nome, CPF e Número da CNH estão legíveis (mesmo que outros campos estejam parcialmente ilegíveis)
-- Documento está rotacionado mas o texto pode ser lido
-- Há reflexos LEVES mas não impedem leitura dos campos essenciais
-- Foto da pessoa está parcialmente cortada mas dados textuais estão completos
-
-REJEITE APENAS SE:
-- Documento vencido (data de validade anterior a hoje: ${new Date().toLocaleDateString('pt-BR')})
-- Sinais CLAROS de adulteração (edição digital, rasuras, montagem)
-- IMPOSSÍVEL ler nome OU CPF OU número da CNH
-- Documento completamente desfocado ou muito escuro
-- Não é uma CNH brasileira
-
-FEEDBACK ESPECÍFICO - Se invalid, indique EXATAMENTE o problema:
-- "Documento rotacionado 90° para a direita - não foi possível ler"
-- "Reflexo intenso cobrindo o campo do nome"
-- "Parte inferior do documento cortada - faltam data de nascimento e validade"  
-- "CNH vencida em DD/MM/AAAA"
-- "Documento muito escuro - campos ilegíveis"
-- "Possível edição digital detectada no campo CPF"`,
         
         comprovante: `Você é um especialista em análise de documentos com processamento avançado. Analise este comprovante de residência.
 
@@ -389,6 +360,11 @@ FEEDBACK ESPECÍFICO se inválido:
 - "Parte do documento cortada - falta nome do proprietário"
 - "CRLV vencido - necessário renovação"`,
       };
+
+      // Para CNH já foi tratado acima com Google Vision
+      if (docType === 'cnh') {
+        return await validateCNHWithGoogleVision(fileUrl);
+      }
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: prompts[docType],
@@ -584,6 +560,150 @@ FEEDBACK ESPECÍFICO se inválido:
     });
     
     return matches / Math.max(words1.length, words2.length);
+  };
+
+  // Validar CNH com Google Cloud Vision API
+  const validateCNHWithGoogleVision = async (fileUrl) => {
+    try {
+      // Converter imagem para base64
+      const imageResponse = await fetch(fileUrl);
+      const imageBlob = await imageResponse.blob();
+      const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.readAsDataURL(imageBlob);
+      });
+
+      // Chamar Google Cloud Vision API
+      const visionResponse = await fetch(
+        'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAPH-bGo4FnzaXeA3onA1CtG_poSs01QH8',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            requests: [
+              {
+                image: {
+                  content: base64Image,
+                },
+                features: [
+                  {
+                    type: 'TEXT_DETECTION',
+                    maxResults: 1,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+
+      const visionData = await visionResponse.json();
+
+      if (!visionData.responses || !visionData.responses[0].textAnnotations) {
+        return {
+          valid: false,
+          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
+          specific_issue: 'Texto não detectado na imagem',
+          feedback: 'Google Vision não conseguiu extrair texto'
+        };
+      }
+
+      const fullText = visionData.responses[0].textAnnotations[0].description.toUpperCase();
+
+      // Extrair campos da CNH
+      const extractedData = {
+        name: null,
+        cpf: null,
+        document_number: null,
+        birth_date: null,
+        expiry_date: null,
+      };
+
+      // Buscar NOME
+      const nameMatch = fullText.match(/(?:NOME|NAME)[:\s]+([A-ZÀ-Ú\s]+?)(?:\n|CPF|RG|DATA)/);
+      if (nameMatch) {
+        extractedData.name = nameMatch[1].trim();
+      }
+
+      // Buscar CPF (formato: 000.000.000-00 ou 00000000000)
+      const cpfMatch = fullText.match(/CPF[:\s]*(\d{3}\.?\d{3}\.?\d{3}-?\d{2})/);
+      if (cpfMatch) {
+        extractedData.cpf = cpfMatch[1];
+      }
+
+      // Buscar número da CNH/Registro
+      const cnhMatch = fullText.match(/(?:REGISTRO|CNH|CARTEIRA)[:\s]*(\d{10,11})/);
+      if (cnhMatch) {
+        extractedData.document_number = cnhMatch[1];
+      }
+
+      // Buscar DATA DE NASCIMENTO (formato DD/MM/AAAA)
+      const birthDateMatch = fullText.match(/(?:DATA DE NASCIMENTO|NASCIMENTO|NASC)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
+      if (birthDateMatch) {
+        extractedData.birth_date = birthDateMatch[1];
+      }
+
+      // Buscar VALIDADE (formato DD/MM/AAAA)
+      const expiryMatch = fullText.match(/(?:VALIDADE|VALID)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
+      if (expiryMatch) {
+        extractedData.expiry_date = expiryMatch[1];
+      }
+
+      // Validar se campos essenciais foram encontrados
+      const missingFields = [];
+      if (!extractedData.name) missingFields.push('NOME');
+      if (!extractedData.cpf) missingFields.push('CPF');
+      if (!extractedData.document_number) missingFields.push('NÚMERO DA CNH');
+
+      if (missingFields.length > 0) {
+        return {
+          valid: false,
+          error: 'Não foi possível ler os dados. Certifique-se de que não há reflexos de luz sobre o documento.',
+          specific_issue: `Campos não encontrados: ${missingFields.join(', ')}`,
+          feedback: 'Campos essenciais não detectados'
+        };
+      }
+
+      // Verificar se CNH está vencida
+      if (extractedData.expiry_date) {
+        const [day, month, year] = extractedData.expiry_date.split('/');
+        const expiryDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const today = new Date();
+        
+        if (expiryDate < today) {
+          return {
+            valid: false,
+            error: `CNH vencida em ${extractedData.expiry_date}. Atualize seu documento.`,
+            specific_issue: 'CNH vencida',
+            feedback: 'Documento vencido'
+          };
+        }
+      }
+
+      // Sucesso!
+      return {
+        valid: true,
+        extracted_data: extractedData,
+        confidence: 0.9,
+        rotation_detected: false,
+        has_reflections: false
+      };
+
+    } catch (error) {
+      console.error('Erro ao validar CNH com Google Vision:', error);
+      return {
+        valid: false,
+        error: 'Erro ao processar documento. Tente novamente.',
+        specific_issue: 'Erro na chamada do Google Vision API',
+        feedback: error.message
+      };
+    }
   };
 
   const getDocumentStatus = (key) => {
