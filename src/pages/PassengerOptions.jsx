@@ -226,7 +226,7 @@ export default function PassengerOptions() {
             className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]"
           >
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#F22998]">
+              <div className="w-20 h-20 min-w-[80px] rounded-full overflow-hidden border-4 border-[#F22998] flex-shrink-0">
                 {user.photo_url ? (
                   <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (

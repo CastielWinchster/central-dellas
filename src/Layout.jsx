@@ -165,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-md ${isDark ? 'bg-[#0D0D0D]/70 border-b border-[#F22998]/20' : 'bg-white/70 border-b border-gray-200'}`}
+        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-xl ${isDark ? 'bg-[#0D0D0D]/95 border-b border-[#F22998]/20' : 'bg-white/95 border-b border-gray-200'} shadow-lg`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export default function Layout({ children, currentPageName }) {
             className={`fixed inset-0 z-[9999] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
-              {[...passengerLinks, ...driverLinks].map((link) => (
+              {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
                 <Link
                   key={link.page}
                   to={createPageUrl(link.page)}
@@ -313,63 +313,40 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom Navigation - Mobile */}
       {user && (
         <motion.nav 
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'glass-effect' : 'bg-white/80 backdrop-blur-20 border-t border-gray-200'}`}
-        >
-          <div className="flex items-center justify-around py-3 px-2">
-            {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
-            <Link
-              key={link.page}
-              to={createPageUrl(link.page)}
-              className="flex flex-col items-center gap-1"
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#F22998]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
             >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className={cn(
-                  "p-2 rounded-xl transition-all",
-                  currentPageName === link.page
-                    ? "bg-gradient-to-br from-[#BF3B79] to-[#F22998] glow-pink"
-                    : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
+              <div className="flex items-center justify-around py-3 px-2">
+                {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
+                <Link
+                  key={link.page}
+                  to={createPageUrl(link.page)}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                      "p-2 rounded-xl transition-all",
+                      currentPageName === link.page
+                        ? "bg-gradient-to-br from-[#BF3B79] to-[#F22998] glow-pink"
+                        : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
+                    )}
+                  >
+                    <link.icon className={cn(
+                      "w-5 h-5",
+                      currentPageName === link.page ? "text-white" : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
+                    )} />
+                  </motion.div>
+                  <span className={cn(
+                    "text-[10px] font-medium",
+                    currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
+                  )}>{link.name}</span>
+                </Link>
+              ))}
+                </div>
+                </motion.nav>
                 )}
-              >
-                <link.icon className={cn(
-                  "w-5 h-5",
-                  currentPageName === link.page ? "text-white" : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
-                )} />
-              </motion.div>
-              <span className={cn(
-                "text-[10px] font-medium",
-                currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
-              )}>{link.name}</span>
-            </Link>
-          ))}
-          <Link
-            to={createPageUrl('Profile')}
-            className="flex flex-col items-center gap-1"
-          >
-            <motion.div
-              whileTap={{ scale: 0.9 }}
-              className={cn(
-                "p-2 rounded-xl transition-all",
-                currentPageName === 'Profile'
-                  ? "bg-gradient-to-br from-[#BF3B79] to-[#F22998] glow-pink"
-                  : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
-              )}
-            >
-              <User className={cn(
-                "w-5 h-5",
-                currentPageName === 'Profile' ? "text-white" : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
-              )} />
-            </motion.div>
-            <span className={cn(
-              "text-[10px] font-medium",
-              currentPageName === 'Profile' ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
-            )}>Perfil</span>
-            </Link>
-            </div>
-            </motion.nav>
-            )}
     </div>
   );
 }

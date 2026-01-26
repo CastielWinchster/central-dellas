@@ -136,32 +136,35 @@ export default function Step1PersonalData({ data, onUpdate, onNext }) {
       toast.error('Digite um telefone válido');
       return;
     }
-    
+
     setSendingCode(true);
     try {
       const response = await base44.functions.invoke('gerarCodigoVerificacao', {
         telefone: formData.phone
       });
-      
+
       if (response.data.sucesso) {
         setShowVerificationInput(true);
         toast.success('✅ Código gerado! Délia está enviando...');
-        
-        // Abrir chat e fazer Délia enviar código automaticamente
-        window.dispatchEvent(new CustomEvent('openChatWithCode', {
-          detail: {
-            codigo: response.data.codigo,
-            telefone: formData.phone
-          }
-        }));
+
+        // Abrir chat e fazer Délia enviar código automaticamente - sem recarregar a página
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openChatWithCode', {
+            detail: {
+              codigo: response.data.codigo,
+              telefone: formData.phone
+            }
+          }));
+        }, 100);
       } else {
         toast.error(response.data.erro || 'Erro ao gerar código');
       }
     } catch (error) {
       console.error('Erro ao gerar código:', error);
       toast.error('Erro ao gerar código. Tente novamente.');
+    } finally {
+      setSendingCode(false);
     }
-    setSendingCode(false);
   };
 
   // Verificar código
