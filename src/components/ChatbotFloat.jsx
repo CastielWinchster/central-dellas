@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles } from 'lucide-react';
+import { X, Send, Sparkles, Paperclip, Camera, Image as ImageIcon } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,10 @@ export default function ChatbotFloat() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && !conversation) {
@@ -109,6 +112,118 @@ export default function ChatbotFloat() {
     }
   };
 
+  const handleFileSelect = async (file) => {
+    if (!file || !conversation) return;
+
+    // Validar tipo
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('Apenas imagens (.jpg, .png, .jpeg) ou PDF');
+      return;
+    }
+
+    // Validar tamanho (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 10MB.');
+      return;
+    }
+
+    setUploadingFile(true);
+    setIsTyping(true);
+
+    try {
+      // Upload do arquivo
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Adicionar mensagem do usuário com preview
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const preview = e.target.result;
+        
+        // Adicionar mensagem com imagem
+        setMessages(prev => [...prev, {
+          role: 'user',
+          content: file.type === 'application/pdf' ? '📄 Documento PDF enviado' : '',
+          file_url: file_url,
+          file_type: file.type,
+          preview: file.type.startsWith('image/') ? preview : null,
+          timestamp: new Date()
+        }]);
+
+        // Processar com Google Vision se for imagem
+        if (file.type.startsWith('image/')) {
+          toast.info('🔍 Analisando documento...');
+          
+          const visionResult = await analyzeDocumentWithVision(file_url);
+          
+          // Enviar resultado para o agente
+          await base44.agents.addMessage(conversation, {
+            role: 'user',
+            content: `Analisei um documento. Resultado: ${visionResult.text || 'Não foi possível extrair texto'}`,
+            file_urls: [file_url]
+          });
+        } else {
+          // Se for PDF, apenas enviar ao agente
+          await base44.agents.addMessage(conversation, {
+            role: 'user',
+            content: 'Enviei um documento PDF',
+            file_urls: [file_url]
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+
+    } catch (error) {
+      console.error('Erro ao enviar arquivo:', error);
+      toast.error('Erro ao enviar arquivo');
+      setIsTyping(false);
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const analyzeDocumentWithVision = async (fileUrl) => {
+    try {
+      const imageResponse = await fetch(fileUrl);
+      const imageBlob = await imageResponse.blob();
+      const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result.split(',')[1]);
+        };
+        reader.readAsDataURL(imageBlob);
+      });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const visionResponse = await fetch(
+        'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAPH-bGo4FnzaXeA3onA1CtG_poSs01QH8',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [{
+              image: { content: base64Image },
+              features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
+            }]
+          }),
+          signal: controller.signal
+        }
+      );
+
+      clearTimeout(timeoutId);
+      const data = await visionResponse.json();
+
+      if (data.responses?.[0]?.textAnnotations) {
+        return { text: data.responses[0].textAnnotations[0].description };
+      }
+      return { text: null };
+    } catch (error) {
+      console.error('Erro Vision API:', error);
+      return { text: null };
+    }
+  };
+
   return (
     <>
       {/* Floating Button */}
@@ -189,6 +304,21 @@ export default function ChatbotFloat() {
                         : 'bg-[#F2F2F2]/10 text-[#F2F2F2]'
                     }`}
                   >
+                    {/* Preview de imagem */}
+                    {message.preview && (
+                      <img 
+                        src={message.preview} 
+                        alt="Documento" 
+                        className="max-w-full max-h-48 rounded-lg mb-2 object-contain"
+                      />
+                    )}
+                    {/* Ícone PDF */}
+                    {message.file_type === 'application/pdf' && (
+                      <div className="flex items-center gap-2 mb-2 bg-white/10 p-2 rounded-lg">
+                        <ImageIcon className="w-5 h-5" />
+                        <span className="text-xs">Documento PDF</span>
+                      </div>
+                    )}
                     <div className="text-sm whitespace-pre-wrap break-words">
                       {message.content}
                     </div>
@@ -234,17 +364,58 @@ export default function ChatbotFloat() {
             {/* Input */}
             <div className="p-3 md:p-4 bg-[#1a0a15] border-t border-[#F22998]/20">
               <div className="flex gap-2 items-center">
+                {/* Inputs ocultos para arquivos */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,application/pdf"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                />
+
+                {/* Botão Arquivos */}
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isTyping || uploadingFile}
+                  variant="ghost"
+                  size="icon"
+                  className="text-[#F22998] hover:bg-[#F22998]/10 shrink-0"
+                  title="Enviar arquivo"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </Button>
+
+                {/* Botão Câmera */}
+                <Button
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={isTyping || uploadingFile}
+                  variant="ghost"
+                  size="icon"
+                  className="text-[#F22998] hover:bg-[#F22998]/10 shrink-0"
+                  title="Tirar foto"
+                >
+                  <Camera className="w-5 h-5" />
+                </Button>
+
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Digite sua mensagem..."
+                  placeholder={uploadingFile ? "Enviando..." : "Digite sua mensagem..."}
                   className="flex-1 bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 focus:border-[#F22998] text-sm"
-                  disabled={isTyping}
+                  disabled={isTyping || uploadingFile}
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={!inputValue.trim() || isTyping}
+                  disabled={!inputValue.trim() || isTyping || uploadingFile}
                   className="bg-gradient-to-br from-[#BF3B79] to-[#F22998] hover:opacity-90 transition-opacity shrink-0"
                   size="icon"
                 >
