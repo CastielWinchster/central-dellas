@@ -4,27 +4,33 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Navigation, Search, Clock, CreditCard, 
   Car, Shield, Users, ChevronRight, Loader2, Star,
-  Wallet, X, Check, Phone, Dog
+  Wallet, X, Check, Phone, Dog, Crosshair
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
+import { toast } from 'sonner';
 
 export default function RequestRide() {
   const [user, setUser] = useState(null);
-  const [step, setStep] = useState('address'); // address, options, searching, driver_found, in_ride
+  const [step, setStep] = useState('address');
   const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
   const [pickupLocation, setPickupLocation] = useState(null);
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [selectedRideType, setSelectedRideType] = useState('standard');
   const [selectedPayment, setSelectedPayment] = useState('pix');
-  const [hasPet, setHasPet] = useState(false);
+  const [acceptsPets, setAcceptsPets] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [driver, setDriver] = useState(null);
   const [nearbyDrivers, setNearbyDrivers] = useState([]);
+  const [pickupError, setPickupError] = useState('');
+  const [destinationError, setDestinationError] = useState('');
+  const [loadingPickup, setLoadingPickup] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -40,13 +46,87 @@ export default function RequestRide() {
     };
     loadUser();
     
-    // Simulate nearby drivers
+    // Simular motoristas próximos com tags
     setNearbyDrivers([
-      { lat: -23.5505, lng: -46.6333, name: 'Maria', rating: 4.9 },
-      { lat: -23.5525, lng: -46.6353, name: 'Ana', rating: 4.8 },
-      { lat: -23.5495, lng: -46.6313, name: 'Julia', rating: 5.0 },
+      { 
+        lat: -23.5505, 
+        lng: -46.6333, 
+        name: 'Maria Silva', 
+        rating: 4.9,
+        phone: '(11) 99999-1111',
+        location: 'Av. Paulista, 1000',
+        tags: ['aceita_pet'],
+        vehicle: 'Honda Fit Prata'
+      },
+      { 
+        lat: -23.5525, 
+        lng: -46.6353, 
+        name: 'Ana Costa', 
+        rating: 4.8,
+        phone: '(11) 99999-2222',
+        location: 'R. Augusta, 500',
+        tags: ['frete'],
+        vehicle: 'Fiat Strada Branca'
+      },
+      { 
+        lat: -23.5495, 
+        lng: -46.6313, 
+        name: 'Julia Santos', 
+        rating: 5.0,
+        phone: '(11) 99999-3333',
+        location: 'Av. Rebouças, 200',
+        tags: [],
+        vehicle: 'Toyota Corolla Preto'
+      },
+      { 
+        lat: -23.5515, 
+        lng: -46.6343, 
+        name: 'Carla Oliveira', 
+        rating: 4.7,
+        phone: '(11) 99999-4444',
+        location: 'R. Consolação, 300',
+        tags: ['aceita_pet', 'frete'],
+        vehicle: 'Chevrolet Onix Vermelho'
+      },
     ]);
+    
+    // Pegar localização automática ao carregar
+    getCurrentLocation();
   }, []);
+
+  const getCurrentLocation = async () => {
+    setGettingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setPickupLocation({ lat: latitude, lng: longitude });
+          
+          // Geocodificação reversa com Nominatim
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
+            );
+            const data = await response.json();
+            if (data.address) {
+              const address = `${data.address.road || ''}, ${data.address.house_number || 's/n'}, ${data.address.suburb || data.address.neighbourhood || ''}, ${data.address.city || data.address.town || ''}`.trim();
+              setPickup(address);
+              toast.success('Localização detectada automaticamente');
+            }
+          } catch (error) {
+            console.error('Erro na geocodificação reversa:', error);
+          }
+          setGettingLocation(false);
+        },
+        (error) => {
+          console.error('Erro ao obter localização:', error);
+          setGettingLocation(false);
+        }
+      );
+    } else {
+      setGettingLocation(false);
+    }
+  };
 
   const rideTypes = [
     { id: 'standard', name: 'Della Standard', icon: Car, price: 15, time: '5 min', description: 'Econômico e confortável' },
@@ -61,16 +141,51 @@ export default function RequestRide() {
     { id: 'wallet', name: 'Carteira Digital', icon: '👛' },
   ];
 
-  const handleSearch = () => {
-    if (pickup && destination) {
-      // Simulate geocoding
-      setPickupLocation({ lat: -23.5505, lng: -46.6333 });
-      setDestinationLocation({ lat: -23.5605, lng: -46.6533 });
+  const validateAddress = async (address, isPickup = true) => {
+    if (!address || address.trim().length < 5) return false;
+    
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`
+      );
+      const data = await response.json();
       
+      if (data.length === 0) {
+        if (isPickup) {
+          setPickupError('Por favor, insira um local válido existente na cidade');
+        } else {
+          setDestinationError('Por favor, insira um local válido existente na cidade');
+        }
+        return false;
+      }
+      
+      if (isPickup) {
+        setPickupError('');
+        setPickupLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      } else {
+        setDestinationError('');
+        setDestinationLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro na validação:', error);
+      return false;
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!pickup || !destination) return;
+    
+    setLoadingPickup(true);
+    const pickupValid = await validateAddress(pickup, true);
+    const destValid = await validateAddress(destination, false);
+    setLoadingPickup(false);
+    
+    if (pickupValid && destValid) {
       const selectedType = rideTypes.find(r => r.id === selectedRideType);
       setEstimatedPrice(selectedType.price);
       setEstimatedTime(selectedType.time);
-      
       setStep('options');
     }
   };
@@ -122,7 +237,8 @@ export default function RequestRide() {
             <MapView
               pickupLocation={pickupLocation}
               destinationLocation={destinationLocation}
-              nearbyDrivers={nearbyDrivers}
+              nearbyDrivers={acceptsPets ? nearbyDrivers.filter(d => d.tags?.includes('aceita_pet')) : nearbyDrivers}
+              showRoute={!!pickupLocation && !!destinationLocation}
               className="h-full"
             />
           </motion.div>
@@ -140,41 +256,93 @@ export default function RequestRide() {
                   className="space-y-4"
                 >
                   <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
-                    <h2 className="text-xl font-semibold text-[#F2F2F2] mb-6">Para onde vamos?</h2>
-                    
                     <div className="space-y-4">
-                      <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                          <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block font-medium">
+                          De onde você está
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                            <div className="w-3 h-3 rounded-full bg-green-500" />
+                          </div>
+                          <Input
+                            placeholder="Digite seu endereço"
+                            value={pickup}
+                            onChange={(e) => {
+                              setPickup(e.target.value);
+                              setPickupError('');
+                            }}
+                            onBlur={() => pickup && validateAddress(pickup, true)}
+                            className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
+                              pickupError ? 'border-red-500' : ''
+                            }`}
+                          />
+                          {gettingLocation && (
+                            <button
+                              onClick={getCurrentLocation}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998] hover:text-[#BF3B79]"
+                            >
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            </button>
+                          )}
+                          {!gettingLocation && (
+                            <button
+                              onClick={getCurrentLocation}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998] hover:text-[#BF3B79]"
+                              title="Usar localização atual"
+                            >
+                              <Crosshair className="w-5 h-5" />
+                            </button>
+                          )}
                         </div>
-                        <Input
-                          placeholder="Onde você está?"
-                          value={pickup}
-                          onChange={(e) => setPickup(e.target.value)}
-                          className="pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40"
-                        />
+                        {pickupError && (
+                          <p className="text-xs text-red-500 mt-1">{pickupError}</p>
+                        )}
                       </div>
                       
-                      <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                          <div className="w-3 h-3 rounded-full bg-[#F22998]" />
+                      <div>
+                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block font-medium">
+                          Para onde vai
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                            <div className="w-3 h-3 rounded-full bg-[#F22998]" />
+                          </div>
+                          <Input
+                            placeholder="Digite o destino"
+                            value={destination}
+                            onChange={(e) => {
+                              setDestination(e.target.value);
+                              setDestinationError('');
+                            }}
+                            onBlur={() => destination && validateAddress(destination, false)}
+                            className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
+                              destinationError ? 'border-red-500' : ''
+                            }`}
+                          />
                         </div>
-                        <Input
-                          placeholder="Para onde vai?"
-                          value={destination}
-                          onChange={(e) => setDestination(e.target.value)}
-                          className="pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40"
-                        />
+                        {destinationError && (
+                          <p className="text-xs text-red-500 mt-1">{destinationError}</p>
+                        )}
                       </div>
                     </div>
 
                     <Button 
                       onClick={handleSearch}
-                      disabled={!pickup || !destination}
+                      disabled={!pickup || !destination || loadingPickup || pickupError || destinationError}
                       className="w-full mt-6 btn-gradient py-6 rounded-2xl text-lg font-semibold disabled:opacity-50"
                     >
-                      <Search className="w-5 h-5 mr-2" />
-                      Buscar Motoristas
+                      {loadingPickup ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Validando...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-5 h-5 mr-2" />
+                          Buscar Motoristas
+                        </>
+                      )}
                     </Button>
                   </Card>
 
@@ -254,6 +422,27 @@ export default function RequestRide() {
                           </div>
                         </motion.button>
                       ))}
+                    </div>
+
+                    {/* Filtro Aceita Pets */}
+                    <div className="mt-4 pt-4 border-t border-[#F22998]/10">
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D]">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <Dog className="w-5 h-5 text-purple-400" />
+                          </div>
+                          <span className="font-medium text-[#F2F2F2]">Aceita Pets</span>
+                        </div>
+                        <Switch
+                          checked={acceptsPets}
+                          onCheckedChange={setAcceptsPets}
+                        />
+                      </div>
+                      {acceptsPets && (
+                        <p className="text-xs text-purple-400 mt-2 ml-1">
+                          Mostrando apenas motoristas que aceitam pets no mapa
+                        </p>
+                      )}
                     </div>
                   </Card>
 
