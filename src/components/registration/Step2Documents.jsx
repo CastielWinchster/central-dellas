@@ -18,6 +18,11 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showCamera, setShowCamera] = useState(null);
   const [pendingFile, setPendingFile] = useState({});
+  const [verificationAttempts, setVerificationAttempts] = useState({
+    cnh: 0,
+    comprovante: 0,
+    crlv: 0
+  });
 
   const documentTypes = [
     {
@@ -101,12 +106,53 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     }
   };
 
+  // Solicitar análise manual
+  const handleRequestManualReview = async (key) => {
+    try {
+      const file = pendingFile[key];
+      if (!file) return;
+
+      setUploading(key);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      const updatedDocs = {
+        ...documents,
+        [key]: {
+          uploaded: true,
+          verified: true, // Permitir prosseguir
+          photo: file_url,
+          manual_review: true,
+          error: null
+        }
+      };
+
+      setDocuments(updatedDocs);
+      onUpdate({ [key]: updatedDocs[key] });
+
+      toast.success('✅ Documento enviado para análise manual! Você pode prosseguir.', { duration: 4000 });
+      
+      const newPending = { ...pendingFile };
+      delete newPending[key];
+      setPendingFile(newPending);
+    } catch (error) {
+      console.error('Erro ao enviar para análise manual:', error);
+      toast.error('Erro ao enviar documento. Tente novamente.');
+    } finally {
+      setUploading(null);
+    }
+  };
+
   // Enviar documento para análise
   const handleSubmitDocument = async (key) => {
     const file = pendingFile[key];
     if (!file) return;
 
     setUploading(key);
+    
+    // Incrementar tentativas
+    const newAttempts = { ...verificationAttempts, [key]: verificationAttempts[key] + 1 };
+    setVerificationAttempts(newAttempts);
+
     try {
       // Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -115,13 +161,16 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       const validation = await validateDocumentWithAI(key, file_url);
 
       if (!validation.valid) {
-        toast.error(`❌ ${validation.error}`, { duration: 5000 });
+        // Mostrar erro específico
+        toast.error(`❌ ${validation.specific_issue || validation.error}`, { duration: 6000 });
+        
         const updatedDocsWithError = {
           ...documents,
           [key]: {
             ...documents[key],
             verified: false,
-            error: validation.error
+            error: validation.specific_issue || validation.error,
+            detailed_feedback: validation.feedback
           }
         };
         setDocuments(updatedDocsWithError);
@@ -241,75 +290,104 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     onUpdate({ [key]: updatedDocs[key] });
   };
 
-  // Validar documento com IA - 100% funcional
+  // Validar documento com IA - Sistema aprimorado com tratamento de imagem
   const validateDocumentWithAI = async (docType, fileUrl) => {
     try {
       const prompts = {
-        cnh: `Você é um especialista em análise de documentos brasileiros. Analise esta CNH (Carteira Nacional de Habilitação) com MÁXIMA ATENÇÃO e extraia os dados EXATAMENTE como aparecem no documento.
+        cnh: `Você é um especialista em análise de documentos brasileiros com processamento avançado de imagem. Analise esta CNH (Carteira Nacional de Habilitação).
 
-DADOS A EXTRAIR:
-- Nome completo (campo "Nome")
-- Número da CNH (campo "Registro")
-- CPF (campo "CPF")
-- Data de nascimento (formato DD/MM/AAAA)
-- Data de validade (formato DD/MM/AAAA)
-- Categoria (Ex: AB, B, C, D, E)
+PROCESSAMENTO DE IMAGEM (CRÍTICO):
+1. ROTAÇÃO: Se o texto estiver vertical ou diagonal, IDENTIFIQUE a orientação correta e EXTRAIA os dados considerando a rotação necessária
+2. REFLEXOS: Identifique áreas com reflexo de luz e tente ler ao redor delas
+3. FOCO: Se partes estão desfocadas mas o ESSENCIAL está legível, considere válido
 
-VERIFICAÇÕES CRÍTICAS:
-1. O documento está legível? Todos os campos estão visíveis?
-2. A foto está clara e não está cortada?
-3. Há sinais de adulteração? (manchas, texto sobreposto, bordas irregulares)
-4. O documento está vencido? (comparar data de validade com hoje: ${new Date().toLocaleDateString('pt-BR')})
-5. É uma CNH brasileira válida? (deve ter brasão da república, holografia)
+DADOS A EXTRAIR (ordem de prioridade):
+- Nome completo (ESSENCIAL)
+- CPF (ESSENCIAL)  
+- Número da CNH / Registro (ESSENCIAL)
+- Data de nascimento (IMPORTANTE)
+- Data de validade (IMPORTANTE)
+- Categoria (SECUNDÁRIO - Ex: AB, B, C, D, E)
 
-IMPORTANTE: 
-- Se QUALQUER campo estiver ilegível, retorne valid: false
-- Se detectar QUALQUER sinal de adulteração, retorne valid: false
-- Se o documento estiver vencido, retorne valid: false
-- Se não conseguir extrair TODOS os dados obrigatórios, retorne valid: false
-- confidence deve refletir a qualidade geral (0.0 a 1.0)`,
+VALIDAÇÃO FLEXÍVEL - CONSIDERE VÁLIDO SE:
+- Nome, CPF e Número da CNH estão legíveis (mesmo que outros campos estejam parcialmente ilegíveis)
+- Documento está rotacionado mas o texto pode ser lido
+- Há reflexos LEVES mas não impedem leitura dos campos essenciais
+- Foto da pessoa está parcialmente cortada mas dados textuais estão completos
+
+REJEITE APENAS SE:
+- Documento vencido (data de validade anterior a hoje: ${new Date().toLocaleDateString('pt-BR')})
+- Sinais CLAROS de adulteração (edição digital, rasuras, montagem)
+- IMPOSSÍVEL ler nome OU CPF OU número da CNH
+- Documento completamente desfocado ou muito escuro
+- Não é uma CNH brasileira
+
+FEEDBACK ESPECÍFICO - Se invalid, indique EXATAMENTE o problema:
+- "Documento rotacionado 90° para a direita - não foi possível ler"
+- "Reflexo intenso cobrindo o campo do nome"
+- "Parte inferior do documento cortada - faltam data de nascimento e validade"  
+- "CNH vencida em DD/MM/AAAA"
+- "Documento muito escuro - campos ilegíveis"
+- "Possível edição digital detectada no campo CPF"`,
         
-        comprovante: `Você é um especialista em análise de documentos. Analise este comprovante de residência com MÁXIMA ATENÇÃO.
+        comprovante: `Você é um especialista em análise de documentos com processamento avançado. Analise este comprovante de residência.
 
-DADOS A EXTRAIR:
-- Nome do titular (exatamente como aparece)
-- Endereço completo (rua, número, complemento, bairro, cidade, CEP)
-- Data de emissão (formato DD/MM/AAAA)
-- Tipo de conta (água, luz, telefone, internet, gás, etc)
+PROCESSAMENTO DE IMAGEM:
+- Se rotacionado, identifique orientação e leia adequadamente
+- Ignore reflexos leves e manchas que não impedem leitura
 
-VERIFICAÇÕES CRÍTICAS:
-1. O documento é de menos de 3 meses? (hoje é ${new Date().toLocaleDateString('pt-BR')})
-2. O endereço está completo? Tem rua, número, cidade, CEP?
-3. O nome do titular está claramente visível?
-4. É um comprovante válido? (conta de água, luz, telefone, internet, gás)
-5. O documento está legível?
+DADOS A EXTRAIR (prioridade):
+- Nome do titular (ESSENCIAL)
+- Endereço (rua, número, cidade, CEP - ESSENCIAL)
+- Data de emissão (IMPORTANTE)
+- Tipo de conta (água, luz, telefone, internet, gás - SECUNDÁRIO)
 
-IMPORTANTE:
-- Se o documento tiver mais de 3 meses, retorne valid: false
-- Se o endereço estiver incompleto, retorne valid: false
-- Se não for um tipo de comprovante aceito, retorne valid: false`,
+VALIDAÇÃO FLEXÍVEL - VÁLIDO SE:
+- Nome e endereço principal (rua/número/cidade) estão legíveis
+- Data está visível (mesmo com pequeno reflexo)
+- É comprovante de serviço essencial reconhecível
+
+REJEITE SE:
+- Documento com mais de 3 meses (hoje: ${new Date().toLocaleDateString('pt-BR')})
+- Endereço completamente ilegível
+- Não é comprovante aceito (extrato bancário, declarações)
+
+FEEDBACK ESPECÍFICO se inválido:
+- "Comprovante com data de MM/AAAA - mais de 3 meses"
+- "Endereço parcialmente cortado - falta CEP e cidade"
+- "Reflexo intenso sobre o nome do titular"
+- "Tipo de documento não aceito (extrato bancário)"`,
         
-        crlv: `Você é um especialista em análise de documentos veiculares brasileiros. Analise este CRLV-e (Certificado de Registro e Licenciamento de Veículo) com MÁXIMA ATENÇÃO.
+        crlv: `Você é um especialista em análise de documentos veiculares com processamento avançado. Analise este CRLV-e.
 
-DADOS A EXTRAIR:
-- Placa (formato ABC-1234 ou ABC1D23)
-- Marca/Modelo do veículo
-- Ano de fabricação
-- Cor
-- Nome do proprietário (exatamente como aparece)
-- Renavam
+PROCESSAMENTO DE IMAGEM:
+- Corrija rotação se necessário
+- Leia através de reflexos leves
 
-VERIFICAÇÕES CRÍTICAS:
-1. É um CRLV válido e atual?
-2. O documento está legível?
-3. A placa está claramente visível?
-4. Não há restrições ou pendências mencionadas?
-5. Os dados do proprietário estão visíveis?
+DADOS A EXTRAIR (prioridade):
+- Placa (ESSENCIAL - ABC-1234 ou ABC1D23)
+- Nome do proprietário (ESSENCIAL)
+- Marca/Modelo (IMPORTANTE)
+- Ano de fabricação (IMPORTANTE)
+- Renavam (SECUNDÁRIO)
+- Cor (SECUNDÁRIO)
 
-IMPORTANTE:
-- Se houver restrições (roubo, furto, alienação), retorne valid: false
-- Se o documento estiver ilegível, retorne valid: false
-- Se não conseguir ler a placa, retorne valid: false`,
+VALIDAÇÃO FLEXÍVEL - VÁLIDO SE:
+- Placa e nome do proprietário estão legíveis
+- É documento de veículo brasileiro reconhecível
+- Marca/modelo podem ser identificados
+
+REJEITE SE:
+- Restrições ATIVAS (roubo, furto, alienação fiduciária)
+- Placa completamente ilegível
+- Nome do proprietário impossível de ler
+- Documento claramente adulterado
+
+FEEDBACK ESPECÍFICO se inválido:
+- "Restrição de alienação fiduciária detectada"
+- "Placa ilegível devido a reflexo"
+- "Parte do documento cortada - falta nome do proprietário"
+- "CRLV vencido - necessário renovação"`,
       };
 
       const response = await base44.integrations.Core.InvokeLLM({
@@ -352,41 +430,61 @@ IMPORTANTE:
             },
             readable: {
               type: 'boolean',
-              description: 'true se o documento está legível'
+              description: 'true se o documento está minimamente legível'
+            },
+            specific_issue: {
+              type: 'string',
+              description: 'Descrição ESPECÍFICA do problema se valid=false (ex: "Reflexo sobre campo CPF", "Documento rotacionado 90°")'
+            },
+            rotation_detected: {
+              type: 'boolean',
+              description: 'true se o documento está rotacionado mas pode ser lido'
+            },
+            has_reflections: {
+              type: 'boolean',
+              description: 'true se há reflexos mas não impedem leitura essencial'
             }
           },
-          required: ['valid', 'extracted_data', 'issues', 'confidence', 'readable']
+          required: ['valid', 'extracted_data', 'confidence', 'readable', 'specific_issue']
         }
       });
 
-      // Validações adicionais
-      if (!response.readable) {
+      // Validações flexíveis
+      if (!response.readable && response.confidence < 0.4) {
         return {
           valid: false,
-          error: 'Documento ilegível. Tire uma foto mais clara com boa iluminação.'
+          error: 'Documento completamente ilegível.',
+          specific_issue: response.specific_issue || 'Foto muito escura ou desfocada. Tente novamente com melhor iluminação.',
+          feedback: response.has_reflections ? 'Reflexos detectados' : response.rotation_detected ? 'Documento rotacionado' : 'Qualidade insuficiente'
         };
+      }
+
+      // Se rotacionado mas legível, aceitar
+      if (response.rotation_detected && response.confidence >= 0.5) {
+        toast.info('ℹ️ Documento rotacionado detectado, mas dados foram extraídos com sucesso', { duration: 3000 });
+      }
+
+      // Se tem reflexos mas essencial está legível, aceitar
+      if (response.has_reflections && response.confidence >= 0.5) {
+        toast.info('ℹ️ Reflexos detectados, mas campos essenciais estão legíveis', { duration: 3000 });
       }
 
       if (!response.valid) {
         return {
           valid: false,
-          error: response.issues?.length > 0 
-            ? `Problemas encontrados: ${response.issues.join(', ')}`
-            : 'Documento inválido. Verifique e tente novamente.'
+          error: response.specific_issue || 'Documento não passou nas verificações.',
+          specific_issue: response.specific_issue,
+          feedback: response.issues?.join(', ')
         };
       }
 
-      if (response.confidence < 0.75) {
+      // Confiança mínima reduzida de 0.75 para 0.5
+      if (response.confidence < 0.5) {
         return {
           valid: false,
-          error: 'Qualidade do documento insuficiente. Tire uma foto melhor com boa iluminação e foco.'
-        };
-      }
-
-      if (response.issues && response.issues.length > 0) {
-        return {
-          valid: false,
-          error: `Atenção: ${response.issues.join('. ')}`
+          error: 'Qualidade insuficiente para extração automática.',
+          specific_issue: response.specific_issue || 'Tente tirar foto com melhor foco e iluminação',
+          feedback: 'Confiança baixa na leitura'
         };
       }
 
@@ -674,10 +772,32 @@ IMPORTANTE:
                             ) : (
                               <>
                                 <CheckCircle className="w-5 h-5 mr-2" />
-                                Enviar para Análise
+                                Enviar para Análise {verificationAttempts[docType.key] > 0 ? `(Tentativa ${verificationAttempts[docType.key] + 1})` : ''}
                               </>
                             )}
                           </Button>
+
+                          {/* Botão de análise manual após 2 tentativas */}
+                          {verificationAttempts[docType.key] >= 2 && (
+                            <Button
+                              onClick={() => handleRequestManualReview(docType.key)}
+                              disabled={uploading === docType.key}
+                              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg font-semibold"
+                            >
+                              {uploading === docType.key ? (
+                                <>
+                                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                                  Enviando...
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-5 h-5 mr-2" />
+                                  Solicitar Análise Manual
+                                </>
+                              )}
+                            </Button>
+                          )}
+
                           <Button
                             onClick={() => handleCancelUpload(docType.key)}
                             disabled={uploading === docType.key}
@@ -686,6 +806,15 @@ IMPORTANTE:
                           >
                             Escolher Outro Arquivo
                           </Button>
+
+                          {/* Aviso de análise manual */}
+                          {verificationAttempts[docType.key] >= 2 && (
+                            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                              <p className="text-xs text-yellow-400">
+                                💡 A verificação automática falhou {verificationAttempts[docType.key]} vezes. Você pode solicitar análise manual para prosseguir.
+                              </p>
+                            </div>
+                          )}
                         </motion.div>
                       )}
 
