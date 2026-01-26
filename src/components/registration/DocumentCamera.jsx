@@ -12,6 +12,7 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
   const [detecting, setDetecting] = useState(false);
   const [corners, setCorners] = useState(null);
   const [detectionInterval, setDetectionInterval] = useState(null);
+  const [hasDetectedDocument, setHasDetectedDocument] = useState(false);
 
   useEffect(() => {
     startCamera();
@@ -131,15 +132,20 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
       const aspectRatio = width / height;
       
       // CNH tem proporção aproximada de 1.58:1 (85.6mm x 54mm)
-      const isValidDocument = aspectRatio > 1.2 && aspectRatio < 2.0 && 
-                              width > canvas.width * 0.4 && 
-                              height > canvas.height * 0.25;
+      const isValidDocument = aspectRatio > 1.3 && aspectRatio < 1.7 && 
+                              width > canvas.width * 0.3 && 
+                              height > canvas.height * 0.2;
 
       setCorners(detectedCorners);
       setDetecting(isValidDocument);
+
+      if (isValidDocument && !hasDetectedDocument) {
+        setHasDetectedDocument(true);
+      }
     } else {
       setCorners(null);
       setDetecting(false);
+      setHasDetectedDocument(false);
     }
   };
 
@@ -216,7 +222,7 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
           {/* Overlay com guia dinâmica */}
           {isReady && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <svg className="w-full h-full" viewBox={`0 0 ${videoRef.current?.videoWidth || 1920} ${videoRef.current?.videoHeight || 1080}`}>
+              <svg className="w-full h-full" viewBox={`0 0 ${videoRef.current?.videoWidth || 640} ${videoRef.current?.videoHeight || 480}`}>
                 {corners ? (
                   <>
                     {/* Polígono detectado */}
@@ -253,7 +259,7 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
               {/* Instruções */}
               <div className="absolute bottom-32 left-0 right-0 text-center">
                 <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full">
-                  {detecting ? (
+                  {hasDetectedDocument ? (
                     <>
                       <Check className="w-5 h-5 text-green-400" />
                       <span className="text-white font-medium">Documento detectado!</span>
@@ -276,7 +282,7 @@ export default function DocumentCamera({ docType, onCapture, onClose }) {
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
           <Button
             onClick={capturePhoto}
-            disabled={!isReady}
+            disabled={!isReady || !detecting}
             className="w-full btn-gradient py-6 text-lg font-semibold"
           >
             <Camera className="w-6 h-6 mr-2" />

@@ -26,11 +26,11 @@ export default function DriverRegistration() {
     phone_verified: false,
     agrees_woman: false,
     // Etapa 2
-    cnh: { uploaded: false, verified: false, photo: null },
-    rg: { uploaded: false, verified: false, photo: null },
-    comprovante: { uploaded: false, verified: false, photo: null },
-    crlv: { uploaded: false, verified: false, photo: null },
-    seguro: { uploaded: false, verified: false, photo: null },
+    cnh: { uploaded: false, verified: false, photo: null, error: null },
+    rg: { uploaded: false, verified: false, photo: null, error: null },
+    comprovante: { uploaded: false, verified: false, photo: null, error: null },
+    crlv: { uploaded: false, verified: false, photo: null, error: null },
+    seguro: { uploaded: false, verified: false, photo: null, error: null },
     // Etapa 3
     facial_verification: null
   });
@@ -91,7 +91,22 @@ export default function DriverRegistration() {
   }, [formData, step]);
 
   const handleUpdateData = (newData) => {
-    setFormData({ ...formData, ...newData });
+    setFormData(prevFormData => {
+      const newFormData = { ...prevFormData };
+      // Percorrer as chaves do newData
+      for (const key in newData) {
+        // Se a chave já existe e é um objeto (como cnh, comprovante, crlv), fazer merge profundo
+        if (typeof newFormData[key] === 'object' && newFormData[key] !== null &&
+            typeof newData[key] === 'object' && newData[key] !== null &&
+            !Array.isArray(newFormData[key]) && !Array.isArray(newData[key])) {
+          newFormData[key] = { ...newFormData[key], ...newData[key] };
+        } else {
+          // Caso contrário, substituir o valor
+          newFormData[key] = newData[key];
+        }
+      }
+      return newFormData;
+    });
   };
 
   const handleStep1Next = (data) => {

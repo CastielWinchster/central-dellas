@@ -9,9 +9,9 @@ import DocumentCamera from './DocumentCamera';
 
 export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
   const [documents, setDocuments] = useState({
-    cnh: data.cnh || { uploaded: false, verified: false, photo: null },
-    comprovante: data.comprovante || { uploaded: false, verified: false, photo: null },
-    crlv: data.crlv || { uploaded: false, verified: false, photo: null }
+    cnh: data.cnh || { uploaded: false, verified: false, photo: null, error: null },
+    comprovante: data.comprovante || { uploaded: false, verified: false, photo: null, error: null },
+    crlv: data.crlv || { uploaded: false, verified: false, photo: null, error: null }
   });
 
   const [uploading, setUploading] = useState(null);
@@ -84,11 +84,13 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
             uploaded: true,
             verified: false,
             photo: e.target.result,
-            file: file
+            file: file,
+            error: null
           }
         };
         setDocuments(updatedDocs);
         setPendingFile({ ...pendingFile, [key]: file });
+        onUpdate({ [key]: updatedDocs[key] });
       };
       reader.readAsDataURL(file);
       
@@ -114,6 +116,16 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
 
       if (!validation.valid) {
         toast.error(`❌ ${validation.error}`, { duration: 5000 });
+        const updatedDocsWithError = {
+          ...documents,
+          [key]: {
+            ...documents[key],
+            verified: false,
+            error: validation.error
+          }
+        };
+        setDocuments(updatedDocsWithError);
+        onUpdate({ [key]: updatedDocsWithError[key] });
         setUploading(null);
         return;
       }
@@ -126,6 +138,16 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         const fraudCheck = checkForFraud(validation.extracted_data, data);
         if (!fraudCheck.valid) {
           toast.error(`⚠️ Inconsistência detectada: ${fraudCheck.message}`, { duration: 5000 });
+          const updatedDocsWithError = {
+            ...documents,
+            [key]: {
+              ...documents[key],
+              verified: false,
+              error: `Inconsistência: ${fraudCheck.message}`
+            }
+          };
+          setDocuments(updatedDocsWithError);
+          onUpdate({ [key]: updatedDocsWithError[key] });
           setUploading(null);
           return;
         }
@@ -141,12 +163,13 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
           uploaded: true,
           verified: true,
           photo: file_url,
-          extracted_data: validation.extracted_data
+          extracted_data: validation.extracted_data,
+          error: null
         }
       };
       
       setDocuments(updatedDocs);
-      onUpdate({ ...data, ...updatedDocs });
+      onUpdate({ [key]: updatedDocs[key] });
       
       // Limpar arquivo pendente
       const newPending = { ...pendingFile };
@@ -155,17 +178,29 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
     } catch (error) {
       console.error('Erro no upload:', error);
       toast.error('❌ Erro ao fazer upload. Tente novamente.', { duration: 4000 });
+      const updatedDocsWithError = {
+        ...documents,
+        [key]: {
+          ...documents[key],
+          verified: false,
+          error: 'Falha no envio ou processamento do documento.'
+        }
+      };
+      setDocuments(updatedDocsWithError);
+      onUpdate({ [key]: updatedDocsWithError[key] });
+    } finally {
+      setUploading(null);
     }
-    setUploading(null);
   };
 
   // Cancelar upload
   const handleCancelUpload = (key) => {
     const updatedDocs = {
       ...documents,
-      [key]: { uploaded: false, verified: false, photo: null }
+      [key]: { uploaded: false, verified: false, photo: null, error: null }
     };
     setDocuments(updatedDocs);
+    onUpdate({ [key]: updatedDocs[key] });
     
     const newPending = { ...pendingFile };
     delete newPending[key];
@@ -187,7 +222,8 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
         uploaded: true,
         verified: false,
         photo: imageData,
-        isCamera: true
+        isCamera: true,
+        error: null
       }
     };
     setDocuments(updatedDocs);
@@ -202,6 +238,7 @@ export default function Step2Documents({ data, onUpdate, onNext, onBack }) {
       });
     
     toast.success('Foto capturada! Revise e envie para análise.');
+    onUpdate({ [key]: updatedDocs[key] });
   };
 
   // Validar documento com IA - 100% funcional
@@ -222,7 +259,7 @@ VERIFICAÇÕES CRÍTICAS:
 1. O documento está legível? Todos os campos estão visíveis?
 2. A foto está clara e não está cortada?
 3. Há sinais de adulteração? (manchas, texto sobreposto, bordas irregulares)
-4. O documento está vencido? (comparar data de validade com hoje: 26/01/2026)
+4. O documento está vencido? (comparar data de validade com hoje: ${new Date().toLocaleDateString('pt-BR')})
 5. É uma CNH brasileira válida? (deve ter brasão da república, holografia)
 
 IMPORTANTE: 
@@ -241,7 +278,7 @@ DADOS A EXTRAIR:
 - Tipo de conta (água, luz, telefone, internet, gás, etc)
 
 VERIFICAÇÕES CRÍTICAS:
-1. O documento é de menos de 3 meses? (hoje é 26/01/2026)
+1. O documento é de menos de 3 meses? (hoje é ${new Date().toLocaleDateString('pt-BR')})
 2. O endereço está completo? Tem rua, número, cidade, CEP?
 3. O nome do titular está claramente visível?
 4. É um comprovante válido? (conta de água, luz, telefone, internet, gás)
@@ -455,7 +492,8 @@ IMPORTANTE:
     const doc = documents[key];
     if (uploading === key) return 'uploading';
     if (doc.verified) return 'verified';
-    if (doc.uploaded) return 'pending';
+    if (doc.error) return 'error';
+    if (doc.uploaded && !doc.verified) return 'ready_to_send';
     return 'not_uploaded';
   };
 
@@ -466,8 +504,10 @@ IMPORTANTE:
         return <Clock className="w-5 h-5 text-blue-400 animate-spin" />;
       case 'verified':
         return <CheckCircle className="w-5 h-5 text-green-400" />;
-      case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-400" />;
+      case 'ready_to_send':
+        return <CheckCircle className="w-5 h-5 text-blue-400" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
       default:
         return <div className="w-5 h-5 rounded-full border-2 border-[#F2F2F2]/30" />;
     }
@@ -480,8 +520,10 @@ IMPORTANTE:
         return 'Analisando...';
       case 'verified':
         return 'Verificado';
-      case 'pending':
-        return 'Aguardando';
+      case 'ready_to_send':
+        return 'Pronto para enviar';
+      case 'error':
+        return 'Erro na verificação';
       default:
         return 'Não enviado';
     }
@@ -548,6 +590,9 @@ IMPORTANTE:
                   <div>
                     <h3 className="font-semibold text-[#F2F2F2]">{docType.title}</h3>
                     <p className="text-sm text-[#F2F2F2]/60">{getStatusLabel(docType.key)}</p>
+                    {documents[docType.key].error && getDocumentStatus(docType.key) === 'error' && (
+                      <p className="text-xs text-red-400 mt-1">{documents[docType.key].error}</p>
+                    )}
                   </div>
                 </div>
                 <Button
