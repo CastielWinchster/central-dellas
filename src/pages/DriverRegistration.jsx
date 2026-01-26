@@ -8,10 +8,14 @@ import { toast } from 'sonner';
 import Step1PersonalData from '../components/registration/Step1PersonalData';
 import Step2Documents from '../components/registration/Step2Documents';
 import Step3FacialVerification from '../components/registration/Step3FacialVerification';
+import BlockedPopup from '../components/registration/BlockedPopup';
 
 export default function DriverRegistration() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockedUntil, setBlockedUntil] = useState(null);
+  const [attemptRecord, setAttemptRecord] = useState(null);
   const [formData, setFormData] = useState({
     // Etapa 1
     full_name: '',
@@ -31,8 +35,41 @@ export default function DriverRegistration() {
     facial_verification: null
   });
 
+  // Verificar bloqueio e tentativas
+  useEffect(() => {
+    const checkAttempts = async () => {
+      try {
+        const user = await base44.auth.me();
+        const attempts = await base44.entities.DriverRegistrationAttempt.filter({ user_id: user.id });
+        
+        if (attempts.length > 0) {
+          const record = attempts[0];
+          setAttemptRecord(record);
+          
+          // Verificar se está bloqueada
+          if (record.blocked_until) {
+            const blockEnd = new Date(record.blocked_until);
+            const now = new Date();
+            
+            if (now < blockEnd) {
+              setIsBlocked(true);
+              setBlockedUntil(record.blocked_until);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar tentativas:', error);
+      }
+    };
+    
+    checkAttempts();
+  }, []);
+
   // Carregar progresso salvo
   useEffect(() => {
+    if (isBlocked) return;
+    
     const savedProgress = localStorage.getItem('driver_registration_progress');
     if (savedProgress) {
       const parsed = JSON.parse(savedProgress);
@@ -40,7 +77,7 @@ export default function DriverRegistration() {
       setStep(parsed.step);
       toast.success('Progresso carregado!');
     }
-  }, []);
+  }, [isBlocked]);
 
   // Salvar progresso automaticamente
   useEffect(() => {
@@ -70,6 +107,9 @@ export default function DriverRegistration() {
   const handleComplete = async (data) => {
     try {
       const user = await base44.auth.me();
+      
+      // Incrementar tentativas
+      await incrementAttempt(user.id);
       
       // Salvar todos os dados no banco DriverRegistration
       await base44.entities.DriverRegistration.create({
@@ -121,7 +161,59 @@ export default function DriverRegistration() {
     } catch (error) {
       console.error('Erro ao finalizar:', error);
       toast.error('Erro ao finalizar cadastro');
+      
+      // Incrementar tentativa mesmo em caso de erro
+      const user = await base44.auth.me();
+      await incrementAttempt(user.id);
     }
+  };
+
+  const incrementAttempt = async (userId) => {
+    try {
+      const attempts = await base44.entities.DriverRegistrationAttempt.filter({ user_id: userId });
+      
+      if (attempts.length === 0) {
+        // Criar primeiro registro
+        await base44.entities.DriverRegistrationAttempt.create({
+          user_id: userId,
+          attempt_number: 1,
+          total_attempts: 1
+        });
+      } else {
+        const record = attempts[0];
+        const newTotal = record.total_attempts + 1;
+        
+        if (newTotal >= 5) {
+          // Bloquear por 10 minutos
+          const blockedUntilTime = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+          await base44.entities.DriverRegistrationAttempt.update(record.id, {
+            total_attempts: newTotal,
+            attempt_number: newTotal,
+            blocked_until: blockedUntilTime
+          });
+          
+          setIsBlocked(true);
+          setBlockedUntil(blockedUntilTime);
+          toast.error('Limite de tentativas excedido! Você foi bloqueada por 10 minutos.');
+        } else {
+          await base44.entities.DriverRegistrationAttempt.update(record.id, {
+            total_attempts: newTotal,
+            attempt_number: newTotal
+          });
+          
+          const remaining = 5 - newTotal;
+          toast.warning(`Tentativa ${newTotal}/5. ${remaining} tentativas restantes.`);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao incrementar tentativa:', error);
+    }
+  };
+
+  const handleBlockedClose = () => {
+    setIsBlocked(false);
+    setBlockedUntil(null);
+    window.location.reload();
   };
 
   const stepLabels = [
@@ -129,6 +221,10 @@ export default function DriverRegistration() {
     'Documentos',
     'Verificação Facial'
   ];
+
+  if (isBlocked && blockedUntil) {
+    return <BlockedPopup blockedUntil={blockedUntil} onClose={handleBlockedClose} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
