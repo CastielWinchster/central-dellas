@@ -295,17 +295,18 @@ export default function RequestRide() {
         setRouteDuration(durationMin);
         
         // Atualizar preços dos tipos de corrida dinamicamente
+        // Fórmula: (Distância_km × 4,50) + Taxa_base_R$5,00
         setRideTypes(prevTypes => 
           prevTypes.map(type => {
             let basePrice = 5;
-            let pricePerKm = 2.5;
+            let pricePerKm = 4.5;
             
             if (type.id === 'shared') {
-              basePrice = 3;
-              pricePerKm = 1.8;
+              basePrice = 5;
+              pricePerKm = 3.2;
             } else if (type.id === 'premium') {
-              basePrice = 10;
-              pricePerKm = 3.5;
+              basePrice = 5;
+              pricePerKm = 6.5;
             }
             
             const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
@@ -314,8 +315,8 @@ export default function RequestRide() {
         );
         
         // Atualizar preço estimado do tipo selecionado
-        const basePrice = selectedRideType === 'shared' ? 3 : selectedRideType === 'premium' ? 10 : 5;
-        const pricePerKm = selectedRideType === 'shared' ? 1.8 : selectedRideType === 'premium' ? 3.5 : 2.5;
+        const basePrice = 5;
+        const pricePerKm = selectedRideType === 'shared' ? 3.2 : selectedRideType === 'premium' ? 6.5 : 4.5;
         const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
         
         setEstimatedPrice(calculatedPrice);
