@@ -31,6 +31,10 @@ export default function RequestRide() {
   const [destinationError, setDestinationError] = useState('');
   const [loadingPickup, setLoadingPickup] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [userCity, setUserCity] = useState('Orlândia');
+  const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -90,28 +94,34 @@ export default function RequestRide() {
       },
     ]);
     
-    // Pegar localização automática ao carregar
-    getCurrentLocation();
+    // Pedir permissão de localização imediatamente ao carregar
+    requestLocationPermission();
   }, []);
 
-  const getCurrentLocation = async () => {
-    setGettingLocation(true);
+  const requestLocationPermission = async () => {
+    if (locationPermissionAsked) return;
+    setLocationPermissionAsked(true);
+    
     if (navigator.geolocation) {
+      setGettingLocation(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
           setPickupLocation({ lat: latitude, lng: longitude });
           
-          // Geocodificação reversa com Nominatim
+          // Geocodificação reversa
           try {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
             );
             const data = await response.json();
             if (data.address) {
-              const address = `${data.address.road || ''}, ${data.address.house_number || 's/n'}, ${data.address.suburb || data.address.neighbourhood || ''}, ${data.address.city || data.address.town || ''}`.trim();
+              const city = data.address.city || data.address.town || data.address.village || 'Orlândia';
+              setUserCity(city);
+              
+              const address = `${data.address.road || ''}, ${data.address.house_number || 's/n'}, ${data.address.suburb || data.address.neighbourhood || ''}, ${city}`.trim();
               setPickup(address);
-              toast.success('Localização detectada automaticamente');
+              toast.success('📍 Localização detectada automaticamente!');
             }
           } catch (error) {
             console.error('Erro na geocodificação reversa:', error);
@@ -121,11 +131,96 @@ export default function RequestRide() {
         (error) => {
           console.error('Erro ao obter localização:', error);
           setGettingLocation(false);
+          toast.info('💡 Ative a localização para preencher seu endereço automaticamente', {
+            duration: 5000
+          });
+        }
+      );
+    } else {
+      toast.info('💡 Seu navegador não suporta geolocalização. Digite seu endereço manualmente.');
+    }
+  };
+
+  const getCurrentLocation = async () => {
+    setGettingLocation(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setPickupLocation({ lat: latitude, lng: longitude });
+          
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
+            );
+            const data = await response.json();
+            if (data.address) {
+              const city = data.address.city || data.address.town || data.address.village || 'Orlândia';
+              setUserCity(city);
+              
+              const address = `${data.address.road || ''}, ${data.address.house_number || 's/n'}, ${data.address.suburb || data.address.neighbourhood || ''}, ${city}`.trim();
+              setPickup(address);
+              toast.success('📍 Localização atualizada');
+            }
+          } catch (error) {
+            console.error('Erro na geocodificação reversa:', error);
+          }
+          setGettingLocation(false);
+        },
+        (error) => {
+          console.error('Erro ao obter localização:', error);
+          setGettingLocation(false);
+          toast.error('Não foi possível obter sua localização');
         }
       );
     } else {
       setGettingLocation(false);
+      toast.error('Geolocalização não suportada');
     }
+  };
+
+  // Autocomplete para campo de destino
+  const handleDestinationInput = async (value) => {
+    setDestination(value);
+    setDestinationError('');
+    
+    if (value.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    
+    try {
+      // Buscar sugestões priorizando a cidade do usuário
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}, ${userCity}&format=json&addressdetails=1&limit=5&countrycodes=br`
+      );
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        const formattedSuggestions = data.map(item => ({
+          display_name: item.display_name,
+          lat: parseFloat(item.lat),
+          lon: parseFloat(item.lon),
+          address: item.address
+        }));
+        setSuggestions(formattedSuggestions);
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar sugestões:', error);
+    }
+  };
+
+  const selectSuggestion = (suggestion) => {
+    setDestination(suggestion.display_name);
+    setDestinationLocation({ lat: suggestion.lat, lng: suggestion.lon });
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setDestinationError('');
   };
 
   const rideTypes = [
@@ -178,8 +273,19 @@ export default function RequestRide() {
     if (!pickup || !destination) return;
     
     setLoadingPickup(true);
-    const pickupValid = await validateAddress(pickup, true);
-    const destValid = await validateAddress(destination, false);
+    
+    // Validar apenas se o destino não foi selecionado do autocomplete
+    let pickupValid = pickupLocation !== null;
+    let destValid = destinationLocation !== null;
+    
+    if (!pickupValid) {
+      pickupValid = await validateAddress(pickup, true);
+    }
+    
+    if (!destValid) {
+      destValid = await validateAddress(destination, false);
+    }
+    
     setLoadingPickup(false);
     
     if (pickupValid && destValid) {
@@ -187,6 +293,13 @@ export default function RequestRide() {
       setEstimatedPrice(selectedType.price);
       setEstimatedTime(selectedType.time);
       setStep('options');
+    } else {
+      if (!destValid) {
+        setDestinationError('Por favor, insira um local válido existente na cidade');
+      }
+      if (!pickupValid) {
+        setPickupError('Por favor, insira um local válido existente na cidade');
+      }
     }
   };
 
@@ -300,27 +413,58 @@ export default function RequestRide() {
                         )}
                       </div>
                       
-                      <div>
+                      <div className="relative">
                         <label className="text-sm text-[#F2F2F2]/70 mb-2 block font-medium">
                           Para onde vai
                         </label>
                         <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
                             <div className="w-3 h-3 rounded-full bg-[#F22998]" />
                           </div>
                           <Input
                             placeholder="Digite o destino"
                             value={destination}
-                            onChange={(e) => {
-                              setDestination(e.target.value);
-                              setDestinationError('');
+                            onChange={(e) => handleDestinationInput(e.target.value)}
+                            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                            onBlur={() => {
+                              // Delay para permitir clique na sugestão
+                              setTimeout(() => setShowSuggestions(false), 200);
                             }}
-                            onBlur={() => destination && validateAddress(destination, false)}
                             className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
                               destinationError ? 'border-red-500' : ''
                             }`}
                           />
                         </div>
+                        
+                        {/* Dropdown de sugestões */}
+                        {showSuggestions && suggestions.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden"
+                          >
+                            {suggestions.map((suggestion, index) => (
+                              <button
+                                key={index}
+                                onClick={() => selectSuggestion(suggestion)}
+                                className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-[#F2F2F2] font-medium truncate">
+                                      {suggestion.address?.road || suggestion.display_name.split(',')[0]}
+                                    </p>
+                                    <p className="text-xs text-[#F2F2F2]/50 truncate">
+                                      {suggestion.display_name}
+                                    </p>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                        
                         {destinationError && (
                           <p className="text-xs text-red-500 mt-1">{destinationError}</p>
                         )}
