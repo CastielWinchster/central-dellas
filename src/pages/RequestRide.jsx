@@ -294,38 +294,43 @@ export default function RequestRide() {
         setRouteDistance(distanceKm);
         setRouteDuration(durationMin);
         
-        // Atualizar preços dos tipos de corrida
-        const updatedRideTypes = rideTypes.map(type => {
-          let basePrice = 5;
-          let pricePerKm = 2.5;
-          
-          if (type.id === 'shared') {
-            basePrice = 3;
-            pricePerKm = 1.8;
-          } else if (type.id === 'premium') {
-            basePrice = 10;
-            pricePerKm = 3.5;
-          }
-          
-          const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
-          return { ...type, price: calculatedPrice, time: `${durationMin} min` };
-        });
+        // Atualizar preços dos tipos de corrida dinamicamente
+        setRideTypes(prevTypes => 
+          prevTypes.map(type => {
+            let basePrice = 5;
+            let pricePerKm = 2.5;
+            
+            if (type.id === 'shared') {
+              basePrice = 3;
+              pricePerKm = 1.8;
+            } else if (type.id === 'premium') {
+              basePrice = 10;
+              pricePerKm = 3.5;
+            }
+            
+            const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
+            return { ...type, price: calculatedPrice, time: `${durationMin} min` };
+          })
+        );
         
-        // Atualizar o preço estimado do tipo selecionado
-        const selectedType = updatedRideTypes.find(r => r.id === selectedRideType);
-        setEstimatedPrice(selectedType.price);
-        setEstimatedTime(selectedType.time);
+        // Atualizar preço estimado do tipo selecionado
+        const basePrice = selectedRideType === 'shared' ? 3 : selectedRideType === 'premium' ? 10 : 5;
+        const pricePerKm = selectedRideType === 'shared' ? 1.8 : selectedRideType === 'premium' ? 3.5 : 2.5;
+        const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
+        
+        setEstimatedPrice(calculatedPrice);
+        setEstimatedTime(`${durationMin} min`);
       }
     } catch (error) {
       console.error('Erro ao calcular rota:', error);
     }
   };
 
-  const rideTypes = [
+  const [rideTypes, setRideTypes] = useState([
     { id: 'standard', name: 'Della Standard', icon: Car, price: 15, time: '5 min', description: 'Econômico e confortável' },
     { id: 'shared', name: 'Carona Segura', icon: Users, price: 10, time: '8 min', description: 'Compartilhe com outras' },
     { id: 'premium', name: 'Della Premium', icon: Star, price: 25, time: '3 min', description: 'Carros top e prioridade' },
-  ];
+  ]);
 
   const paymentMethods = [
     { id: 'pix', name: 'Pix', icon: '💜' },
