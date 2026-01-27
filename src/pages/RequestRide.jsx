@@ -35,6 +35,10 @@ export default function RequestRide() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userCity, setUserCity] = useState('Orlândia');
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
+  const [searchingAddress, setSearchingAddress] = useState(false);
+  const [routeDistance, setRouteDistance] = useState(null);
+  const [routeDuration, setRouteDuration] = useState(null);
+  const abortControllerRef = React.useRef(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -179,41 +183,87 @@ export default function RequestRide() {
     }
   };
 
-  // Autocomplete para campo de destino
-  const handleDestinationInput = async (value) => {
-    setDestination(value);
-    setDestinationError('');
-    
-    if (value.length < 3) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-    
-    try {
-      // Buscar sugestões priorizando a cidade do usuário
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}, ${userCity}&format=json&addressdetails=1&limit=5&countrycodes=br`
-      );
-      const data = await response.json();
-      
-      if (data.length > 0) {
-        const formattedSuggestions = data.map(item => ({
-          display_name: item.display_name,
-          lat: parseFloat(item.lat),
-          lon: parseFloat(item.lon),
-          address: item.address
-        }));
-        setSuggestions(formattedSuggestions);
-        setShowSuggestions(true);
-      } else {
+  // Autocomplete com debounce de 300ms e cache
+  const handleDestinationInput = React.useCallback(
+    debounce(async (value) => {
+      if (value.length < 3) {
         setSuggestions([]);
         setShowSuggestions(false);
+        setSearchingAddress(false);
+        return;
       }
-    } catch (error) {
-      console.error('Erro ao buscar sugestões:', error);
-    }
-  };
+      
+      // Cancelar requisição anterior se existir
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Criar novo controller
+      abortControllerRef.current = new AbortController();
+      
+      // Verificar cache local
+      const cacheKey = `geocode_${value}_${userCity}`;
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(`${cacheKey}_time`);
+      
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+        // Cache válido por 5 minutos
+        const cachedData = JSON.parse(cached);
+        setSuggestions(cachedData);
+        setShowSuggestions(true);
+        setSearchingAddress(false);
+        return;
+      }
+      
+      try {
+        setSearchingAddress(true);
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}, ${userCity}&format=json&addressdetails=1&limit=5&countrycodes=br`,
+          { signal: abortControllerRef.current.signal }
+        );
+        const data = await response.json();
+        
+        if (data.length > 0) {
+          const formattedSuggestions = data.map(item => ({
+            display_name: item.display_name,
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            address: item.address
+          }));
+          
+          // Salvar no cache
+          localStorage.setItem(cacheKey, JSON.stringify(formattedSuggestions));
+          localStorage.setItem(`${cacheKey}_time`, Date.now().toString());
+          
+          setSuggestions(formattedSuggestions);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Erro ao buscar sugestões:', error);
+        }
+      } finally {
+        setSearchingAddress(false);
+      }
+    }, 300),
+    [userCity]
+  );
+
+  // Função debounce
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
 
   const selectSuggestion = (suggestion) => {
     setDestination(suggestion.display_name);
@@ -221,6 +271,54 @@ export default function RequestRide() {
     setSuggestions([]);
     setShowSuggestions(false);
     setDestinationError('');
+    setSearchingAddress(false);
+    
+    // Recalcular preços se origem já estiver definida
+    if (pickupLocation) {
+      calculateRouteAndPrice(pickupLocation, { lat: suggestion.lat, lng: suggestion.lon });
+    }
+  };
+
+  // Calcular distância e preço da rota
+  const calculateRouteAndPrice = async (origin, destination) => {
+    try {
+      const response = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=false`
+      );
+      const data = await response.json();
+      
+      if (data.routes && data.routes[0]) {
+        const distanceKm = (data.routes[0].distance / 1000).toFixed(1);
+        const durationMin = Math.ceil(data.routes[0].duration / 60);
+        
+        setRouteDistance(distanceKm);
+        setRouteDuration(durationMin);
+        
+        // Atualizar preços dos tipos de corrida
+        const updatedRideTypes = rideTypes.map(type => {
+          let basePrice = 5;
+          let pricePerKm = 2.5;
+          
+          if (type.id === 'shared') {
+            basePrice = 3;
+            pricePerKm = 1.8;
+          } else if (type.id === 'premium') {
+            basePrice = 10;
+            pricePerKm = 3.5;
+          }
+          
+          const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
+          return { ...type, price: calculatedPrice, time: `${durationMin} min` };
+        });
+        
+        // Atualizar o preço estimado do tipo selecionado
+        const selectedType = updatedRideTypes.find(r => r.id === selectedRideType);
+        setEstimatedPrice(selectedType.price);
+        setEstimatedTime(selectedType.time);
+      }
+    } catch (error) {
+      console.error('Erro ao calcular rota:', error);
+    }
   };
 
   const rideTypes = [
@@ -289,9 +387,8 @@ export default function RequestRide() {
     setLoadingPickup(false);
     
     if (pickupValid && destValid) {
-      const selectedType = rideTypes.find(r => r.id === selectedRideType);
-      setEstimatedPrice(selectedType.price);
-      setEstimatedTime(selectedType.time);
+      // Calcular rota e preços
+      await calculateRouteAndPrice(pickupLocation, destinationLocation);
       setStep('options');
     } else {
       if (!destValid) {
@@ -345,7 +442,7 @@ export default function RequestRide() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="h-[300px] lg:h-[600px] rounded-3xl overflow-hidden"
+            className="h-[300px] lg:h-[600px] rounded-3xl overflow-hidden relative"
           >
             <MapView
               pickupLocation={pickupLocation}
@@ -354,6 +451,39 @@ export default function RequestRide() {
               showRoute={!!pickupLocation && !!destinationLocation}
               className="h-full"
             />
+            
+            {/* Card flutuante com informações da rota */}
+            {routeDistance && routeDuration && step === 'options' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-6 z-10"
+              >
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-[#F22998]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Distância</p>
+                    <p className="font-bold text-gray-900">{routeDistance} km</p>
+                  </div>
+                </div>
+                <div className="w-px h-8 bg-gray-200" />
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#F22998]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Tempo</p>
+                    <p className="font-bold text-gray-900">{routeDuration} min</p>
+                  </div>
+                </div>
+                <div className="w-px h-8 bg-gray-200" />
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-[#F22998]" />
+                  <div>
+                    <p className="text-xs text-gray-500">Estimado</p>
+                    <p className="font-bold text-[#F22998]">R$ {estimatedPrice}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Controls */}
@@ -424,46 +554,59 @@ export default function RequestRide() {
                           <Input
                             placeholder="Digite o destino"
                             value={destination}
-                            onChange={(e) => handleDestinationInput(e.target.value)}
+                            onChange={(e) => {
+                              setDestination(e.target.value);
+                              setDestinationError('');
+                              setSearchingAddress(true);
+                              handleDestinationInput(e.target.value);
+                            }}
                             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                             onBlur={() => {
-                              // Delay para permitir clique na sugestão
                               setTimeout(() => setShowSuggestions(false), 200);
                             }}
                             className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
                               destinationError ? 'border-red-500' : ''
                             }`}
                           />
+                          {searchingAddress && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2 className="w-4 h-4 text-[#F22998] animate-spin" />
+                            </div>
+                          )}
                         </div>
                         
                         {/* Dropdown de sugestões */}
-                        {showSuggestions && suggestions.length > 0 && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden"
-                          >
-                            {suggestions.map((suggestion, index) => (
-                              <button
-                                key={index}
-                                onClick={() => selectSuggestion(suggestion)}
-                                className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
-                              >
-                                <div className="flex items-start gap-3">
-                                  <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[#F2F2F2] font-medium truncate">
-                                      {suggestion.address?.road || suggestion.display_name.split(',')[0]}
-                                    </p>
-                                    <p className="text-xs text-[#F2F2F2]/50 truncate">
-                                      {suggestion.display_name}
-                                    </p>
+                        <AnimatePresence>
+                          {showSuggestions && suggestions.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto"
+                            >
+                              {suggestions.map((suggestion, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => selectSuggestion(suggestion)}
+                                  className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm text-[#F2F2F2] font-medium truncate">
+                                        {suggestion.address?.road || suggestion.display_name.split(',')[0]}
+                                      </p>
+                                      <p className="text-xs text-[#F2F2F2]/50 truncate">
+                                        {suggestion.display_name}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                              </button>
-                            ))}
-                          </motion.div>
-                        )}
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                         
                         {destinationError && (
                           <p className="text-xs text-red-500 mt-1">{destinationError}</p>
@@ -534,8 +677,8 @@ export default function RequestRide() {
                       {rideTypes.map((type) => (
                         <motion.button
                           key={type.id}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setSelectedRideType(type.id);
                             setEstimatedPrice(type.price);
