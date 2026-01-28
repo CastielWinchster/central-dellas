@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
+import { searchAddress, formatAddressForRide } from '../utils/addressParser';
 
 export default function RequestRide() {
   const [user, setUser] = useState(null);
@@ -183,7 +184,7 @@ export default function RequestRide() {
     }
   };
 
-  // Autocomplete com debounce de 300ms e cache
+  // Autocomplete inteligente com parser robusto (400ms debounce)
   const handleDestinationInput = React.useCallback(
     debounce(async (value) => {
       if (value.length < 3) {
@@ -193,49 +194,38 @@ export default function RequestRide() {
         return;
       }
       
-      // Cancelar requisição anterior se existir
+      // Cancelar requisição anterior
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
-      // Criar novo controller
       abortControllerRef.current = new AbortController();
-      
-      // Verificar cache local
-      const cacheKey = `geocode_${value}_${userCity}`;
-      const cached = localStorage.getItem(cacheKey);
-      const cacheTime = localStorage.getItem(`${cacheKey}_time`);
-      
-      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
-        // Cache válido por 5 minutos
-        const cachedData = JSON.parse(cached);
-        setSuggestions(cachedData);
-        setShowSuggestions(true);
-        setSearchingAddress(false);
-        return;
-      }
       
       try {
         setSearchingAddress(true);
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}, ${userCity}&format=json&addressdetails=1&limit=5&countrycodes=br`,
-          { signal: abortControllerRef.current.signal }
-        );
-        const data = await response.json();
         
-        if (data.length > 0) {
-          const formattedSuggestions = data.map(item => ({
-            display_name: item.display_name,
+        // Usar parser inteligente com localização do usuário
+        const userLoc = pickupLocation ? {
+          lat: pickupLocation.lat,
+          lng: pickupLocation.lng
+        } : null;
+        
+        const results = await searchAddress(
+          value,
+          userLoc,
+          abortControllerRef.current.signal
+        );
+        
+        if (results.length > 0) {
+          const formatted = results.map(item => ({
+            display_name: item.formattedAddress,
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
-            address: item.address
+            address: item.address,
+            userProvidedNumber: item.userProvidedNumber,
+            rawResult: item
           }));
           
-          // Salvar no cache
-          localStorage.setItem(cacheKey, JSON.stringify(formattedSuggestions));
-          localStorage.setItem(`${cacheKey}_time`, Date.now().toString());
-          
-          setSuggestions(formattedSuggestions);
+          setSuggestions(formatted);
           setShowSuggestions(true);
         } else {
           setSuggestions([]);
@@ -243,13 +233,14 @@ export default function RequestRide() {
         }
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('Erro ao buscar sugestões:', error);
+          console.error('Erro ao buscar endereços:', error);
+          toast.error('Erro ao buscar endereço. Tente novamente.');
         }
       } finally {
         setSearchingAddress(false);
       }
-    }, 300),
-    [userCity]
+    }, 400),
+    [pickupLocation]
   );
 
   // Função debounce
@@ -266,14 +257,31 @@ export default function RequestRide() {
   }
 
   const selectSuggestion = (suggestion) => {
-    setDestination(suggestion.display_name);
-    setDestinationLocation({ lat: suggestion.lat, lng: suggestion.lon });
+    // Formatar endereço completo para exibição
+    const fullAddress = suggestion.userProvidedNumber 
+      ? formatAddressForRide(suggestion.rawResult, suggestion.userProvidedNumber)
+      : suggestion.display_name;
+    
+    setDestination(fullAddress);
+    setDestinationLocation({ 
+      lat: suggestion.lat, 
+      lng: suggestion.lon,
+      userProvidedNumber: suggestion.userProvidedNumber,
+      fullAddress: fullAddress
+    });
     setSuggestions([]);
     setShowSuggestions(false);
     setDestinationError('');
     setSearchingAddress(false);
     
-    // Recalcular preços se origem já estiver definida
+    // Feedback visual
+    if (suggestion.userProvidedNumber && !suggestion.address?.house_number) {
+      toast.success(`✅ Endereço selecionado com nº ${suggestion.userProvidedNumber}`, {
+        duration: 3000
+      });
+    }
+    
+    // Recalcular preços
     if (pickupLocation) {
       calculateRouteAndPrice(pickupLocation, { lat: suggestion.lat, lng: suggestion.lon });
     }
@@ -599,12 +607,24 @@ export default function RequestRide() {
                                   <div className="flex items-start gap-3">
                                     <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-sm text-[#F2F2F2] font-medium truncate">
+                                      <p className="text-sm text-[#F2F2F2] font-medium">
                                         {suggestion.address?.road || suggestion.display_name.split(',')[0]}
+                                        {suggestion.userProvidedNumber && (
+                                          <span className="text-[#F22998] ml-1">
+                                            nº {suggestion.userProvidedNumber}
+                                          </span>
+                                        )}
                                       </p>
                                       <p className="text-xs text-[#F2F2F2]/50 truncate">
-                                        {suggestion.display_name}
+                                        {suggestion.address?.suburb || suggestion.address?.neighbourhood ? 
+                                          `${suggestion.address.suburb || suggestion.address.neighbourhood} - ` : ''}
+                                        {suggestion.address?.city || suggestion.address?.town || suggestion.address?.village || 'Orlândia'}
                                       </p>
+                                      {suggestion.userProvidedNumber && !suggestion.address?.house_number && (
+                                        <p className="text-xs text-yellow-400 mt-0.5">
+                                          📍 Número informado por você
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
                                 </button>
