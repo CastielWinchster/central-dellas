@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { Car, MapPin, Navigation, Phone, Dog, Package } from 'lucide-react';
+import { Car, MapPin, Navigation, Phone, Dog, Package, Target } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { toast } from 'sonner';
@@ -67,12 +67,17 @@ const destinationIcon = new L.DivIcon({
   iconAnchor: [18, 36],
 });
 
-function MapController({ center, pickup, destination, showRoute }) {
+function MapController({ center, pickup, destination, showRoute, onMapReady }) {
   const map = useMap();
   
   useEffect(() => {
+    if (onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+  
+  useEffect(() => {
     if (showRoute && pickup && destination) {
-      // Ajustar zoom para mostrar toda a rota
       const bounds = L.latLngBounds(
         [pickup.lat, pickup.lng],
         [destination.lat, destination.lng]
@@ -82,6 +87,20 @@ function MapController({ center, pickup, destination, showRoute }) {
       map.flyTo(center, 15, { duration: 1.5 });
     }
   }, [center, pickup, destination, showRoute, map]);
+  
+  // Desligar follow ao arrastar manualmente
+  useEffect(() => {
+    const handleMoveStart = () => {
+      if (onMapReady) {
+        // Será desligado pelo componente pai via prop
+      }
+    };
+    
+    map.on('dragstart', handleMoveStart);
+    return () => {
+      map.off('dragstart', handleMoveStart);
+    };
+  }, [map, onMapReady]);
   
   return null;
 }
@@ -98,25 +117,158 @@ export default function MapView({
   const [userLocation, setUserLocation] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [followUser, setFollowUser] = useState(true);
+  const watchIdRef = useRef(null);
+  const lastLatLngRef = useRef(null);
+  const lastUpdateRef = useRef(0);
+  const userMarkerRef = useRef(null);
+  const mapRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
-  useEffect(() => {
-    // Request user's geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = [position.coords.latitude, position.coords.longitude];
-          setUserLocation(userPos);
-          setMapCenter(userPos);
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          setLocationDenied(true);
-        }
-      );
-    } else {
-      setLocationDenied(true);
+  // Animação suave do marcador
+  const animateMarkerTo = (marker, fromLatLng, toLatLng, duration = 500) => {
+    if (!marker || !fromLatLng || !toLatLng) return;
+    
+    const startTime = Date.now();
+    const startLat = fromLatLng.lat;
+    const startLng = fromLatLng.lng;
+    const endLat = toLatLng.lat;
+    const endLng = toLatLng.lng;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Interpolação suave (easeOutQuad)
+      const eased = 1 - Math.pow(1 - progress, 2);
+      
+      const currentLat = startLat + (endLat - startLat) * eased;
+      const currentLng = startLng + (endLng - startLng) * eased;
+      
+      marker.setLatLng([currentLat, currentLng]);
+      
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
     }
-  }, []);
+    animationFrameRef.current = requestAnimationFrame(animate);
+  };
+
+  // Rastreamento em tempo real
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationDenied(true);
+      toast.error('🚫 Seu navegador não suporta geolocalização', { duration: 5000 });
+      return;
+    }
+
+    // Checar permissão primeiro
+    navigator.permissions?.query({ name: 'geolocation' })
+      .then((result) => {
+        if (result.state === 'denied') {
+          setLocationDenied(true);
+          toast.error('📍 Localização bloqueada! Ative nas configurações do navegador para usar o app.', {
+            duration: 8000,
+            action: {
+              label: 'Ajuda',
+              onClick: () => {
+                toast.info('💡 Vá em Configurações do navegador > Permissões > Localização e permita para este site.');
+              }
+            }
+          });
+        }
+      })
+      .catch(() => {});
+
+    // Iniciar watchPosition
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const now = Date.now();
+        
+        // Filtro 1: Evitar updates muito frequentes (< 500ms)
+        if (now - lastUpdateRef.current < 500) {
+          return;
+        }
+        
+        const newLatLng = L.latLng(latitude, longitude);
+        
+        // Filtro 2: Ignorar movimentos < 5 metros
+        if (lastLatLngRef.current) {
+          const distance = lastLatLngRef.current.distanceTo(newLatLng);
+          if (distance < 5) {
+            return;
+          }
+        }
+        
+        // Atualizar referências
+        lastUpdateRef.current = now;
+        const oldLatLng = lastLatLngRef.current;
+        lastLatLngRef.current = newLatLng;
+        
+        // Atualizar state
+        setUserLocation([latitude, longitude]);
+        
+        // Animar marcador se já existe
+        if (userMarkerRef.current && oldLatLng) {
+          animateMarkerTo(userMarkerRef.current, oldLatLng, newLatLng, 500);
+        }
+        
+        // Seguir usuário se modo ativo
+        if (followUser && mapRef.current) {
+          mapRef.current.panTo(newLatLng, { animate: true, duration: 0.5 });
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setLocationDenied(true);
+        
+        if (error.code === 1) {
+          toast.error('📍 Permissão de localização negada. Por favor, ative para usar o app.', {
+            duration: 8000
+          });
+        } else if (error.code === 2) {
+          toast.warning('📡 Localização indisponível. Verifique o GPS do dispositivo.', {
+            duration: 5000
+          });
+        } else if (error.code === 3) {
+          toast.warning('⏱️ Timeout ao obter localização. Tente novamente.', {
+            duration: 4000
+          });
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 10000
+      }
+    );
+
+    // Centralizar no primeiro carregamento
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userPos = [position.coords.latitude, position.coords.longitude];
+        setUserLocation(userPos);
+        setMapCenter(userPos);
+        lastLatLngRef.current = L.latLng(position.coords.latitude, position.coords.longitude);
+      },
+      () => {}
+    );
+
+    // Cleanup
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [followUser]);
 
   useEffect(() => {
     if (pickupLocation) {
@@ -160,14 +312,49 @@ export default function MapView({
 
   const userLocationIcon = new L.DivIcon({
     className: 'custom-user-marker',
-    html: `<div style="background: #3b82f6; border: 3px solid white; border-radius: 50%; padding: 8px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-      </svg>
+    html: `<div style="position: relative;">
+      <div style="
+        width: 44px; 
+        height: 44px; 
+        border-radius: 50%; 
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 8px rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse-user 2s infinite;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <style>
+        @keyframes pulse-user {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      </style>
     </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   });
+
+  const handleToggleFollow = () => {
+    const newFollowState = !followUser;
+    setFollowUser(newFollowState);
+    
+    if (newFollowState && userLocation && mapRef.current) {
+      mapRef.current.flyTo(userLocation, Math.max(mapRef.current.getZoom(), 16), {
+        animate: true,
+        duration: 0.8
+      });
+      toast.success('📍 Modo seguir ativado', { duration: 2000 });
+    } else if (!newFollowState) {
+      toast.info('🗺️ Modo livre - arraste o mapa', { duration: 2000 });
+    }
+  };
 
   return (
     <div className={`relative rounded-2xl overflow-hidden ${className}`}>
@@ -192,7 +379,45 @@ export default function MapView({
         .custom-driver-popup .leaflet-popup-content {
           margin: 0;
         }
+        .follow-button {
+          position: absolute;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: white;
+          border: 2px solid #F22998;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .follow-button:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        .follow-button.active {
+          background: linear-gradient(135deg, #BF3B79 0%, #F22998 100%);
+          border-color: #F22998;
+        }
+        .follow-button.active svg {
+          color: white;
+        }
       `}</style>
+      
+      {/* Botão de seguir usuário */}
+      <button
+        onClick={handleToggleFollow}
+        className={`follow-button ${followUser ? 'active' : ''}`}
+        title={followUser ? 'Modo seguir ativo' : 'Ativar modo seguir'}
+      >
+        <Target className="w-6 h-6" style={{ color: followUser ? 'white' : '#F22998' }} />
+      </button>
+      
       <MapContainer
         center={mapCenter}
         zoom={14}
@@ -208,6 +433,14 @@ export default function MapView({
           pickup={pickupLocation} 
           destination={destinationLocation}
           showRoute={showRoute}
+          onMapReady={(map) => {
+            mapRef.current = map;
+            map.on('dragstart', () => {
+              if (followUser) {
+                setFollowUser(false);
+              }
+            });
+          }}
         />
         
         {/* Rota - Polyline Rosa */}
@@ -223,9 +456,17 @@ export default function MapView({
         
         {/* User location marker */}
         {userLocation && (
-          <Marker position={userLocation} icon={userLocationIcon}>
+          <Marker 
+            position={userLocation} 
+            icon={userLocationIcon}
+            ref={(ref) => {
+              if (ref) {
+                userMarkerRef.current = ref;
+              }
+            }}
+          >
             <Popup>
-              <div className="text-sm font-medium">Você está aqui</div>
+              <div className="text-sm font-medium">📍 Você está aqui</div>
             </Popup>
           </Marker>
         )}
