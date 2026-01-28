@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
-import { searchAddress, formatAddressForRide } from '../utils/addressParser';
+import { searchAddress, formatAddressForRide } from '../components/utils/addressParser';
 
 export default function RequestRide() {
   const [user, setUser] = useState(null);
