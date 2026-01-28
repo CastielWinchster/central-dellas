@@ -119,12 +119,10 @@ export default function MapView({
   }, []);
 
   useEffect(() => {
-    if (userLocation && !pickupLocation) {
-      setMapCenter(userLocation);
-    } else if (pickupLocation) {
+    if (pickupLocation) {
       setMapCenter([pickupLocation.lat, pickupLocation.lng]);
     }
-  }, [userLocation, pickupLocation]);
+  }, [pickupLocation]);
 
   useEffect(() => {
     if (locationDenied) {

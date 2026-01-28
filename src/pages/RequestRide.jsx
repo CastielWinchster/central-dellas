@@ -183,66 +183,7 @@ export default function RequestRide() {
     }
   };
 
-  // Parser de endereço com número
-  const parseAddress = (text) => {
-    // Padrões comuns: "Avenida 4, 1381", "Av 4 1381", "Rua X nº 123", "R. Y n 456"
-    const patterns = [
-      /^(.+?)[,\s]+n[ºo°]?\s*(\d+)$/i, // "Rua X, nº 123"
-      /^(.+?)[,\s]+(\d+)$/,             // "Rua X, 123" ou "Rua X 123"
-    ];
-    
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match) {
-        return {
-          street: match[1].trim(),
-          houseNumber: match[2].trim(),
-          hasNumber: true
-        };
-      }
-    }
-    
-    return {
-      street: text.trim(),
-      houseNumber: null,
-      hasNumber: false
-    };
-  };
-
-  // Converter número de rua para extenso
-  const numberToWord = (num) => {
-    const numbers = {
-      '1': 'Um', '2': 'Dois', '3': 'Três', '4': 'Quatro', '5': 'Cinco',
-      '6': 'Seis', '7': 'Sete', '8': 'Oito', '9': 'Nove', '10': 'Dez',
-      '11': 'Onze', '12': 'Doze', '13': 'Treze', '14': 'Quatorze', '15': 'Quinze',
-      '16': 'Dezesseis', '17': 'Dezessete', '18': 'Dezoito', '19': 'Dezenove', '20': 'Vinte'
-    };
-    return numbers[num] || num;
-  };
-
-  // Busca estruturada no Nominatim
-  const searchStructured = async (street, houseNumber, signal) => {
-    const params = new URLSearchParams({
-      format: 'jsonv2',
-      addressdetails: '1',
-      limit: '10',
-      countrycodes: 'br',
-      city: 'Orlândia',
-      state: 'SP',
-      country: 'Brasil',
-      bounded: '1',
-      viewbox: '-47.93,-20.85,-47.83,-20.91', // Área aproximada de Orlândia
-      street: houseNumber ? `${street} ${houseNumber}` : street
-    });
-    
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?${params.toString()}`,
-      { signal }
-    );
-    return response.json();
-  };
-
-  // Autocomplete com debounce de 300ms, cache e busca estruturada
+  // Autocomplete com debounce de 300ms e cache
   const handleDestinationInput = React.useCallback(
     debounce(async (value) => {
       if (value.length < 3) {
@@ -276,74 +217,19 @@ export default function RequestRide() {
       
       try {
         setSearchingAddress(true);
-        const parsed = parseAddress(value);
-        let data = [];
-        
-        if (parsed.hasNumber) {
-          // Tentar busca estruturada com número
-          data = await searchStructured(
-            parsed.street, 
-            parsed.houseNumber, 
-            abortControllerRef.current.signal
-          );
-          
-          // Se não encontrar, tentar com número da rua por extenso (ex: "Avenida 4" → "Avenida Quatro")
-          if (data.length === 0) {
-            const streetWithWord = parsed.street.replace(/\b(\d{1,2})\b/g, (match) => numberToWord(match));
-            if (streetWithWord !== parsed.street) {
-              data = await searchStructured(
-                streetWithWord,
-                parsed.houseNumber,
-                abortControllerRef.current.signal
-              );
-            }
-          }
-          
-          // Fallback: buscar apenas a rua sem o número
-          if (data.length === 0) {
-            data = await searchStructured(
-              parsed.street,
-              null,
-              abortControllerRef.current.signal
-            );
-          }
-        } else {
-          // Busca sem número de imóvel
-          data = await searchStructured(
-            parsed.street,
-            null,
-            abortControllerRef.current.signal
-          );
-        }
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}, ${userCity}&format=json&addressdetails=1&limit=5&countrycodes=br`,
+          { signal: abortControllerRef.current.signal }
+        );
+        const data = await response.json();
         
         if (data.length > 0) {
-          // Priorizar resultados em Orlândia
-          const sortedData = data.sort((a, b) => {
-            const aIsOrlandia = a.address?.city?.toLowerCase().includes('orlândia') || 
-                                a.address?.municipality?.toLowerCase().includes('orlândia');
-            const bIsOrlandia = b.address?.city?.toLowerCase().includes('orlândia') || 
-                                b.address?.municipality?.toLowerCase().includes('orlândia');
-            if (aIsOrlandia && !bIsOrlandia) return -1;
-            if (!aIsOrlandia && bIsOrlandia) return 1;
-            return 0;
-          });
-          
-          const formattedSuggestions = sortedData.map(item => {
-            // Criar endereço amigável
-            const parts = [];
-            if (item.address?.road) parts.push(item.address.road);
-            if (item.address?.house_number) parts.push(`nº ${item.address.house_number}`);
-            if (item.address?.suburb) parts.push(item.address.suburb);
-            const friendlyAddress = parts.join(', ');
-            
-            return {
-              display_name: friendlyAddress || item.display_name,
-              full_address: item.display_name,
-              lat: parseFloat(item.lat),
-              lon: parseFloat(item.lon),
-              address: item.address
-            };
-          });
+          const formattedSuggestions = data.map(item => ({
+            display_name: item.display_name,
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            address: item.address
+          }));
           
           // Salvar no cache
           localStorage.setItem(cacheKey, JSON.stringify(formattedSuggestions));
@@ -380,7 +266,6 @@ export default function RequestRide() {
   }
 
   const selectSuggestion = (suggestion) => {
-    // Usar endereço amigável no campo
     setDestination(suggestion.display_name);
     setDestinationLocation({ lat: suggestion.lat, lng: suggestion.lon });
     setSuggestions([]);
@@ -410,18 +295,17 @@ export default function RequestRide() {
         setRouteDuration(durationMin);
         
         // Atualizar preços dos tipos de corrida dinamicamente
-        // Fórmula: (Distância_km × 4,50) + Taxa_base_R$5,00
         setRideTypes(prevTypes => 
           prevTypes.map(type => {
             let basePrice = 5;
-            let pricePerKm = 4.5;
+            let pricePerKm = 2.5;
             
             if (type.id === 'shared') {
-              basePrice = 5;
-              pricePerKm = 3.2;
+              basePrice = 3;
+              pricePerKm = 1.8;
             } else if (type.id === 'premium') {
-              basePrice = 5;
-              pricePerKm = 6.5;
+              basePrice = 10;
+              pricePerKm = 3.5;
             }
             
             const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
@@ -430,8 +314,8 @@ export default function RequestRide() {
         );
         
         // Atualizar preço estimado do tipo selecionado
-        const basePrice = 5;
-        const pricePerKm = selectedRideType === 'shared' ? 3.2 : selectedRideType === 'premium' ? 6.5 : 4.5;
+        const basePrice = selectedRideType === 'shared' ? 3 : selectedRideType === 'premium' ? 10 : 5;
+        const pricePerKm = selectedRideType === 'shared' ? 1.8 : selectedRideType === 'premium' ? 3.5 : 2.5;
         const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
         
         setEstimatedPrice(calculatedPrice);
@@ -708,23 +592,21 @@ export default function RequestRide() {
                             >
                               {suggestions.map((suggestion, index) => (
                                 <button
-                                 key={index}
-                                 onClick={() => selectSuggestion(suggestion)}
-                                 className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
+                                  key={index}
+                                  onClick={() => selectSuggestion(suggestion)}
+                                  className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
                                 >
-                                 <div className="flex items-start gap-3">
-                                   <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
-                                   <div className="flex-1 min-w-0">
-                                     <p className="text-sm text-[#F2F2F2] font-medium">
-                                       {suggestion.display_name}
-                                     </p>
-                                     {suggestion.full_address && suggestion.full_address !== suggestion.display_name && (
-                                       <p className="text-xs text-[#F2F2F2]/50 truncate mt-0.5">
-                                         {suggestion.full_address}
-                                       </p>
-                                     )}
-                                   </div>
-                                 </div>
+                                  <div className="flex items-start gap-3">
+                                    <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm text-[#F2F2F2] font-medium truncate">
+                                        {suggestion.address?.road || suggestion.display_name.split(',')[0]}
+                                      </p>
+                                      <p className="text-xs text-[#F2F2F2]/50 truncate">
+                                        {suggestion.display_name}
+                                      </p>
+                                    </div>
+                                  </div>
                                 </button>
                               ))}
                             </motion.div>
