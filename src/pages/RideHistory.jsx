@@ -4,19 +4,26 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
   Car, MapPin, Clock, DollarSign, Star, 
-  ChevronRight, Calendar, Filter, Download
+  ChevronRight, Calendar, Filter, Download, Search,
+  FileDown, ChevronLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import ReceiptDialog from '../components/ride/ReceiptDialog';
+import { toast } from 'sonner';
 
 export default function RideHistory() {
   const [user, setUser] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedRideForReceipt, setSelectedRideForReceipt] = useState(null);
+  const [periodFilter, setPeriodFilter] = useState('30');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const loadUser = async () => {
@@ -92,24 +99,116 @@ export default function RideHistory() {
     { id: 'cancelled', label: 'Canceladas' }
   ];
 
-  const filteredRides = selectedFilter === 'all' 
-    ? displayRides 
-    : displayRides.filter(ride => ride.status === selectedFilter);
+  let filteredRides = displayRides;
+  
+  // Filtrar por status
+  if (selectedFilter !== 'all') {
+    filteredRides = filteredRides.filter(ride => ride.status === selectedFilter);
+  }
+  
+  // Filtrar por período
+  const now = new Date();
+  const periodDays = parseInt(periodFilter);
+  if (periodDays > 0) {
+    const cutoffDate = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
+    filteredRides = filteredRides.filter(ride => new Date(ride.created_date) >= cutoffDate);
+  }
+  
+  // Busca por texto
+  if (searchQuery.length >= 2) {
+    const query = searchQuery.toLowerCase();
+    filteredRides = filteredRides.filter(ride => 
+      ride.pickup_address?.toLowerCase().includes(query) ||
+      ride.destination_address?.toLowerCase().includes(query) ||
+      ride.driver?.name?.toLowerCase().includes(query)
+    );
+  }
+  
+  const handleExportCSV = () => {
+    const csv = [
+      ['Data', 'Origem', 'Destino', 'Motorista', 'Valor', 'Status'].join(','),
+      ...filteredRides.map(ride => [
+        format(new Date(ride.created_date), 'dd/MM/yyyy HH:mm'),
+        ride.pickup_address,
+        ride.destination_address,
+        ride.driver?.name || 'N/A',
+        `R$ ${ride.final_price?.toFixed(2) || '0.00'}`,
+        ride.status
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historico-corridas-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Histórico exportado!');
+  };
 
   return (
-    <div className="min-h-screen pb-24 md:pb-10">
+    <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <h1 className="text-3xl font-bold text-[#F2F2F2] mb-2">Histórico de Corridas</h1>
-          <p className="text-[#F2F2F2]/60">Suas viagens anteriores com a Central Dellas</p>
+          <div className="flex items-center gap-4 mb-2">
+            <Link to={createPageUrl('PassengerOptions')}>
+              <Button variant="ghost" size="icon" className="text-[#F2F2F2]">
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold text-[#F2F2F2]">Histórico de Corridas</h1>
+          </div>
         </motion.div>
 
-        {/* Filters */}
+        {/* Search and Export */}
+        <div className="flex gap-3 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F2F2F2]/40" />
+            <Input
+              placeholder="Buscar por destino ou motorista..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-[#1A1A1A] border-[#F22998]/20 text-[#F2F2F2]"
+            />
+          </div>
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            className="border-[#F22998]/30 text-[#F22998]"
+          >
+            <FileDown className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Period Filter */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          {[
+            { value: '7', label: '7 dias' },
+            { value: '30', label: '30 dias' },
+            { value: '90', label: '90 dias' },
+            { value: '0', label: 'Tudo' }
+          ].map((period) => (
+            <button
+              key={period.value}
+              onClick={() => setPeriodFilter(period.value)}
+              className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-all ${
+                periodFilter === period.value
+                  ? 'bg-[#F22998]/20 text-[#F22998] border border-[#F22998]/50'
+                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10'
+              }`}
+            >
+              {period.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Status Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
