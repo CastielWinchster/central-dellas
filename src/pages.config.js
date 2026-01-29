@@ -49,7 +49,6 @@
  */
 import AdminPanel from './pages/AdminPanel';
 import AvailableRides from './pages/AvailableRides';
-import ClubDellas from './pages/ClubDellas';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverLogin from './pages/DriverLogin';
@@ -57,7 +56,6 @@ import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
 import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
-import LoyaltyProgram from './pages/LoyaltyProgram';
 import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
@@ -75,14 +73,15 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import Wallet from './pages/Wallet';
+import CardsAndPix from './pages/CardsAndPix';
+import FavoriteDrivers from './pages/FavoriteDrivers';
+import FavoritePlaces from './pages/FavoritePlaces';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminPanel": AdminPanel,
     "AvailableRides": AvailableRides,
-    "ClubDellas": ClubDellas,
     "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverLogin": DriverLogin,
@@ -90,7 +89,6 @@ export const PAGES = {
     "DriverProfile": DriverProfile,
     "DriverRegistration": DriverRegistration,
     "Earnings": Earnings,
-    "LoyaltyProgram": LoyaltyProgram,
     "Messages": Messages,
     "MyReviews": MyReviews,
     "Notifications": Notifications,
@@ -108,7 +106,9 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "Wallet": Wallet,
+    "CardsAndPix": CardsAndPix,
+    "FavoriteDrivers": FavoriteDrivers,
+    "FavoritePlaces": FavoritePlaces,
 }
 
 export const pagesConfig = {

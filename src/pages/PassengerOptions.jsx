@@ -50,12 +50,6 @@ export default function PassengerOptions() {
           label: 'Agendar Corrida', 
           description: 'Até 30 dias',
           page: 'ScheduleRide'
-        },
-        { 
-          icon: Heart, 
-          label: 'Favoritas', 
-          description: 'Ver motoristas',
-          page: 'FavoriteDrivers'
         }
       ]
     },
@@ -63,22 +57,10 @@ export default function PassengerOptions() {
       title: '📊 PRINCIPAL',
       items: [
         { 
-          icon: Star, 
-          label: 'Clube Dellas', 
-          description: 'Planos e benefícios',
-          page: 'ClubDellas'
-        },
-        { 
           icon: History, 
           label: 'Histórico', 
           description: 'Ver minhas corridas',
           page: 'RideHistory'
-        },
-        { 
-          icon: Wallet, 
-          label: 'Carteira', 
-          description: 'Saldo e recargas',
-          page: 'Wallet'
         }
       ]
     },
@@ -97,16 +79,10 @@ export default function PassengerOptions() {
       title: '💳 PAGAMENTO',
       items: [
         { 
-          icon: Wallet, 
-          label: 'Carteira Digital', 
-          description: 'Saldo e recargas',
-          page: 'Wallet'
-        },
-        { 
           icon: CreditCard, 
-          label: 'Cartões', 
+          label: 'Cartões e Pix', 
           description: 'Gerenciar formas de pagamento',
-          page: 'PassengerPayment'
+          page: 'CardsAndPix'
         }
       ]
     },
@@ -123,7 +99,7 @@ export default function PassengerOptions() {
           icon: MapPin, 
           label: 'Locais Favoritos', 
           description: 'Casa, trabalho e mais',
-          page: 'SavedAddresses'
+          page: 'FavoritePlaces'
         }
       ]
     },
@@ -168,17 +144,6 @@ export default function PassengerOptions() {
           label: 'Configurações', 
           description: 'Tema, idioma e privacidade',
           page: 'Settings'
-        }
-      ]
-    },
-    {
-      title: '🎁 BENEFÍCIOS',
-      items: [
-        { 
-          icon: Gift, 
-          label: 'Programa de Fidelidade', 
-          description: 'Pontos e recompensas',
-          page: 'LoyaltyProgram'
         }
       ]
     },
