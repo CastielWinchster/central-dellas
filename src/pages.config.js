@@ -76,6 +76,9 @@ import TrackRide from './pages/TrackRide';
 import CardsAndPix from './pages/CardsAndPix';
 import FavoriteDrivers from './pages/FavoriteDrivers';
 import FavoritePlaces from './pages/FavoritePlaces';
+import PassengerSafety from './pages/PassengerSafety';
+import PassengerSecurity from './pages/PassengerSecurity';
+import PassengerNotifications from './pages/PassengerNotifications';
 import __Layout from './Layout.jsx';
 
 
@@ -109,6 +112,9 @@ export const PAGES = {
     "CardsAndPix": CardsAndPix,
     "FavoriteDrivers": FavoriteDrivers,
     "FavoritePlaces": FavoritePlaces,
+    "PassengerSafety": PassengerSafety,
+    "PassengerSecurity": PassengerSecurity,
+    "PassengerNotifications": PassengerNotifications,
 }
 
 export const pagesConfig = {

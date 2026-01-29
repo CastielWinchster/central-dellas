@@ -1,78 +1,168 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { User, Camera, Save, ChevronLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { 
-  User, Camera, Phone, Star, Heart, 
-  MapPin, Shield, ArrowLeft, Gift
-} from 'lucide-react';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { toast } from 'sonner';
 
 export default function PassengerProfile() {
   const [user, setUser] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({});
+  const [profile, setProfile] = useState(null);
+  const [preferences, setPreferences] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState('nao_informar');
+  const [birthDate, setBirthDate] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-        setEditData(userData);
-      } catch (e) {
-        base44.auth.redirectToLogin();
-      }
-    };
-    loadUser();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const userData = await base44.auth.me();
+      setUser(userData);
+      
+      const profiles = await base44.entities.UserProfile.filter({ user_id: userData.id });
+      const prefs = await base44.entities.UserPreferences.filter({ user_id: userData.id });
+      
+      if (profiles.length > 0) {
+        const p = profiles[0];
+        setProfile(p);
+        setFullName(p.full_name || userData.full_name || '');
+        setPhone(p.phone || '');
+        setGender(p.gender || 'nao_informar');
+        setBirthDate(p.birth_date || '');
+        setCity(p.city || '');
+        setState(p.state || '');
+        setPhotoUrl(p.photo_url || userData.photo_url || '');
+      } else {
+        setFullName(userData.full_name || '');
+        setPhotoUrl(userData.photo_url || '');
+      }
+      
+      if (prefs.length > 0) {
+        setPreferences(prefs[0]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar:', error);
+      base44.auth.redirectToLogin();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const maskPhone = (value) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 10) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    }
+    return cleaned.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+  };
+
+  const calculateAge = (birthDate) => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploading(true);
+    
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.auth.updateMe({ photo_url: file_url });
-      setUser(prev => ({ ...prev, photo_url: file_url }));
+      setPhotoUrl(file_url);
       toast.success('Foto atualizada!');
     } catch (error) {
       toast.error('Erro ao fazer upload');
     }
-    setUploading(false);
   };
 
-  const handleTogglePet = async (checked) => {
+  const handleSave = async () => {
+    if (!fullName || fullName.length < 3) {
+      toast.error('Digite seu nome completo');
+      return;
+    }
+    
+    if (phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length < 10 || cleaned.length > 11) {
+        toast.error('Telefone inválido');
+        return;
+      }
+    }
+    
+    setSaving(true);
     try {
-      await base44.auth.updateMe({ travels_with_pet: checked });
-      setUser(prev => ({ ...prev, travels_with_pet: checked }));
-      toast.success(checked ? 'Preferência de pet ativada!' : 'Preferência de pet desativada');
+      const profileData = {
+        user_id: user.id,
+        full_name: fullName,
+        phone,
+        gender,
+        birth_date: birthDate,
+        city,
+        state,
+        photo_url: photoUrl
+      };
+      
+      if (profile) {
+        await base44.entities.UserProfile.update(profile.id, profileData);
+      } else {
+        await base44.entities.UserProfile.create(profileData);
+      }
+      
+      await base44.auth.updateMe({
+        full_name: fullName,
+        photo_url: photoUrl
+      });
+      
+      toast.success('Perfil atualizado!');
+      loadData();
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao salvar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePreferenceToggle = async (key, value) => {
+    try {
+      if (preferences) {
+        await base44.entities.UserPreferences.update(preferences.id, { [key]: value });
+      } else {
+        const newPrefs = await base44.entities.UserPreferences.create({
+          user_id: user.id,
+          [key]: value
+        });
+        setPreferences(newPrefs);
+      }
+      setPreferences(prev => ({ ...prev, [key]: value }));
+      toast.success('Preferência atualizada');
     } catch (error) {
       toast.error('Erro ao atualizar');
     }
   };
 
-  const handleSaveProfile = async () => {
-    try {
-      await base44.auth.updateMe({
-        phone: editData.phone,
-        bio: editData.bio
-      });
-      setUser(prev => ({ ...prev, ...editData }));
-      setIsEditing(false);
-      toast.success('Perfil atualizado!');
-    } catch (error) {
-      toast.error('Erro ao salvar');
-    }
-  };
-
-  if (!user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
@@ -80,191 +170,178 @@ export default function PassengerProfile() {
     );
   }
 
+  const age = calculateAge(birthDate);
+
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Header */}
+    <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
+      <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center gap-4 mb-6">
-          <Link to={createPageUrl('Profile')}>
+          <Link to={createPageUrl('PassengerOptions')}>
             <Button variant="ghost" size="icon" className="text-[#F2F2F2]">
-              <ArrowLeft className="w-5 h-5" />
+              <ChevronLeft className="w-6 h-6" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-[#F2F2F2]">Perfil da Passageira</h1>
+          <h1 className="text-2xl font-bold text-[#F2F2F2]">Editar Perfil</h1>
         </div>
 
-        {/* Profile Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
-            <CardContent className="p-6 bg-transparent">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                {/* Photo */}
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#F22998]">
-                    {user.photo_url ? (
-                      <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
-                        <User className="w-16 h-16 text-white/80" />
-                      </div>
-                    )}
+        {/* Photo */}
+        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+          <div className="flex flex-col items-center">
+            <div className="relative mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F22998]">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                    <User className="w-12 h-12 text-white" />
                   </div>
-                  <label className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#F22998] flex items-center justify-center cursor-pointer hover:bg-[#BF3B79] transition-colors">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={handlePhotoUpload}
-                      disabled={uploading}
-                    />
-                    {uploading ? (
-                      <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    ) : (
-                      <Camera className="w-5 h-5 text-white" />
-                    )}
-                  </label>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl font-bold text-[#F2F2F2] mb-1">{user.full_name}</h2>
-                  <p className="text-[#F2F2F2]/60 mb-3">{user.email}</p>
-                  
-                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#F22998]/20">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm text-[#F2F2F2]">{user.rating || 5.0}</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#F22998]/20">
-                      <MapPin className="w-4 h-4 text-[#F22998]" />
-                      <span className="text-sm text-[#F2F2F2]">{user.total_rides || 0} corridas</span>
-                    </div>
-                    {user.travels_with_pet && (
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20">
-                        <span className="text-sm text-purple-400">🐾 Viaja com Pet</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setIsEditing(!isEditing)}
-                  variant="outline"
-                  className="border-[#F22998]/30 text-[#F22998]"
-                >
-                  {isEditing ? 'Cancelar' : 'Editar'}
-                </Button>
+                )}
               </div>
+              <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F22998] flex items-center justify-center cursor-pointer hover:bg-[#BF3B79] transition-colors">
+                <Camera className="w-4 h-4 text-white" />
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+              </label>
+            </div>
+            <p className="text-sm text-[#F2F2F2]/60">Clique para alterar foto</p>
+          </div>
+        </Card>
 
-              {isEditing && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-6 pt-6 border-t border-[#F22998]/20 space-y-4"
-                >
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/60 mb-2 block">Telefone</label>
-                    <Input
-                      value={editData.phone || ''}
-                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      placeholder="(11) 99999-9999"
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-[#F2F2F2]/60 mb-2 block">Bio</label>
-                    <Input
-                      value={editData.bio || ''}
-                      onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                      placeholder="Conte um pouco sobre você"
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                    />
-                  </div>
-                  <Button onClick={handleSaveProfile} className="btn-gradient w-full">
-                    Salvar Alterações
-                  </Button>
-                </motion.div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Preferences */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
-            <CardHeader className="bg-transparent">
-              <CardTitle className="text-[#F2F2F2]">Preferências de Viagem</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 bg-transparent">
-              {/* Pet */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                    <span className="text-2xl">🐾</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-[#F2F2F2]">Viajo com Pet</p>
-                    <p className="text-sm text-[#F2F2F2]/60">
-                      Indica que você costuma viajar com seu pet
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={user.travels_with_pet || false}
-                  onCheckedChange={handleTogglePet}
-                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
+        {/* Personal Info */}
+        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+          <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Informações Pessoais</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
+              <Input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                placeholder="Digite seu nome"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(maskPhone(e.target.value))}
+                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
+              >
+                <option value="feminino">Feminino</option>
+                <option value="masculino">Masculino</option>
+                <option value="nao_informar">Prefiro não informar</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="text-sm text-[#F2F2F2]/70 mb-2 block flex items-center gap-2">
+                Data de Nascimento
+                {age && <span className="text-xs text-[#F22998]">({age} anos)</span>}
+              </label>
+              <Input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+              />
+              <div className="flex items-start gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-200">
+                  Sua data de nascimento é privada e usada apenas para segurança
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
+                <Input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                  placeholder="Sua cidade"
                 />
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Quick Links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="glass-effect border-[#F22998]/30 bg-[#0D0D0D]">
-            <CardContent className="p-6 space-y-3 bg-transparent">
-              <Link
-                to={createPageUrl('LoyaltyProgram')}
-                className="flex items-center justify-between p-4 rounded-xl hover:bg-[#F22998]/10 transition-colors group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-[#F22998]" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[#F2F2F2]">Programa de Fidelidade</p>
-                    <p className="text-sm text-[#F2F2F2]/60">
-                      {user.loyalty_points || 0} pontos • Próxima recompensa em {10 - ((user.completed_rides || 0) % 10)} corridas
-                    </p>
-                  </div>
-                </div>
-              </Link>
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-[#F2F2F2]">Conta Verificada</p>
-                    <p className="text-sm text-[#F2F2F2]/60">Sua segurança é nossa prioridade</p>
-                  </div>
-                </div>
+              <div>
+                <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
+                <Input
+                  value={state}
+                  onChange={(e) => setState(e.target.value.toUpperCase())}
+                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                  placeholder="UF"
+                  maxLength={2}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Preferences */}
+        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+          <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Preferências de Viagem</h3>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+              <span className="text-[#F2F2F2]">Viajo com pet</span>
+              <Switch
+                checked={preferences?.travel_with_pet || false}
+                onCheckedChange={(v) => handlePreferenceToggle('travel_with_pet', v)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+              <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
+              <Switch
+                checked={preferences?.accessibility_needs || false}
+                onCheckedChange={(v) => handlePreferenceToggle('accessibility_needs', v)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+              <span className="text-[#F2F2F2]">Prefiro silêncio</span>
+              <Switch
+                checked={preferences?.prefer_silence || false}
+                onCheckedChange={(v) => handlePreferenceToggle('prefer_silence', v)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+              <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
+              <Switch
+                checked={preferences?.prefer_ac || false}
+                onCheckedChange={(v) => handlePreferenceToggle('prefer_ac', v)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full btn-gradient py-6 rounded-2xl"
+        >
+          {saving ? (
+            <>Salvando...</>
+          ) : (
+            <>
+              <Save className="w-5 h-5 mr-2" />
+              Salvar Alterações
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );
