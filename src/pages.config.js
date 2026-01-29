@@ -69,13 +69,13 @@ import PassengerMessages from './pages/PassengerMessages';
 import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
 import Profile from './pages/Profile';
+import RequestRide from './pages/RequestRide';
 import Reviews from './pages/Reviews';
 import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import Wallet from './pages/Wallet';
-import RequestRide from './pages/RequestRide';
 import __Layout from './Layout.jsx';
 
 
@@ -102,13 +102,13 @@ export const PAGES = {
     "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
     "Profile": Profile,
+    "RequestRide": RequestRide,
     "Reviews": Reviews,
     "RideHistory": RideHistory,
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
     "Wallet": Wallet,
-    "RequestRide": RequestRide,
 }
 
 export const pagesConfig = {

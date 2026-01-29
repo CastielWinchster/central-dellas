@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { toast } from 'sonner';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import RealTimeDrivers from './RealTimeDrivers';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -111,7 +112,9 @@ export default function MapView({
   nearbyDrivers = [],
   center = [-23.5505, -46.6333],
   showRoute = false,
-  className = ''
+  className = '',
+  showRealTimeDrivers = false,
+  filterPets = false
 }) {
   const [mapCenter, setMapCenter] = useState(center);
   const [userLocation, setUserLocation] = useState(null);
@@ -489,64 +492,68 @@ export default function MapView({
           </Marker>
         )}
         
-        {/* Nearby drivers com ícones coloridos */}
-        {nearbyDrivers.map((driver, index) => (
-          <Marker 
-            key={index} 
-            position={[driver.lat, driver.lng]} 
-            icon={createCarIcon(driver.tags || [])}
-          >
-            <Popup className="custom-driver-popup">
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold text-base mb-2">{driver.name || 'Motorista'}</h3>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span>{driver.phone || 'Sem telefone'}</span>
-                  </div>
+        {/* Real-time drivers ou motoristas mockados */}
+        {showRealTimeDrivers ? (
+          <RealTimeDrivers filterPets={filterPets} />
+        ) : (
+          nearbyDrivers.map((driver, index) => (
+            <Marker 
+              key={index} 
+              position={[driver.lat, driver.lng]} 
+              icon={createCarIcon(driver.tags || [])}
+            >
+              <Popup className="custom-driver-popup">
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-bold text-base mb-2">{driver.name || 'Motorista'}</h3>
                   
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-xs">{driver.location || 'Localização indisponível'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Car className="w-4 h-4 text-gray-500" />
-                    <span className="text-xs">{driver.vehicle || 'Veículo não informado'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 mt-2">
-                    <span className="text-yellow-500">★</span>
-                    <span className="font-medium">{driver.rating || 5}</span>
-                  </div>
-                  
-                  {driver.tags && driver.tags.length > 0 && (
-                    <div className="mt-3 pt-2 border-t border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Tags:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {driver.tags.map((tag, idx) => (
-                          <span 
-                            key={idx}
-                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                              tag === 'aceita_pet' ? 'bg-purple-100 text-purple-700' :
-                              tag === 'frete' ? 'bg-blue-100 text-blue-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {tag === 'aceita_pet' && <Dog className="w-3 h-3" />}
-                            {tag === 'frete' && <Package className="w-3 h-3" />}
-                            {tag === 'aceita_pet' ? 'Aceita Pets' : tag === 'frete' ? 'Faz Frete' : tag}
-                          </span>
-                        ))}
-                      </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span>{driver.phone || 'Sem telefone'}</span>
                     </div>
-                  )}
+                    
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-500" />
+                      <span className="text-xs">{driver.location || 'Localização indisponível'}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Car className="w-4 h-4 text-gray-500" />
+                      <span className="text-xs">{driver.vehicle || 'Veículo não informado'}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-yellow-500">★</span>
+                      <span className="font-medium">{driver.rating || 5}</span>
+                    </div>
+                    
+                    {driver.tags && driver.tags.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 mb-1">Tags:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {driver.tags.map((tag, idx) => (
+                            <span 
+                              key={idx}
+                              className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                                tag === 'aceita_pet' ? 'bg-purple-100 text-purple-700' :
+                                tag === 'frete' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}
+                            >
+                              {tag === 'aceita_pet' && <Dog className="w-3 h-3" />}
+                              {tag === 'frete' && <Package className="w-3 h-3" />}
+                              {tag === 'aceita_pet' ? 'Aceita Pets' : tag === 'frete' ? 'Faz Frete' : tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))
+        )}
       </MapContainer>
     </div>
   );

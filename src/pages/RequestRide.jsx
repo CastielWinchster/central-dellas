@@ -55,49 +55,8 @@ export default function RequestRide() {
     };
     loadUser();
     
-    // Simular motoristas próximos com tags
-    setNearbyDrivers([
-      { 
-        lat: -23.5505, 
-        lng: -46.6333, 
-        name: 'Maria Silva', 
-        rating: 4.9,
-        phone: '(11) 99999-1111',
-        location: 'Av. Paulista, 1000',
-        tags: ['aceita_pet'],
-        vehicle: 'Honda Fit Prata'
-      },
-      { 
-        lat: -23.5525, 
-        lng: -46.6353, 
-        name: 'Ana Costa', 
-        rating: 4.8,
-        phone: '(11) 99999-2222',
-        location: 'R. Augusta, 500',
-        tags: ['frete'],
-        vehicle: 'Fiat Strada Branca'
-      },
-      { 
-        lat: -23.5495, 
-        lng: -46.6313, 
-        name: 'Julia Santos', 
-        rating: 5.0,
-        phone: '(11) 99999-3333',
-        location: 'Av. Rebouças, 200',
-        tags: [],
-        vehicle: 'Toyota Corolla Preto'
-      },
-      { 
-        lat: -23.5515, 
-        lng: -46.6343, 
-        name: 'Carla Oliveira', 
-        rating: 4.7,
-        phone: '(11) 99999-4444',
-        location: 'R. Consolação, 300',
-        tags: ['aceita_pet', 'frete'],
-        vehicle: 'Chevrolet Onix Vermelho'
-      },
-    ]);
+    // Não precisamos mais de motoristas fictícios
+    setNearbyDrivers([]);
     
     // Pedir permissão de localização imediatamente ao carregar
     requestLocationPermission();
@@ -460,9 +419,11 @@ export default function RequestRide() {
             <MapView
               pickupLocation={pickupLocation}
               destinationLocation={destinationLocation}
-              nearbyDrivers={acceptsPets ? nearbyDrivers.filter(d => d.tags?.includes('aceita_pet')) : nearbyDrivers}
+              nearbyDrivers={[]}
               showRoute={!!pickupLocation && !!destinationLocation}
               className="h-full"
+              showRealTimeDrivers={true}
+              filterPets={acceptsPets}
             />
             
             {/* Card flutuante com informações da rota */}

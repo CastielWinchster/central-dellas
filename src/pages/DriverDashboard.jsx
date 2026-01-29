@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
+import { toast } from 'sonner';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
@@ -24,6 +25,10 @@ export default function DriverDashboard() {
   });
   const [pendingRide, setPendingRide] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({ lat: -23.5505, lng: -46.6333 });
+  const [presenceRecord, setPresenceRecord] = useState(null);
+  const watchIdRef = React.useRef(null);
+  const lastLocationRef = React.useRef(null);
+  const updateIntervalRef = React.useRef(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -35,6 +40,13 @@ export default function DriverDashboard() {
         if (userData.user_type !== 'driver' && userData.user_type !== 'both') {
           await base44.auth.updateMe({ user_type: 'both' });
         }
+        
+        // Verificar presença existente
+        const existingPresence = await base44.entities.DriverPresence.filter({ driver_id: userData.id });
+        if (existingPresence.length > 0) {
+          setPresenceRecord(existingPresence[0]);
+          setIsOnline(existingPresence[0].is_online);
+        }
       } catch (e) {
         base44.auth.redirectToLogin();
       }
@@ -42,30 +54,180 @@ export default function DriverDashboard() {
     loadUser();
   }, []);
 
+  // Gerenciar presença online/offline
   useEffect(() => {
-    if (isOnline) {
-      // Simulate incoming ride request after going online
-      const timeout = setTimeout(() => {
-        setPendingRide({
-          id: '1',
-          passenger: {
-            name: 'Ana Carolina',
-            rating: 4.8,
-            photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'
-          },
-          pickup: 'Av. Paulista, 1000',
-          destination: 'Shopping Ibirapuera',
-          distance: 5.2,
-          estimatedPrice: 28.50,
-          estimatedDuration: 15
-        });
-      }, 5000);
+    if (!user) return;
+    
+    const startTracking = async () => {
+      if (!navigator.geolocation) {
+        toast.error('Geolocalização não suportada');
+        setIsOnline(false);
+        return;
+      }
       
-      return () => clearTimeout(timeout);
+      try {
+        // Solicitar permissão
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000
+          });
+        });
+        
+        const { latitude, longitude, accuracy, heading, speed } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        lastLocationRef.current = { lat: latitude, lng: longitude };
+        
+        // Criar/atualizar presença
+        let record = presenceRecord;
+        if (!record) {
+          record = await base44.entities.DriverPresence.create({
+            driver_id: user.id,
+            is_online: true,
+            lat: latitude,
+            lng: longitude,
+            accuracy: accuracy || 0,
+            heading: heading || 0,
+            speed: speed || 0,
+            last_seen_at: new Date().toISOString()
+          });
+          setPresenceRecord(record);
+        } else {
+          await base44.entities.DriverPresence.update(record.id, {
+            is_online: true,
+            lat: latitude,
+            lng: longitude,
+            accuracy: accuracy || 0,
+            heading: heading || 0,
+            speed: speed || 0,
+            last_seen_at: new Date().toISOString()
+          });
+        }
+        
+        // Iniciar watchPosition
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          async (pos) => {
+            const { latitude: lat, longitude: lng, accuracy: acc, heading: h, speed: s } = pos.coords;
+            const newLocation = { lat, lng };
+            
+            // Verificar se moveu mais de 15 metros
+            if (lastLocationRef.current) {
+              const distance = calculateDistance(
+                lastLocationRef.current.lat,
+                lastLocationRef.current.lng,
+                lat,
+                lng
+              );
+              
+              if (distance < 15) return; // Ignorar movimentos pequenos
+            }
+            
+            setCurrentLocation(newLocation);
+            lastLocationRef.current = newLocation;
+            
+            // Atualizar no banco
+            if (record) {
+              try {
+                await base44.entities.DriverPresence.update(record.id, {
+                  lat,
+                  lng,
+                  accuracy: acc || 0,
+                  heading: h || 0,
+                  speed: s || 0,
+                  last_seen_at: new Date().toISOString()
+                });
+              } catch (error) {
+                console.error('Erro ao atualizar localização:', error);
+              }
+            }
+          },
+          (error) => {
+            console.error('Erro no watchPosition:', error);
+            toast.error('Erro ao rastrear localização. Indo offline...');
+            setIsOnline(false);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 3000,
+            timeout: 10000
+          }
+        );
+        
+        // Atualizar timestamp a cada 3 segundos
+        updateIntervalRef.current = setInterval(async () => {
+          if (record) {
+            try {
+              await base44.entities.DriverPresence.update(record.id, {
+                last_seen_at: new Date().toISOString()
+              });
+            } catch (error) {
+              console.error('Erro ao atualizar timestamp:', error);
+            }
+          }
+        }, 3000);
+        
+        toast.success('🚗 Você está online e visível no mapa!');
+        
+      } catch (error) {
+        console.error('Erro ao iniciar tracking:', error);
+        toast.error('Não foi possível acessar sua localização');
+        setIsOnline(false);
+      }
+    };
+    
+    const stopTracking = async () => {
+      // Parar watchPosition
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      
+      // Parar intervalo
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
+        updateIntervalRef.current = null;
+      }
+      
+      // Atualizar presença para offline
+      if (presenceRecord) {
+        try {
+          await base44.entities.DriverPresence.update(presenceRecord.id, {
+            is_online: false,
+            last_seen_at: new Date().toISOString()
+          });
+          toast.info('Você está offline');
+        } catch (error) {
+          console.error('Erro ao atualizar status:', error);
+        }
+      }
+    };
+    
+    if (isOnline) {
+      startTracking();
     } else {
-      setPendingRide(null);
+      stopTracking();
     }
-  }, [isOnline]);
+    
+    return () => {
+      stopTracking();
+    };
+  }, [isOnline, user, presenceRecord]);
+  
+  // Calcular distância entre dois pontos (em metros)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Raio da Terra em metros
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c;
+  };
 
   const handleAcceptRide = async () => {
     // Accept ride logic
