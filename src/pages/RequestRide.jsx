@@ -372,25 +372,95 @@ export default function RequestRide() {
     }
   };
 
+  const [currentRide, setCurrentRide] = useState(null);
+  const [searchingDrivers, setSearchingDrivers] = useState(false);
+  
   const handleConfirmRide = async () => {
     setStep('searching');
+    setSearchingDrivers(true);
     
-    // Simulate finding driver
-    setTimeout(() => {
-      setDriver({
-        name: 'Maria Silva',
-        photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-        rating: 4.9,
-        totalRides: 234,
-        vehicle: {
-          model: 'Honda Fit',
-          color: 'Prata',
-          plate: 'ABC-1234'
-        },
-        eta: 4
+    try {
+      const response = await base44.functions.invoke('dispatchRide', {
+        pickupLat: pickupLocation.lat,
+        pickupLng: pickupLocation.lng,
+        pickupText: pickup,
+        dropoffLat: destinationLocation.lat,
+        dropoffLng: destinationLocation.lng,
+        dropoffText: destination,
+        estimatedPrice,
+        estimatedDuration: parseInt(estimatedTime),
+        rideType: selectedRideType,
+        hasPet: acceptsPets
       });
-      setStep('driver_found');
-    }, 3000);
+      
+      if (response.data.success) {
+        setCurrentRide(response.data.ride);
+        // Polling para verificar se foi aceita
+        startRidePolling(response.data.ride.id);
+      } else if (response.data.noDrivers) {
+        toast.error(response.data.error);
+        setStep('options');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar motorista:', error);
+      toast.error('Erro ao buscar motoristas. Tente novamente.');
+      setStep('options');
+    } finally {
+      setSearchingDrivers(false);
+    }
+  };
+  
+  const startRidePolling = (rideId) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const rides = await base44.entities.Ride.filter({ id: rideId });
+        if (rides.length === 0) return;
+        
+        const ride = rides[0];
+        
+        if (ride.status === 'accepted') {
+          clearInterval(pollInterval);
+          // Buscar dados da motorista
+          const driverData = await base44.entities.User.filter({ id: ride.assigned_driver_id });
+          const vehicles = await base44.entities.Vehicle.filter({ driver_id: ride.assigned_driver_id });
+          
+          if (driverData.length > 0) {
+            setDriver({
+              name: driverData[0].full_name,
+              photo: driverData[0].photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+              rating: 4.9,
+              totalRides: 234,
+              vehicle: vehicles[0] ? {
+                model: `${vehicles[0].brand} ${vehicles[0].model}`,
+                color: vehicles[0].color,
+                plate: vehicles[0].plate
+              } : {
+                model: 'Veículo',
+                color: 'N/A',
+                plate: 'N/A'
+              },
+              eta: 4
+            });
+            setStep('driver_found');
+          }
+        } else if (ride.status === 'expired' || ride.status === 'cancelled') {
+          clearInterval(pollInterval);
+          toast.error('Nenhuma motorista aceitou sua corrida');
+          setStep('options');
+        }
+      } catch (error) {
+        console.error('Erro no polling:', error);
+      }
+    }, 2000);
+    
+    // Timeout de 20 segundos
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (step === 'searching') {
+        toast.error('Nenhuma motorista aceitou sua corrida');
+        setStep('options');
+      }
+    }, 20000);
   };
 
   const simulatedDriver = {

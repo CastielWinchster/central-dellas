@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
+import RideOfferModal from '../components/driver/RideOfferModal';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
@@ -29,6 +30,10 @@ export default function DriverDashboard() {
   const watchIdRef = React.useRef(null);
   const lastLocationRef = React.useRef(null);
   const updateIntervalRef = React.useRef(null);
+  const [rideOffer, setRideOffer] = useState(null);
+  const [offerRide, setOfferRide] = useState(null);
+  const [offerPassenger, setOfferPassenger] = useState(null);
+  const offerPollingRef = React.useRef(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -227,6 +232,98 @@ export default function DriverDashboard() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     
     return R * c;
+  };
+  
+  // Polling de ofertas quando online
+  useEffect(() => {
+    if (!isOnline || !user) {
+      if (offerPollingRef.current) {
+        clearInterval(offerPollingRef.current);
+      }
+      return;
+    }
+    
+    const checkOffers = async () => {
+      try {
+        const now = new Date().toISOString();
+        const offers = await base44.entities.RideOffer.filter({
+          driver_id: user.id,
+          status: 'sent',
+          expires_at: { $gte: now }
+        });
+        
+        if (offers.length > 0) {
+          const offer = offers[0];
+          
+          // Buscar dados da corrida
+          const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
+          if (rides.length === 0) return;
+          const ride = rides[0];
+          
+          // Buscar dados da passageira
+          const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
+          
+          setRideOffer(offer);
+          setOfferRide(ride);
+          setOfferPassenger(passengers[0] || null);
+          
+          // Marcar como vista
+          await base44.entities.RideOffer.update(offer.id, { status: 'seen' });
+        }
+      } catch (error) {
+        console.error('Erro ao verificar ofertas:', error);
+      }
+    };
+    
+    checkOffers();
+    offerPollingRef.current = setInterval(checkOffers, 2000);
+    
+    return () => {
+      if (offerPollingRef.current) {
+        clearInterval(offerPollingRef.current);
+      }
+    };
+  }, [isOnline, user]);
+  
+  const handleAcceptOffer = async (offer, ride) => {
+    try {
+      const response = await base44.functions.invoke('acceptRideOffer', {
+        rideId: ride.id,
+        offerId: offer.id
+      });
+      
+      if (response.data.success) {
+        toast.success('🎉 Corrida aceita! Navegue até a passageira');
+        setRideOffer(null);
+        setOfferRide(null);
+        setOfferPassenger(null);
+      } else if (response.data.expired) {
+        toast.warning('Oferta expirada');
+        setRideOffer(null);
+      } else {
+        toast.error(response.data.error || 'Não foi possível aceitar');
+        setRideOffer(null);
+      }
+    } catch (error) {
+      console.error('Erro ao aceitar:', error);
+      toast.error('Erro ao aceitar corrida');
+      setRideOffer(null);
+    }
+  };
+  
+  const handleRejectOffer = async (offer) => {
+    try {
+      await base44.entities.RideOffer.update(offer.id, {
+        status: 'rejected',
+        responded_at: new Date().toISOString()
+      });
+      toast.info('Corrida recusada');
+      setRideOffer(null);
+      setOfferRide(null);
+      setOfferPassenger(null);
+    } catch (error) {
+      console.error('Erro ao recusar:', error);
+    }
   };
 
   const handleAcceptRide = async () => {
@@ -510,6 +607,22 @@ export default function DriverDashboard() {
           </div>
         </div>
       </div>
+      
+      {/* Ride Offer Modal */}
+      {rideOffer && offerRide && (
+        <RideOfferModal
+          offer={rideOffer}
+          ride={offerRide}
+          passenger={offerPassenger}
+          onAccept={handleAcceptOffer}
+          onReject={handleRejectOffer}
+          onClose={() => {
+            setRideOffer(null);
+            setOfferRide(null);
+            setOfferPassenger(null);
+          }}
+        />
+      )}
     </div>
   );
 }
