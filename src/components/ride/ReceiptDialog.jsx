@@ -2,8 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   X, Download, Share2, MapPin, Calendar, 
-  Clock, CreditCard, Star, Car, Check
+  Clock, CreditCard, Star, Car, Check, MessageCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -265,10 +266,23 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareText);
-      alert('Informações copiadas para a área de transferência!');
+      toast.success('Informações copiadas!');
     }
+  };
+  
+  const handleWhatsAppShare = () => {
+    const message = encodeURIComponent(
+      `*Recibo Central Dellas* 🚗\n\n` +
+      `📍 *Origem:* ${ride.pickup_address}\n` +
+      `📍 *Destino:* ${ride.destination_address}\n\n` +
+      `💰 *Valor:* R$ ${ride.final_price.toFixed(2)}\n` +
+      `📅 *Data:* ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}\n` +
+      `⏱️ *Duração:* ${ride.estimated_duration || 15} min\n\n` +
+      (ride.driver ? `👩‍✈️ *Motorista:* ${ride.driver.name} (⭐ ${ride.driver.rating})\n\n` : '') +
+      `✨ Central Dellas - Mobilidade segura para mulheres`
+    );
+    window.open(`https://wa.me/?text=${message}`, '_blank');
   };
 
   const paymentMethodLabels = {
@@ -408,21 +422,31 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartilhar
+              </Button>
+              <Button
+                onClick={handleDownloadPDF}
+                className="btn-gradient"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Baixar PDF
+              </Button>
+            </div>
+            
             <Button
-              onClick={handleShare}
-              variant="outline"
-              className="border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+              onClick={handleWhatsAppShare}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
-              <Share2 className="w-4 h-4 mr-2" />
-              Compartilhar
-            </Button>
-            <Button
-              onClick={handleDownloadPDF}
-              className="btn-gradient"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Baixar PDF
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Compartilhar via WhatsApp
             </Button>
           </div>
 

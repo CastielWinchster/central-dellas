@@ -79,6 +79,7 @@ import FavoritePlaces from './pages/FavoritePlaces';
 import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
 import PassengerNotifications from './pages/PassengerNotifications';
+import BlockedUsers from './pages/BlockedUsers';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +116,7 @@ export const PAGES = {
     "PassengerSafety": PassengerSafety,
     "PassengerSecurity": PassengerSecurity,
     "PassengerNotifications": PassengerNotifications,
+    "BlockedUsers": BlockedUsers,
 }
 
 export const pagesConfig = {

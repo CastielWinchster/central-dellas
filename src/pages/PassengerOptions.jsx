@@ -6,7 +6,7 @@ import { createPageUrl } from '../utils';
 import { 
   User, CreditCard, Heart, MapPin, Shield, Lock, Bell, 
   Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
-  Clock, Star, History
+  Clock, Star, History, UserX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -111,6 +111,12 @@ export default function PassengerOptions() {
           label: 'Emergência', 
           description: 'Contatos e recursos de segurança',
           page: 'PassengerSafety'
+        },
+        { 
+          icon: UserX, 
+          label: 'Bloqueadas', 
+          description: 'Motoristas bloqueadas',
+          page: 'BlockedUsers'
         }
       ]
     },
