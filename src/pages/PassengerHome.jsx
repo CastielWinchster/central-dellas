@@ -169,7 +169,7 @@ export default function PassengerHome() {
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">Por que escolher a Central Dellas?</h2>
+          <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">Por que escolher a CentralDellas?</h2>
           <p className="text-[#F2F2F2]/60 max-w-lg mx-auto">
             Criamos um ambiente seguro para que mulheres possam se deslocarem pela cidade.
           </p>
