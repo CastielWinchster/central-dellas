@@ -12,7 +12,13 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
-import { searchAddress, formatAddressForRide } from '@/components/utils/addressParser';
+import { 
+  searchPlaces, 
+  reverseGeocode, 
+  formatAddressDisplay, 
+  loadFavoritesAndRecents,
+  parseQuery 
+} from '@/components/utils/geocoding';
 
 export default function RequestRide() {
   const [user, setUser] = useState(null);
@@ -36,6 +42,7 @@ export default function RequestRide() {
   const [gettingLocation, setGettingLocation] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [favoritesAndRecents, setFavoritesAndRecents] = useState([]);
   const [userCity, setUserCity] = useState('Orlândia');
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
@@ -47,29 +54,26 @@ export default function RequestRide() {
   // Handlers para arrastar pins
   const handlePickupDragEnd = async (lat, lng) => {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
-      );
-      const data = await response.json();
+      const reverseData = await reverseGeocode(lat, lng);
 
-      if (data.address) {
-        const addr = data.address;
-        const road = addr.road || '';
-        const number = pickupLocation?.userProvidedNumber || addr.house_number || 's/n';
-        const neighborhood = addr.suburb || addr.neighbourhood || '';
-        const city = addr.city || addr.town || addr.village || 'Orlândia';
-        const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+      if (reverseData) {
+        const number = pickupLocation?.userProvidedNumber || reverseData.housenumber;
+        const finalAddress = formatAddressDisplay(reverseData, pickupLocation?.userProvidedNumber);
 
-        setPickup(address);
+        setPickup(finalAddress);
         setPickupLocation({
           lat,
           lng,
-          text: address,
-          userProvidedNumber: pickupLocation?.userProvidedNumber || addr.house_number,
-          hasHouseNumber: !!(pickupLocation?.userProvidedNumber || addr.house_number)
+          text: finalAddress,
+          userProvidedNumber: pickupLocation?.userProvidedNumber || reverseData.housenumber,
+          hasHouseNumber: !!number && number !== 's/n'
         });
 
         toast.success('📍 Localização de origem ajustada');
+
+        if (destinationLocation) {
+          calculateRouteAndPrice({ lat, lng }, destinationLocation);
+        }
       }
     } catch (error) {
       console.error('Erro no reverse geocode:', error);
@@ -79,31 +83,23 @@ export default function RequestRide() {
 
   const handleDestinationDragEnd = async (lat, lng) => {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
-      );
-      const data = await response.json();
+      const reverseData = await reverseGeocode(lat, lng);
 
-      if (data.address) {
-        const addr = data.address;
-        const road = addr.road || '';
-        const number = destinationLocation?.userProvidedNumber || addr.house_number || 's/n';
-        const neighborhood = addr.suburb || addr.neighbourhood || '';
-        const city = addr.city || addr.town || addr.village || 'Orlândia';
-        const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+      if (reverseData) {
+        const number = destinationLocation?.userProvidedNumber || reverseData.housenumber;
+        const finalAddress = formatAddressDisplay(reverseData, destinationLocation?.userProvidedNumber);
 
-        setDestination(address);
+        setDestination(finalAddress);
         setDestinationLocation({
           lat,
           lng,
-          text: address,
-          userProvidedNumber: destinationLocation?.userProvidedNumber || addr.house_number,
-          hasHouseNumber: !!(destinationLocation?.userProvidedNumber || addr.house_number)
+          text: finalAddress,
+          userProvidedNumber: destinationLocation?.userProvidedNumber || reverseData.housenumber,
+          hasHouseNumber: !!number && number !== 's/n'
         });
 
         toast.success('📍 Localização de destino ajustada');
 
-        // Recalcular rota se origem já existe
         if (pickupLocation) {
           calculateRouteAndPrice(pickupLocation, { lat, lng });
         }
@@ -122,16 +118,17 @@ export default function RequestRide() {
         if (userData.preferred_payment) {
           setSelectedPayment(userData.preferred_payment);
         }
+        
+        // Carregar favoritos e recentes
+        const favRec = await loadFavoritesAndRecents(userData.id, base44);
+        setFavoritesAndRecents(favRec);
       } catch (e) {
         base44.auth.redirectToLogin();
       }
     };
     loadUser();
     
-    // Não precisamos mais de motoristas fictícios
     setNearbyDrivers([]);
-    
-    // Pedir permissão de localização imediatamente ao carregar
     requestLocationPermission();
   }, []);
 
@@ -186,42 +183,37 @@ export default function RequestRide() {
           const { latitude, longitude } = position.coords;
 
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
-            );
-            const data = await response.json();
-            if (data.address) {
-              const city = data.address.city || data.address.town || data.address.village || 'Orlândia';
-              setUserCity(city);
+            const reverseData = await reverseGeocode(latitude, longitude);
 
-              const addr = data.address;
-              const road = addr.road || '';
-              const number = addr.house_number || 's/n';
-              const neighborhood = addr.suburb || addr.neighbourhood || '';
-              const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+            if (reverseData) {
+            const city = reverseData.city || 'Orlândia';
+            setUserCity(city);
 
-              const locationData = {
-                lat: latitude,
-                lng: longitude,
-                text: address,
-                userProvidedNumber: addr.house_number || null,
-                hasHouseNumber: !!addr.house_number
-              };
+            const finalAddress = formatAddressDisplay(reverseData);
 
-              setPickup(address);
-              setPickupLocation(locationData);
+            const locationData = {
+              lat: latitude,
+              lng: longitude,
+              text: finalAddress,
+              userProvidedNumber: reverseData.housenumber,
+              hasHouseNumber: !!reverseData.housenumber
+            };
 
-              if (!addr.house_number) {
-                setPickupMarkerDraggable(true);
-                toast.info('📍 Arraste o pin para ajustar se necessário', { duration: 3000 });
-              } else {
-                toast.success('📍 Localização atualizada');
-              }
+            setPickup(finalAddress);
+            setPickupLocation(locationData);
+
+            if (!reverseData.housenumber) {
+              setPickupMarkerDraggable(true);
+              toast.info('📍 Arraste o pin de origem para ajustar se necessário', { duration: 3000 });
+            } else {
+              setPickupMarkerDraggable(false);
+              toast.success('📍 Localização atualizada');
             }
-          } catch (error) {
+            }
+            } catch (error) {
             console.error('Erro na geocodificação reversa:', error);
             setPickupLocation({ lat: latitude, lng: longitude, text: '' });
-          }
+            }
           setGettingLocation(false);
         },
         (error) => {
@@ -236,17 +228,16 @@ export default function RequestRide() {
     }
   };
 
-  // Autocomplete inteligente com parser robusto (400ms debounce)
+  // Autocomplete híbrido Photon + Nominatim (400ms debounce)
   const handleDestinationInput = React.useCallback(
     debounce(async (value) => {
       if (value.length < 3) {
-        setSuggestions([]);
-        setShowSuggestions(false);
+        setSuggestions(favoritesAndRecents);
+        setShowSuggestions(favoritesAndRecents.length > 0);
         setSearchingAddress(false);
         return;
       }
       
-      // Cancelar requisição anterior
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -255,34 +246,22 @@ export default function RequestRide() {
       try {
         setSearchingAddress(true);
         
-        // Usar parser inteligente com localização do usuário
         const userLoc = pickupLocation ? {
           lat: pickupLocation.lat,
           lng: pickupLocation.lng
         } : null;
         
-        const results = await searchAddress(
+        const results = await searchPlaces(
           value,
           userLoc,
           abortControllerRef.current.signal
         );
         
-        if (results.length > 0) {
-          const formatted = results.map(item => ({
-            display_name: item.formattedAddress,
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            address: item.address,
-            userProvidedNumber: item.userProvidedNumber,
-            rawResult: item
-          }));
-          
-          setSuggestions(formatted);
-          setShowSuggestions(true);
-        } else {
-          setSuggestions([]);
-          setShowSuggestions(false);
-        }
+        // Combinar favoritos/recentes + resultados online
+        const combined = [...favoritesAndRecents, ...results];
+        
+        setSuggestions(combined);
+        setShowSuggestions(combined.length > 0);
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error('Erro ao buscar endereços:', error);
@@ -292,7 +271,7 @@ export default function RequestRide() {
         setSearchingAddress(false);
       }
     }, 400),
-    [pickupLocation]
+    [pickupLocation, favoritesAndRecents]
   );
 
   // Função debounce
@@ -310,83 +289,113 @@ export default function RequestRide() {
 
   const selectSuggestion = async (suggestion) => {
     const lat = parseFloat(suggestion.lat);
-    const lng = parseFloat(suggestion.lon);
+    const lon = parseFloat(suggestion.lon);
 
-    // Confirmar endereço com reverse geocode
-    try {
-      const reverseResponse = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
-      );
-      const reverseData = await reverseResponse.json();
-
-      // Formatar endereço final
-      let finalAddress = '';
-      const addr = reverseData.address;
-
-      if (addr) {
-        const road = addr.road || addr.street || '';
-        const number = suggestion.userProvidedNumber || addr.house_number || '';
-        const neighborhood = addr.suburb || addr.neighbourhood || '';
-        const city = addr.city || addr.town || addr.village || 'Orlândia';
-
-        if (number) {
-          finalAddress = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
-        } else {
-          finalAddress = `${road}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
-        }
-      } else {
-        finalAddress = suggestion.display_name;
-      }
-
-      // Salvar estado completo
+    // Se for favorito ou recente, usar direto
+    if (suggestion.isFavorite || suggestion.isRecent) {
       const locationData = {
         lat,
-        lng,
-        text: finalAddress,
-        userProvidedNumber: suggestion.userProvidedNumber || addr?.house_number || null,
-        hasHouseNumber: !!(suggestion.userProvidedNumber || addr?.house_number)
+        lng: lon,
+        text: suggestion.street || suggestion.name,
+        userProvidedNumber: null,
+        hasHouseNumber: true
       };
 
-      setDestination(finalAddress);
+      setDestination(suggestion.street || suggestion.name);
       setDestinationLocation(locationData);
       setSuggestions([]);
       setShowSuggestions(false);
       setDestinationError('');
       setSearchingAddress(false);
 
-      // Ativar pin ajustável se não tiver número
-      if (!locationData.hasHouseNumber) {
-        setDestinationMarkerDraggable(true);
-        toast.info('📍 Arraste o pin para ajustar a localização exata', { duration: 4000 });
-      }
-
-      // Feedback visual
-      if (suggestion.userProvidedNumber && !addr?.house_number) {
-        toast.success(`✅ Endereço com nº ${suggestion.userProvidedNumber}`, { duration: 3000 });
-      }
-
-      // Recalcular preços
       if (pickupLocation) {
-        calculateRouteAndPrice(pickupLocation, { lat, lng });
+        calculateRouteAndPrice(pickupLocation, { lat, lng: lon });
       }
-    } catch (error) {
-      console.error('Erro no reverse geocode:', error);
-      // Fallback: usar o endereço sugerido
-      const fullAddress = suggestion.userProvidedNumber 
-        ? formatAddressForRide(suggestion.rawResult, suggestion.userProvidedNumber)
-        : suggestion.display_name;
+      return;
+    }
 
-      setDestination(fullAddress);
-      setDestinationLocation({ 
-        lat, 
-        lng,
-        text: fullAddress,
-        userProvidedNumber: suggestion.userProvidedNumber
-      });
+    // Confirmar com reverse geocode
+    try {
+      const reverseData = await reverseGeocode(lat, lon);
+
+      if (reverseData) {
+        const number = suggestion.userProvidedNumber || reverseData.housenumber;
+        const finalAddress = formatAddressDisplay(
+          {
+            street: reverseData.street || suggestion.name,
+            housenumber: number,
+            suburb: reverseData.suburb,
+            city: reverseData.city
+          },
+          suggestion.userProvidedNumber
+        );
+
+        const locationData = {
+          lat,
+          lng: lon,
+          text: finalAddress,
+          userProvidedNumber: suggestion.userProvidedNumber,
+          hasHouseNumber: !!number && number !== 's/n'
+        };
+
+        setDestination(finalAddress);
+        setDestinationLocation(locationData);
+
+        // Pin ajustável se não tiver número exato
+        if (!locationData.hasHouseNumber) {
+          setDestinationMarkerDraggable(true);
+          toast.info('📍 Arraste o pin para ajustar a localização exata', { duration: 4000 });
+        } else {
+          setDestinationMarkerDraggable(false);
+        }
+
+        // Salvar como recente
+        try {
+          const existingRecent = await base44.entities.RecentPlace.filter({
+            user_id: user.id,
+            address_text: finalAddress
+          });
+
+          if (existingRecent.length > 0) {
+            await base44.entities.RecentPlace.update(existingRecent[0].id, {
+              last_used_at: new Date().toISOString(),
+              times_used: (existingRecent[0].times_used || 0) + 1
+            });
+          } else {
+            await base44.entities.RecentPlace.create({
+              user_id: user.id,
+              address_text: finalAddress,
+              lat,
+              lng: lon,
+              last_used_at: new Date().toISOString()
+            });
+          }
+        } catch (e) {}
+
+      } else {
+        // Fallback sem reverse
+        const finalAddress = suggestion.name || suggestion.street || '';
+        setDestination(finalAddress);
+        setDestinationLocation({
+          lat,
+          lng: lon,
+          text: finalAddress,
+          userProvidedNumber: suggestion.userProvidedNumber
+        });
+      }
+
       setSuggestions([]);
       setShowSuggestions(false);
       setDestinationError('');
       setSearchingAddress(false);
+
+      // Recalcular preços
+      if (pickupLocation) {
+        calculateRouteAndPrice(pickupLocation, { lat, lng: lon });
+      }
+    } catch (error) {
+      console.error('Erro ao processar seleção:', error);
+      toast.error('Erro ao selecionar endereço');
     }
   };
 
@@ -662,6 +671,20 @@ export default function RequestRide() {
                 </div>
               </motion.div>
             )}
+
+            {/* Aviso para ajustar pin */}
+            {(pickupMarkerDraggable || destinationMarkerDraggable) && step === 'address' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-500/95 backdrop-blur-sm rounded-2xl shadow-2xl px-4 py-2 z-10"
+              >
+                <p className="text-xs text-white font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Arraste o pin {pickupMarkerDraggable ? 'verde' : 'rosa'} para ajustar a localização exata
+                </p>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Controls */}
@@ -730,7 +753,7 @@ export default function RequestRide() {
                             <div className="w-3 h-3 rounded-full bg-[#F22998]" />
                           </div>
                           <Input
-                            placeholder="Digite o destino"
+                            placeholder="Restaurante, loja, endereço..."
                             value={destination}
                             onChange={(e) => {
                               setDestination(e.target.value);
@@ -738,7 +761,14 @@ export default function RequestRide() {
                               setSearchingAddress(true);
                               handleDestinationInput(e.target.value);
                             }}
-                            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                            onFocus={() => {
+                              if (destination.length < 3) {
+                                setSuggestions(favoritesAndRecents);
+                                setShowSuggestions(favoritesAndRecents.length > 0);
+                              } else if (suggestions.length > 0) {
+                                setShowSuggestions(true);
+                              }
+                            }}
                             onBlur={() => {
                               setTimeout(() => setShowSuggestions(false), 200);
                             }}
@@ -761,32 +791,55 @@ export default function RequestRide() {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
                               transition={{ duration: 0.15 }}
-                              className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto"
+                              className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden max-h-[400px] overflow-y-auto"
                             >
                               {suggestions.map((suggestion, index) => (
                                 <button
-                                  key={index}
+                                  key={suggestion.id || index}
                                   onClick={() => selectSuggestion(suggestion)}
                                   className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
                                 >
                                   <div className="flex items-start gap-3">
-                                    <MapPin className="w-4 h-4 text-[#F22998] mt-1 flex-shrink-0" />
+                                    <span className="text-xl mt-0.5 flex-shrink-0">
+                                      {suggestion.icon}
+                                    </span>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-sm text-[#F2F2F2] font-medium">
-                                        {suggestion.address?.road || suggestion.display_name.split(',')[0]}
-                                        {suggestion.userProvidedNumber && (
-                                          <span className="text-[#F22998] ml-1">
-                                            nº {suggestion.userProvidedNumber}
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm text-[#F2F2F2] font-medium">
+                                          {suggestion.name || suggestion.street}
+                                          {suggestion.housenumber && (
+                                            <span className="text-[#F22998] ml-1">
+                                              , {suggestion.housenumber}
+                                            </span>
+                                          )}
+                                          {suggestion.userProvidedNumber && (
+                                            <span className="text-[#F22998] ml-1">
+                                              , nº {suggestion.userProvidedNumber}
+                                            </span>
+                                          )}
+                                        </p>
+                                        {(suggestion.isFavorite || suggestion.isRecent) && (
+                                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#F22998]/20 text-[#F22998]">
+                                            {suggestion.categoryLabel}
                                           </span>
                                         )}
+                                      </div>
+                                      <p className="text-xs text-[#F2F2F2]/50 truncate mt-0.5">
+                                        {suggestion.street && suggestion.street !== suggestion.name && (
+                                          <span>{suggestion.street} • </span>
+                                        )}
+                                        {suggestion.city}
+                                        {suggestion.categoryLabel && !suggestion.isFavorite && !suggestion.isRecent && (
+                                          <span className="ml-1 text-[#F22998]">• {suggestion.categoryLabel}</span>
+                                        )}
                                       </p>
-                                      <p className="text-xs text-[#F2F2F2]/50 truncate">
-                                        {suggestion.address?.suburb || suggestion.address?.neighbourhood ? 
-                                          `${suggestion.address.suburb || suggestion.address.neighbourhood} - ` : ''}
-                                        {suggestion.address?.city || suggestion.address?.town || suggestion.address?.village || 'Orlândia'}
-                                      </p>
-                                      {suggestion.userProvidedNumber && !suggestion.address?.house_number && (
-                                        <p className="text-xs text-yellow-400 mt-0.5">
+                                      {suggestion.isFaraway && (
+                                        <p className="text-xs text-yellow-400 mt-1">
+                                          ⚠️ Fora da sua região (~{Math.round(suggestion.distance)} km)
+                                        </p>
+                                      )}
+                                      {suggestion.userProvidedNumber && (
+                                        <p className="text-xs text-yellow-400 mt-1">
                                           📍 Número informado por você
                                         </p>
                                       )}
