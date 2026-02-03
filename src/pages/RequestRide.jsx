@@ -19,8 +19,10 @@ export default function RequestRide() {
   const [step, setStep] = useState('address');
   const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
-  const [pickupLocation, setPickupLocation] = useState(null);
-  const [destinationLocation, setDestinationLocation] = useState(null);
+  const [pickupLocation, setPickupLocation] = useState(null); // { lat, lng, text, userProvidedNumber }
+  const [destinationLocation, setDestinationLocation] = useState(null); // { lat, lng, text, userProvidedNumber }
+  const [pickupMarkerDraggable, setPickupMarkerDraggable] = useState(false);
+  const [destinationMarkerDraggable, setDestinationMarkerDraggable] = useState(false);
   const [selectedRideType, setSelectedRideType] = useState('standard');
   const [selectedPayment, setSelectedPayment] = useState('pix');
   const [acceptsPets, setAcceptsPets] = useState(false);
@@ -40,6 +42,77 @@ export default function RequestRide() {
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
   const abortControllerRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+
+  // Handlers para arrastar pins
+  const handlePickupDragEnd = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data.address) {
+        const addr = data.address;
+        const road = addr.road || '';
+        const number = pickupLocation?.userProvidedNumber || addr.house_number || 's/n';
+        const neighborhood = addr.suburb || addr.neighbourhood || '';
+        const city = addr.city || addr.town || addr.village || 'Orlândia';
+        const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+
+        setPickup(address);
+        setPickupLocation({
+          lat,
+          lng,
+          text: address,
+          userProvidedNumber: pickupLocation?.userProvidedNumber || addr.house_number,
+          hasHouseNumber: !!(pickupLocation?.userProvidedNumber || addr.house_number)
+        });
+
+        toast.success('📍 Localização de origem ajustada');
+      }
+    } catch (error) {
+      console.error('Erro no reverse geocode:', error);
+      toast.error('Erro ao atualizar endereço');
+    }
+  };
+
+  const handleDestinationDragEnd = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data.address) {
+        const addr = data.address;
+        const road = addr.road || '';
+        const number = destinationLocation?.userProvidedNumber || addr.house_number || 's/n';
+        const neighborhood = addr.suburb || addr.neighbourhood || '';
+        const city = addr.city || addr.town || addr.village || 'Orlândia';
+        const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+
+        setDestination(address);
+        setDestinationLocation({
+          lat,
+          lng,
+          text: address,
+          userProvidedNumber: destinationLocation?.userProvidedNumber || addr.house_number,
+          hasHouseNumber: !!(destinationLocation?.userProvidedNumber || addr.house_number)
+        });
+
+        toast.success('📍 Localização de destino ajustada');
+
+        // Recalcular rota se origem já existe
+        if (pickupLocation) {
+          calculateRouteAndPrice(pickupLocation, { lat, lng });
+        }
+      }
+    } catch (error) {
+      console.error('Erro no reverse geocode:', error);
+      toast.error('Erro ao atualizar endereço');
+    }
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -111,8 +184,7 @@ export default function RequestRide() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          setPickupLocation({ lat: latitude, lng: longitude });
-          
+
           try {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
@@ -121,13 +193,34 @@ export default function RequestRide() {
             if (data.address) {
               const city = data.address.city || data.address.town || data.address.village || 'Orlândia';
               setUserCity(city);
-              
-              const address = `${data.address.road || ''}, ${data.address.house_number || 's/n'}, ${data.address.suburb || data.address.neighbourhood || ''}, ${city}`.trim();
+
+              const addr = data.address;
+              const road = addr.road || '';
+              const number = addr.house_number || 's/n';
+              const neighborhood = addr.suburb || addr.neighbourhood || '';
+              const address = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+
+              const locationData = {
+                lat: latitude,
+                lng: longitude,
+                text: address,
+                userProvidedNumber: addr.house_number || null,
+                hasHouseNumber: !!addr.house_number
+              };
+
               setPickup(address);
-              toast.success('📍 Localização atualizada');
+              setPickupLocation(locationData);
+
+              if (!addr.house_number) {
+                setPickupMarkerDraggable(true);
+                toast.info('📍 Arraste o pin para ajustar se necessário', { duration: 3000 });
+              } else {
+                toast.success('📍 Localização atualizada');
+              }
             }
           } catch (error) {
             console.error('Erro na geocodificação reversa:', error);
+            setPickupLocation({ lat: latitude, lng: longitude, text: '' });
           }
           setGettingLocation(false);
         },
@@ -215,34 +308,85 @@ export default function RequestRide() {
     };
   }
 
-  const selectSuggestion = (suggestion) => {
-    // Formatar endereço completo para exibição
-    const fullAddress = suggestion.userProvidedNumber 
-      ? formatAddressForRide(suggestion.rawResult, suggestion.userProvidedNumber)
-      : suggestion.display_name;
-    
-    setDestination(fullAddress);
-    setDestinationLocation({ 
-      lat: suggestion.lat, 
-      lng: suggestion.lon,
-      userProvidedNumber: suggestion.userProvidedNumber,
-      fullAddress: fullAddress
-    });
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setDestinationError('');
-    setSearchingAddress(false);
-    
-    // Feedback visual
-    if (suggestion.userProvidedNumber && !suggestion.address?.house_number) {
-      toast.success(`✅ Endereço selecionado com nº ${suggestion.userProvidedNumber}`, {
-        duration: 3000
+  const selectSuggestion = async (suggestion) => {
+    const lat = parseFloat(suggestion.lat);
+    const lng = parseFloat(suggestion.lon);
+
+    // Confirmar endereço com reverse geocode
+    try {
+      const reverseResponse = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
+      );
+      const reverseData = await reverseResponse.json();
+
+      // Formatar endereço final
+      let finalAddress = '';
+      const addr = reverseData.address;
+
+      if (addr) {
+        const road = addr.road || addr.street || '';
+        const number = suggestion.userProvidedNumber || addr.house_number || '';
+        const neighborhood = addr.suburb || addr.neighbourhood || '';
+        const city = addr.city || addr.town || addr.village || 'Orlândia';
+
+        if (number) {
+          finalAddress = `${road}, ${number}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+        } else {
+          finalAddress = `${road}${neighborhood ? ', ' + neighborhood : ''}, ${city}`;
+        }
+      } else {
+        finalAddress = suggestion.display_name;
+      }
+
+      // Salvar estado completo
+      const locationData = {
+        lat,
+        lng,
+        text: finalAddress,
+        userProvidedNumber: suggestion.userProvidedNumber || addr?.house_number || null,
+        hasHouseNumber: !!(suggestion.userProvidedNumber || addr?.house_number)
+      };
+
+      setDestination(finalAddress);
+      setDestinationLocation(locationData);
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setDestinationError('');
+      setSearchingAddress(false);
+
+      // Ativar pin ajustável se não tiver número
+      if (!locationData.hasHouseNumber) {
+        setDestinationMarkerDraggable(true);
+        toast.info('📍 Arraste o pin para ajustar a localização exata', { duration: 4000 });
+      }
+
+      // Feedback visual
+      if (suggestion.userProvidedNumber && !addr?.house_number) {
+        toast.success(`✅ Endereço com nº ${suggestion.userProvidedNumber}`, { duration: 3000 });
+      }
+
+      // Recalcular preços
+      if (pickupLocation) {
+        calculateRouteAndPrice(pickupLocation, { lat, lng });
+      }
+    } catch (error) {
+      console.error('Erro no reverse geocode:', error);
+      // Fallback: usar o endereço sugerido
+      const fullAddress = suggestion.userProvidedNumber 
+        ? formatAddressForRide(suggestion.rawResult, suggestion.userProvidedNumber)
+        : suggestion.display_name;
+
+      setDestination(fullAddress);
+      setDestinationLocation({ 
+        lat, 
+        lng,
+        text: fullAddress,
+        userProvidedNumber: suggestion.userProvidedNumber
       });
-    }
-    
-    // Recalcular preços
-    if (pickupLocation) {
-      calculateRouteAndPrice(pickupLocation, { lat: suggestion.lat, lng: suggestion.lon });
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setDestinationError('');
+      setSearchingAddress(false);
     }
   };
 
@@ -340,35 +484,21 @@ export default function RequestRide() {
   };
 
   const handleSearch = async () => {
-    if (!pickup || !destination) return;
-    
+    if (!pickupLocation?.lat || !pickupLocation?.lng || !destinationLocation?.lat || !destinationLocation?.lng) {
+      toast.error('Selecione endereços válidos com localização no mapa');
+      return;
+    }
+
     setLoadingPickup(true);
-    
-    // Validar apenas se o destino não foi selecionado do autocomplete
-    let pickupValid = pickupLocation !== null;
-    let destValid = destinationLocation !== null;
-    
-    if (!pickupValid) {
-      pickupValid = await validateAddress(pickup, true);
-    }
-    
-    if (!destValid) {
-      destValid = await validateAddress(destination, false);
-    }
-    
-    setLoadingPickup(false);
-    
-    if (pickupValid && destValid) {
+
+    try {
       // Calcular rota e preços
       await calculateRouteAndPrice(pickupLocation, destinationLocation);
       setStep('options');
-    } else {
-      if (!destValid) {
-        setDestinationError('Por favor, insira um local válido existente na cidade');
-      }
-      if (!pickupValid) {
-        setPickupError('Por favor, insira um local válido existente na cidade');
-      }
+    } catch (error) {
+      toast.error('Erro ao calcular rota');
+    } finally {
+      setLoadingPickup(false);
     }
   };
 
@@ -494,6 +624,10 @@ export default function RequestRide() {
               className="h-full"
               showRealTimeDrivers={true}
               filterPets={acceptsPets}
+              onPickupDragEnd={handlePickupDragEnd}
+              onDestinationDragEnd={handleDestinationDragEnd}
+              pickupDraggable={pickupMarkerDraggable}
+              destinationDraggable={destinationMarkerDraggable}
             />
             
             {/* Card flutuante com informações da rota */}
@@ -672,7 +806,7 @@ export default function RequestRide() {
 
                     <Button 
                       onClick={handleSearch}
-                      disabled={!pickup || !destination || loadingPickup || pickupError || destinationError}
+                      disabled={!pickupLocation?.lat || !destinationLocation?.lat || loadingPickup}
                       className="w-full mt-6 btn-gradient py-6 rounded-2xl text-lg font-semibold disabled:opacity-50"
                     >
                       {loadingPickup ? (
@@ -687,6 +821,18 @@ export default function RequestRide() {
                         </>
                       )}
                     </Button>
+
+                    {/* Status dos endereços */}
+                    <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+                      <div className={`flex items-center gap-1 ${pickupLocation?.lat ? 'text-green-400' : 'text-[#F2F2F2]/40'}`}>
+                        <div className={`w-2 h-2 rounded-full ${pickupLocation?.lat ? 'bg-green-400' : 'bg-[#F2F2F2]/40'}`} />
+                        Origem
+                      </div>
+                      <div className={`flex items-center gap-1 ${destinationLocation?.lat ? 'text-green-400' : 'text-[#F2F2F2]/40'}`}>
+                        <div className={`w-2 h-2 rounded-full ${destinationLocation?.lat ? 'bg-green-400' : 'bg-[#F2F2F2]/40'}`} />
+                        Destino
+                      </div>
+                    </div>
                   </Card>
 
                   {/* Recent Destinations */}

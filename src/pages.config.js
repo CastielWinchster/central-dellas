@@ -49,6 +49,8 @@
  */
 import AdminPanel from './pages/AdminPanel';
 import AvailableRides from './pages/AvailableRides';
+import BlockedUsers from './pages/BlockedUsers';
+import CardsAndPix from './pages/CardsAndPix';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverLogin from './pages/DriverLogin';
@@ -56,6 +58,8 @@ import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
 import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
+import FavoriteDrivers from './pages/FavoriteDrivers';
+import FavoritePlaces from './pages/FavoritePlaces';
 import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
@@ -64,8 +68,11 @@ import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerMessages from './pages/PassengerMessages';
+import PassengerNotifications from './pages/PassengerNotifications';
 import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
+import PassengerSafety from './pages/PassengerSafety';
+import PassengerSecurity from './pages/PassengerSecurity';
 import Profile from './pages/Profile';
 import RequestRide from './pages/RequestRide';
 import Reviews from './pages/Reviews';
@@ -73,19 +80,14 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import CardsAndPix from './pages/CardsAndPix';
-import FavoriteDrivers from './pages/FavoriteDrivers';
-import FavoritePlaces from './pages/FavoritePlaces';
-import PassengerSafety from './pages/PassengerSafety';
-import PassengerSecurity from './pages/PassengerSecurity';
-import PassengerNotifications from './pages/PassengerNotifications';
-import BlockedUsers from './pages/BlockedUsers';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminPanel": AdminPanel,
     "AvailableRides": AvailableRides,
+    "BlockedUsers": BlockedUsers,
+    "CardsAndPix": CardsAndPix,
     "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverLogin": DriverLogin,
@@ -93,6 +95,8 @@ export const PAGES = {
     "DriverProfile": DriverProfile,
     "DriverRegistration": DriverRegistration,
     "Earnings": Earnings,
+    "FavoriteDrivers": FavoriteDrivers,
+    "FavoritePlaces": FavoritePlaces,
     "Messages": Messages,
     "MyReviews": MyReviews,
     "Notifications": Notifications,
@@ -101,8 +105,11 @@ export const PAGES = {
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
     "PassengerMessages": PassengerMessages,
+    "PassengerNotifications": PassengerNotifications,
     "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
+    "PassengerSafety": PassengerSafety,
+    "PassengerSecurity": PassengerSecurity,
     "Profile": Profile,
     "RequestRide": RequestRide,
     "Reviews": Reviews,
@@ -110,13 +117,6 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "CardsAndPix": CardsAndPix,
-    "FavoriteDrivers": FavoriteDrivers,
-    "FavoritePlaces": FavoritePlaces,
-    "PassengerSafety": PassengerSafety,
-    "PassengerSecurity": PassengerSecurity,
-    "PassengerNotifications": PassengerNotifications,
-    "BlockedUsers": BlockedUsers,
 }
 
 export const pagesConfig = {

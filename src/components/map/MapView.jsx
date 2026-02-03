@@ -114,7 +114,11 @@ export default function MapView({
   showRoute = false,
   className = '',
   showRealTimeDrivers = false,
-  filterPets = false
+  filterPets = false,
+  onPickupDragEnd = null,
+  onDestinationDragEnd = null,
+  pickupDraggable = false,
+  destinationDraggable = false
 }) {
   const [mapCenter, setMapCenter] = useState(center);
   const [userLocation, setUserLocation] = useState(null);
@@ -476,18 +480,48 @@ export default function MapView({
         
         {/* Pickup marker */}
         {pickupLocation && (
-          <Marker position={[pickupLocation.lat, pickupLocation.lng]} icon={pickupIcon}>
+          <Marker 
+            position={[pickupLocation.lat, pickupLocation.lng]} 
+            icon={pickupIcon}
+            draggable={pickupDraggable}
+            eventHandlers={{
+              dragend: (e) => {
+                const { lat, lng } = e.target.getLatLng();
+                if (onPickupDragEnd) {
+                  onPickupDragEnd(lat, lng);
+                }
+              }
+            }}
+          >
             <Popup>
-              <div className="text-sm font-medium">Ponto de Partida</div>
+              <div className="text-sm font-medium">
+                Ponto de Partida
+                {pickupDraggable && <div className="text-xs text-gray-500 mt-1">Arraste para ajustar</div>}
+              </div>
             </Popup>
           </Marker>
         )}
-        
+
         {/* Destination marker */}
         {destinationLocation && (
-          <Marker position={[destinationLocation.lat, destinationLocation.lng]} icon={destinationIcon}>
+          <Marker 
+            position={[destinationLocation.lat, destinationLocation.lng]} 
+            icon={destinationIcon}
+            draggable={destinationDraggable}
+            eventHandlers={{
+              dragend: (e) => {
+                const { lat, lng } = e.target.getLatLng();
+                if (onDestinationDragEnd) {
+                  onDestinationDragEnd(lat, lng);
+                }
+              }
+            }}
+          >
             <Popup>
-              <div className="text-sm font-medium">Destino</div>
+              <div className="text-sm font-medium">
+                Destino
+                {destinationDraggable && <div className="text-xs text-gray-500 mt-1">Arraste para ajustar</div>}
+              </div>
             </Popup>
           </Marker>
         )}
