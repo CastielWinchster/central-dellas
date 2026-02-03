@@ -20,16 +20,13 @@ export default function PassengerOptions() {
       try {
         const userData = await base44.auth.me();
         
-        // Verificar se é passageira
-        if (userData.user_type === 'driver') {
-          toast.error('Você não tem permissão para acessar esta página');
-          await base44.auth.logout();
-          return;
-        }
-        
         setUser(userData);
       } catch (e) {
-        base44.auth.redirectToLogin();
+        if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
+          base44.auth.redirectToLogin();
+        } else {
+          toast.error('Erro ao carregar dados');
+        }
       }
     };
     loadUser();

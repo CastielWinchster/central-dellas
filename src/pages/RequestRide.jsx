@@ -52,6 +52,42 @@ export default function RequestRide() {
   const mapRef = React.useRef(null);
 
   // Handlers para arrastar pins
+  const handleMapClick = async (lat, lng) => {
+    // Clicar no mapa define o destino
+    if (!destination || destination.length === 0) {
+      try {
+        const reverseData = await reverseGeocode(lat, lng);
+
+        if (reverseData) {
+          const finalAddress = formatAddressDisplay(reverseData);
+
+          setDestination(finalAddress);
+          setDestinationLocation({
+            lat,
+            lng,
+            text: finalAddress,
+            userProvidedNumber: reverseData.housenumber,
+            hasHouseNumber: !!reverseData.housenumber
+          });
+
+          if (!reverseData.housenumber) {
+            setDestinationMarkerDraggable(true);
+            toast.info('📍 Destino definido. Arraste o pin para ajustar', { duration: 3000 });
+          } else {
+            setDestinationMarkerDraggable(false);
+            toast.success('📍 Destino definido no mapa');
+          }
+
+          if (pickupLocation) {
+            calculateRouteAndPrice(pickupLocation, { lat, lng });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao processar clique no mapa:', error);
+      }
+    }
+  };
+
   const handlePickupDragEnd = async (lat, lng) => {
     try {
       const reverseData = await reverseGeocode(lat, lng);
@@ -641,6 +677,7 @@ export default function RequestRide() {
               onDestinationDragEnd={handleDestinationDragEnd}
               pickupDraggable={pickupMarkerDraggable}
               destinationDraggable={destinationMarkerDraggable}
+              onMapClick={step === 'address' ? handleMapClick : null}
             />
             
             {/* Card flutuante com informações da rota */}

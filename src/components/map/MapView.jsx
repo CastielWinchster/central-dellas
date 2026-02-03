@@ -118,7 +118,8 @@ export default function MapView({
   onPickupDragEnd = null,
   onDestinationDragEnd = null,
   pickupDraggable = false,
-  destinationDraggable = false
+  destinationDraggable = false,
+  onMapClick = null
 }) {
   const [mapCenter, setMapCenter] = useState(center);
   const [userLocation, setUserLocation] = useState(null);
@@ -430,6 +431,11 @@ export default function MapView({
         zoom={14}
         style={{ height: '100%', width: '100%', minHeight: '300px' }}
         zoomControl={false}
+        onClick={(e) => {
+          if (onMapClick) {
+            onMapClick(e.latlng.lat, e.latlng.lng);
+          }
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -447,6 +453,11 @@ export default function MapView({
                 setFollowUser(false);
               }
             });
+            if (onMapClick) {
+              map.on('click', (e) => {
+                onMapClick(e.latlng.lat, e.latlng.lng);
+              });
+            }
           }}
         />
         
