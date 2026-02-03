@@ -53,7 +53,11 @@ export default function DriverDashboard() {
           setIsOnline(existingPresence[0].is_online);
         }
       } catch (e) {
-        base44.auth.redirectToLogin();
+        if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
+          base44.auth.redirectToLogin();
+        } else {
+          toast.error('Erro ao carregar dados');
+        }
       }
     };
     loadUser();
