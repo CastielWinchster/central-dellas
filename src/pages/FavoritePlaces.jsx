@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { searchAddress, formatAddressForRide } from '@/components/utils/addressParser';
+import { searchPlaces, formatAddressDisplay } from '@/components/utils/geocoding';
 
 const labelIcons = {
   'Casa': Home,
@@ -46,7 +46,11 @@ export default function FavoritePlaces() {
       setPlaces(favPlaces);
     } catch (error) {
       console.error('Erro ao carregar:', error);
-      base44.auth.redirectToLogin();
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        base44.auth.redirectToLogin();
+      } else {
+        toast.error('Erro ao carregar dados');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,7 +66,7 @@ export default function FavoritePlaces() {
     
     setSearching(true);
     try {
-      const results = await searchAddress(value);
+      const results = await searchPlaces(value, null, null);
       setSuggestions(results.slice(0, 5));
     } catch (error) {
       console.error(error);
@@ -72,9 +76,7 @@ export default function FavoritePlaces() {
   };
 
   const selectAddress = (suggestion) => {
-    const formatted = suggestion.userProvidedNumber 
-      ? formatAddressForRide(suggestion.rawResult, suggestion.userProvidedNumber)
-      : suggestion.formattedAddress;
+    const formatted = formatAddressDisplay(suggestion, suggestion.userProvidedNumber);
     
     setAddressInput(formatted);
     setSelectedLocation({
@@ -240,11 +242,14 @@ export default function FavoritePlaces() {
                     <div className="absolute z-50 w-full mt-1 bg-[#0D0D0D] border border-[#F22998]/30 rounded-xl shadow-2xl max-h-[200px] overflow-y-auto">
                       {suggestions.map((suggestion, index) => (
                         <button
-                          key={index}
+                          key={suggestion.id || index}
                           onClick={() => selectAddress(suggestion)}
                           className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
                         >
-                          <p className="text-sm text-[#F2F2F2]">{suggestion.formattedAddress}</p>
+                          <div className="flex items-center gap-2">
+                            <span>{suggestion.icon}</span>
+                            <p className="text-sm text-[#F2F2F2]">{suggestion.name || suggestion.street}</p>
+                          </div>
                         </button>
                       ))}
                     </div>

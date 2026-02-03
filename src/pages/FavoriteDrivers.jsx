@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Heart, Star, Car, Phone, ChevronLeft, Trash2 } from 'lucide-react';
+import { Heart, Star, Car, Phone, ChevronLeft, Trash2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -47,7 +47,11 @@ export default function FavoriteDrivers() {
       setFavorites(driversData);
     } catch (error) {
       console.error('Erro ao carregar:', error);
-      base44.auth.redirectToLogin();
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        base44.auth.redirectToLogin();
+      } else {
+        toast.error('Erro ao carregar dados');
+      }
     } finally {
       setLoading(false);
     }
