@@ -198,7 +198,7 @@ export default function Layout({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-4">
-            {user?.user_type === 'driver' || user?.user_type === 'both' ? (
+            {user && (
               <Link
                 to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
                 className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 transition-all"
@@ -206,7 +206,7 @@ export default function Layout({ children, currentPageName }) {
                 {isDriverPage ? <MapPin className="w-4 h-4" /> : <Car className="w-4 h-4" />}
                 <span className="text-sm">{isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}</span>
               </Link>
-            ) : null}
+            )}
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
@@ -260,6 +260,19 @@ export default function Layout({ children, currentPageName }) {
             className={`fixed inset-0 z-[9999] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
+              {user && (
+                <Link
+                  to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-4 px-4 py-4 rounded-xl bg-[#F22998]/10 border border-[#F22998]/30 hover:bg-[#F22998]/20 transition-all mb-3"
+                >
+                  {isDriverPage ? <MapPin className="w-6 h-6 text-[#F22998]" /> : <Car className="w-6 h-6 text-[#F22998]" />}
+                  <span className="font-medium text-[#F22998]">
+                    {isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}
+                  </span>
+                </Link>
+              )}
+
               {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
                 <Link
                   key={link.page}
