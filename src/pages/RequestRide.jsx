@@ -123,7 +123,11 @@ export default function RequestRide() {
         const favRec = await loadFavoritesAndRecents(userData.id, base44);
         setFavoritesAndRecents(favRec);
       } catch (e) {
-        base44.auth.redirectToLogin();
+        if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
+          base44.auth.redirectToLogin();
+        } else {
+          toast.error('Erro ao carregar dados');
+        }
       }
     };
     loadUser();

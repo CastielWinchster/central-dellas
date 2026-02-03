@@ -31,7 +31,11 @@ export default function RideHistory() {
         const userData = await base44.auth.me();
         setUser(userData);
       } catch (e) {
-        base44.auth.redirectToLogin();
+        if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
+          base44.auth.redirectToLogin();
+        } else {
+          toast.error('Erro ao carregar dados');
+        }
       }
     };
     loadUser();

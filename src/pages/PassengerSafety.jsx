@@ -36,7 +36,11 @@ export default function PassengerSafety() {
       setContacts(emergencyContacts);
     } catch (error) {
       console.error('Erro ao carregar:', error);
-      base44.auth.redirectToLogin();
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        base44.auth.redirectToLogin();
+      } else {
+        toast.error('Erro ao carregar dados');
+      }
     } finally {
       setLoading(false);
     }
