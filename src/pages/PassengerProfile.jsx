@@ -9,9 +9,10 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { useAuthUser } from '@/components/AuthProvider';
 
 export default function PassengerProfile() {
-  const [user, setUser] = useState(null);
+  const { user, refreshUser } = useAuthUser();
   const [profile, setProfile] = useState(null);
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,30 +27,31 @@ export default function PassengerProfile() {
   const [photoUrl, setPhotoUrl] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) return;
     try {
-      const userData = await base44.auth.me();
-      setUser(userData);
       
-      const profiles = await base44.entities.UserProfile.filter({ user_id: userData.id });
-      const prefs = await base44.entities.UserPreferences.filter({ user_id: userData.id });
+      const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+      const prefs = await base44.entities.UserPreferences.filter({ user_id: user.id });
       
       if (profiles.length > 0) {
         const p = profiles[0];
         setProfile(p);
-        setFullName(p.full_name || userData.full_name || '');
+        setFullName(p.full_name || user.full_name || '');
         setPhone(p.phone || '');
         setGender(p.gender || 'nao_informar');
         setBirthDate(p.birth_date || '');
         setCity(p.city || '');
         setState(p.state || '');
-        setPhotoUrl(p.photo_url || userData.photo_url || '');
+        setPhotoUrl(p.photo_url || user.photo_url || '');
       } else {
-        setFullName(userData.full_name || '');
-        setPhotoUrl(userData.photo_url || '');
+        setFullName(user.full_name || '');
+        setPhotoUrl(user.photo_url || '');
       }
       
       if (prefs.length > 0) {
@@ -139,6 +141,7 @@ export default function PassengerProfile() {
       });
       
       toast.success('Perfil atualizado!');
+      await refreshUser();
       loadData();
     } catch (error) {
       console.error(error);
