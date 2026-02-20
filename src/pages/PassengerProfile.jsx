@@ -13,18 +13,28 @@ import { useAuthUser } from '@/components/AuthProvider';
 
 export default function PassengerProfile() {
   const { user, refreshUser } = useAuthUser();
-  const [profile, setProfile] = useState(null);
-  const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [gender, setGender] = useState('nao_informar');
-  const [birthDate, setBirthDate] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    gender: 'nao_informar',
+    birth_date: '',
+    city: '',
+    state: '',
+    photo_url: ''
+  });
+
+  const [preferences, setPreferences] = useState({
+    travel_with_pet: false,
+    accessibility_needs: false,
+    prefer_silence: false,
+    prefer_ac: false
+  });
+
+  const [profileId, setProfileId] = useState(null);
+  const [preferencesId, setPreferencesId] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -34,28 +44,40 @@ export default function PassengerProfile() {
 
   const loadData = async () => {
     if (!user) return;
+    setLoading(true);
     try {
-      
       const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
       const prefs = await base44.entities.UserPreferences.filter({ user_id: user.id });
       
       if (profiles.length > 0) {
         const p = profiles[0];
-        setProfile(p);
-        setFullName(p.full_name || user.full_name || '');
-        setPhone(p.phone || '');
-        setGender(p.gender || 'nao_informar');
-        setBirthDate(p.birth_date || '');
-        setCity(p.city || '');
-        setState(p.state || '');
-        setPhotoUrl(p.photo_url || user.photo_url || '');
+        setProfileId(p.id);
+        setFormData({
+          full_name: p.full_name || user.full_name || '',
+          phone: p.phone || '',
+          gender: p.gender || 'nao_informar',
+          birth_date: p.birth_date || '',
+          city: p.city || '',
+          state: p.state || '',
+          photo_url: p.photo_url || user.photo_url || ''
+        });
       } else {
-        setFullName(user.full_name || '');
-        setPhotoUrl(user.photo_url || '');
+        setFormData(prev => ({
+          ...prev,
+          full_name: user.full_name || '',
+          photo_url: user.photo_url || ''
+        }));
       }
       
       if (prefs.length > 0) {
-        setPreferences(prefs[0]);
+        const pref = prefs[0];
+        setPreferencesId(pref.id);
+        setPreferences({
+          travel_with_pet: pref.travel_with_pet || false,
+          accessibility_needs: pref.accessibility_needs || false,
+          prefer_silence: pref.prefer_silence || false,
+          prefer_ac: pref.prefer_ac || false
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar:', error);
@@ -89,58 +111,51 @@ export default function PassengerProfile() {
     return age;
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setPhotoUrl(file_url);
-      toast.success('Foto atualizada!');
-    } catch (error) {
-      toast.error('Erro ao fazer upload');
-    }
-  };
-
   const validateDate = (dateString) => {
     if (!dateString) return true;
     const date = new Date(dateString);
     const today = new Date();
     const minDate = new Date(1900, 0, 1);
     
-    if (isNaN(date.getTime())) {
-      return false;
-    }
-    if (date > today) {
-      return false;
-    }
-    if (date < minDate) {
-      return false;
-    }
+    if (isNaN(date.getTime())) return false;
+    if (date > today) return false;
+    if (date < minDate) return false;
     
     const age = calculateAge(dateString);
-    if (age < 13) {
-      return false;
-    }
+    if (age < 13) return false;
     
     return true;
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, photo_url: file_url }));
+      toast.success('Foto atualizada!');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      toast.error('Erro ao fazer upload');
+    }
+  };
+
   const handleSave = async () => {
-    if (!fullName || fullName.length < 3) {
+    if (!formData.full_name || formData.full_name.length < 3) {
       toast.error('Digite seu nome completo (mínimo 3 caracteres)');
       return;
     }
     
-    if (phone) {
-      const cleaned = phone.replace(/\D/g, '');
+    if (formData.phone) {
+      const cleaned = formData.phone.replace(/\D/g, '');
       if (cleaned.length < 10 || cleaned.length > 11) {
         toast.error('Telefone inválido. Use o formato (00) 00000-0000');
         return;
       }
     }
     
-    if (birthDate && !validateDate(birthDate)) {
+    if (formData.birth_date && !validateDate(formData.birth_date)) {
       toast.error('Data de nascimento inválida. Idade mínima: 13 anos');
       return;
     }
@@ -149,28 +164,28 @@ export default function PassengerProfile() {
     try {
       const profileData = {
         user_id: user.id,
-        full_name: fullName,
-        phone: phone || null,
-        gender,
-        birth_date: birthDate || null,
-        city: city || null,
-        state: state || null,
-        photo_url: photoUrl || null
+        full_name: formData.full_name,
+        phone: formData.phone || null,
+        gender: formData.gender,
+        birth_date: formData.birth_date || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        photo_url: formData.photo_url || null
       };
       
       let savedProfile;
-      if (profile) {
-        savedProfile = await base44.entities.UserProfile.update(profile.id, profileData);
+      if (profileId) {
+        savedProfile = await base44.entities.UserProfile.update(profileId, profileData);
       } else {
         savedProfile = await base44.entities.UserProfile.create(profileData);
+        setProfileId(savedProfile.id);
       }
       
       await base44.auth.updateMe({
-        full_name: fullName,
-        photo_url: photoUrl
+        full_name: formData.full_name,
+        photo_url: formData.photo_url
       });
       
-      setProfile(savedProfile);
       await refreshUser();
       toast.success('✓ Todas as informações foram salvas com sucesso!');
     } catch (error) {
@@ -182,23 +197,26 @@ export default function PassengerProfile() {
     }
   };
 
-  const handlePreferenceToggle = async (key, value) => {
+  const handlePreferenceToggle = async (key) => {
+    const newValue = !preferences[key];
+    
+    setPreferences(prev => ({ ...prev, [key]: newValue }));
+    
     try {
-      let updatedPrefs;
-      if (preferences) {
-        updatedPrefs = await base44.entities.UserPreferences.update(preferences.id, { [key]: value });
+      const prefData = { user_id: user.id, [key]: newValue };
+      
+      if (preferencesId) {
+        await base44.entities.UserPreferences.update(preferencesId, prefData);
       } else {
-        updatedPrefs = await base44.entities.UserPreferences.create({
-          user_id: user.id,
-          [key]: value
-        });
+        const created = await base44.entities.UserPreferences.create({ ...preferences, ...prefData });
+        setPreferencesId(created.id);
       }
-      setPreferences(updatedPrefs);
+      
       toast.success('✓ Preferência salva!');
     } catch (error) {
       console.error('Erro ao atualizar preferência:', error);
-      const errorMsg = error.message || error.toString();
-      toast.error(`Erro: ${errorMsg}`);
+      setPreferences(prev => ({ ...prev, [key]: !newValue }));
+      toast.error('Erro ao salvar preferência');
     }
   };
 
@@ -210,7 +228,7 @@ export default function PassengerProfile() {
     );
   }
 
-  const age = calculateAge(birthDate);
+  const age = calculateAge(formData.birth_date);
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
@@ -229,8 +247,8 @@ export default function PassengerProfile() {
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F22998]">
-                {photoUrl ? (
-                  <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                {formData.photo_url ? (
+                  <img src={formData.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
                     <User className="w-12 h-12 text-white" />
@@ -254,8 +272,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
               <Input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                value={formData.full_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="Digite seu nome"
               />
@@ -264,8 +282,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
               <Input
-                value={phone}
-                onChange={(e) => setPhone(maskPhone(e.target.value))}
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: maskPhone(e.target.value) }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="(00) 00000-0000"
                 maxLength={15}
@@ -275,8 +293,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
               <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                value={formData.gender}
+                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
                 className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
               >
                 <option value="feminino">Feminino</option>
@@ -293,8 +311,8 @@ export default function PassengerProfile() {
               </label>
               <Input
                 type="date"
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                value={formData.birth_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
               />
               <div className="flex items-start gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg">
@@ -309,8 +327,8 @@ export default function PassengerProfile() {
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
                 <Input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  value={formData.city}
+                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="Sua cidade"
                 />
@@ -318,8 +336,8 @@ export default function PassengerProfile() {
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
                 <Input
-                  value={state}
-                  onChange={(e) => setState(e.target.value.toUpperCase())}
+                  value={formData.state}
+                  onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="UF"
                   maxLength={2}
@@ -337,32 +355,32 @@ export default function PassengerProfile() {
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Viajo com pet</span>
               <Switch
-                checked={preferences?.travel_with_pet || false}
-                onCheckedChange={(v) => handlePreferenceToggle('travel_with_pet', v)}
+                checked={preferences.travel_with_pet}
+                onCheckedChange={() => handlePreferenceToggle('travel_with_pet')}
               />
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
               <Switch
-                checked={preferences?.accessibility_needs || false}
-                onCheckedChange={(v) => handlePreferenceToggle('accessibility_needs', v)}
+                checked={preferences.accessibility_needs}
+                onCheckedChange={() => handlePreferenceToggle('accessibility_needs')}
               />
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Prefiro silêncio</span>
               <Switch
-                checked={preferences?.prefer_silence || false}
-                onCheckedChange={(v) => handlePreferenceToggle('prefer_silence', v)}
+                checked={preferences.prefer_silence}
+                onCheckedChange={() => handlePreferenceToggle('prefer_silence')}
               />
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
               <Switch
-                checked={preferences?.prefer_ac || false}
-                onCheckedChange={(v) => handlePreferenceToggle('prefer_ac', v)}
+                checked={preferences.prefer_ac}
+                onCheckedChange={() => handlePreferenceToggle('prefer_ac')}
               />
             </div>
           </div>
