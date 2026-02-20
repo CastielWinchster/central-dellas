@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
-  Moon, Sun, Globe, Shield, Eye, Type, Contrast, MapPin, 
-  Bell, LogOut, Trash2, ChevronLeft, FileText, Lock, AlertCircle
+  Shield, Eye, Type, Contrast, MapPin, 
+  Bell, LogOut, Trash2, ChevronLeft, FileText, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import { createPageUrl } from '../utils';
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [preferences, setPreferences] = useState(null);
+  const [preferencesId, setPreferencesId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [locationPermission, setLocationPermission] = useState('unknown');
   const [notificationPermission, setNotificationPermission] = useState('unknown');
@@ -30,12 +31,13 @@ export default function Settings() {
       setUser(userData);
       
       const prefs = await base44.entities.UserPreferences.filter({ user_id: userData.id });
-      if (prefs.length > 0) {
+      if (prefs && prefs.length > 0) {
         setPreferences(prefs[0]);
+        setPreferencesId(prefs[0].id);
       }
     } catch (error) {
       console.error(error);
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      if (error.message?.includes('401')) {
         base44.auth.redirectToLogin();
       } else {
         toast.error('Erro ao carregar dados');
@@ -46,7 +48,6 @@ export default function Settings() {
   };
 
   const checkPermissions = async () => {
-    // Verificar localização
     if (navigator.permissions) {
       try {
         const locPerm = await navigator.permissions.query({ name: 'geolocation' });
@@ -56,67 +57,55 @@ export default function Settings() {
       }
     }
     
-    // Verificar notificações
     if ('Notification' in window) {
       setNotificationPermission(Notification.permission);
     }
   };
 
-  const handleThemeChange = async (theme) => {
-    try {
-      await base44.auth.updateMe({ theme });
-      setUser(prev => ({ ...prev, theme }));
-      document.documentElement.classList.toggle('light-theme', theme === 'light');
-      document.documentElement.classList.toggle('dark-theme', theme === 'dark');
-      toast.success('Tema atualizado');
-    } catch (error) {
-      toast.error('Erro ao atualizar tema');
-    }
-  };
-
   const handlePreferenceToggle = async (key, value) => {
+    setPreferences(prev => ({ ...prev, [key]: value }));
+    
     try {
-      if (preferences) {
-        await base44.entities.UserPreferences.update(preferences.id, { [key]: value });
+      if (preferencesId) {
+        await base44.entities.UserPreferences.update(preferencesId, { [key]: value });
       } else {
-        const newPrefs = await base44.entities.UserPreferences.create({
+        const created = await base44.entities.UserPreferences.create({
           user_id: user.id,
           [key]: value
         });
-        setPreferences(newPrefs);
+        setPreferencesId(created.id);
+        setPreferences(created);
       }
-      setPreferences(prev => ({ ...prev, [key]: value }));
-      toast.success('Preferência atualizada');
+      toast.success('✓ Preferência salva');
     } catch (error) {
-      toast.error('Erro ao atualizar');
+      console.error(error);
+      setPreferences(prev => ({ ...prev, [key]: !value }));
+      toast.error('Erro ao salvar');
     }
   };
 
   const handleDeleteAccount = async () => {
-    const confirmation = prompt('Digite "EXCLUIR" para confirmar a exclusão permanente da sua conta:');
+    const confirmation = prompt('Digite "EXCLUIR" para confirmar a exclusão permanente:');
     
     if (confirmation !== 'EXCLUIR') {
-      toast.info('Exclusão cancelada');
+      toast.info('Cancelado');
       return;
     }
     
-    const finalConfirm = confirm('Tem certeza absoluta? Esta ação é IRREVERSÍVEL.');
+    const finalConfirm = confirm('Tem certeza? Esta ação é IRREVERSÍVEL.');
     if (!finalConfirm) return;
     
     try {
-      // Deletar dados do usuário
-      await base44.asServiceRole.entities.User.delete(user.id);
-      toast.success('Conta excluída');
-      await base44.auth.logout();
+      toast.error('Entre em contato com o suporte para excluir sua conta');
     } catch (error) {
-      toast.error('Erro ao excluir conta. Entre em contato com o suporte.');
+      toast.error('Erro. Entre em contato com o suporte.');
     }
   };
 
   const requestLocationPermission = () => {
     navigator.geolocation.getCurrentPosition(
       () => {
-        toast.success('Permissão de localização concedida');
+        toast.success('Localização permitida');
         checkPermissions();
       },
       () => {
@@ -130,7 +119,7 @@ export default function Settings() {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       if (permission === 'granted') {
-        toast.success('Permissão de notificações concedida');
+        toast.success('Notificações permitidas');
       } else {
         toast.error('Permissão negada');
       }
@@ -157,52 +146,6 @@ export default function Settings() {
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Configurações</h1>
         </div>
 
-        {/* Tema */}
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">🎨 APARÊNCIA</h3>
-          
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                onClick={() => handleThemeChange('dark')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  user?.theme === 'dark' || !user?.theme
-                    ? 'border-[#F22998] bg-[#F22998]/10'
-                    : 'border-[#F22998]/20 bg-[#0D0D0D]'
-                }`}
-              >
-                <Moon className="w-6 h-6 text-[#F22998] mx-auto mb-2" />
-                <p className="text-xs text-[#F2F2F2]">Escuro</p>
-              </button>
-              
-              <button
-                onClick={() => handleThemeChange('light')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  user?.theme === 'light'
-                    ? 'border-[#F22998] bg-[#F22998]/10'
-                    : 'border-[#F22998]/20 bg-[#0D0D0D]'
-                }`}
-              >
-                <Sun className="w-6 h-6 text-[#F22998] mx-auto mb-2" />
-                <p className="text-xs text-[#F2F2F2]">Claro</p>
-              </button>
-              
-              <button
-                onClick={() => handleThemeChange('auto')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  user?.theme === 'auto'
-                    ? 'border-[#F22998] bg-[#F22998]/10'
-                    : 'border-[#F22998]/20 bg-[#0D0D0D]'
-                }`}
-              >
-                <Globe className="w-6 h-6 text-[#F22998] mx-auto mb-2" />
-                <p className="text-xs text-[#F2F2F2]">Auto</p>
-              </button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Privacidade */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">🔒 PRIVACIDADE</h3>
           
@@ -242,7 +185,6 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Acessibilidade */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">♿ ACESSIBILIDADE</h3>
           
@@ -271,7 +213,6 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Permissões */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">✅ PERMISSÕES</h3>
           
@@ -328,7 +269,6 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Conta */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">👤 CONTA</h3>
           
@@ -356,7 +296,6 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Legal */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">📄 LEGAL</h3>
           

@@ -16,7 +16,7 @@ export default function PassengerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  const [formData, setFormData] = useState({
+  const [formState, setFormState] = useState({
     full_name: '',
     phone: '',
     gender: 'nao_informar',
@@ -38,38 +38,38 @@ export default function PassengerProfile() {
 
   useEffect(() => {
     if (user) {
-      loadData();
+      loadUserData();
     }
   }, [user]);
 
-  const loadData = async () => {
+  const loadUserData = async () => {
     if (!user) return;
     setLoading(true);
     try {
       const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
       const prefs = await base44.entities.UserPreferences.filter({ user_id: user.id });
       
-      if (profiles.length > 0) {
-        const p = profiles[0];
-        setProfileId(p.id);
-        setFormData({
-          full_name: p.full_name || user.full_name || '',
-          phone: p.phone || '',
-          gender: p.gender || 'nao_informar',
-          birth_date: p.birth_date || '',
-          city: p.city || '',
-          state: p.state || '',
-          photo_url: p.photo_url || user.photo_url || ''
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        setProfileId(profile.id);
+        setFormState({
+          full_name: profile.full_name || user.full_name || '',
+          phone: profile.phone || '',
+          gender: profile.gender || 'nao_informar',
+          birth_date: profile.birth_date || '',
+          city: profile.city || '',
+          state: profile.state || '',
+          photo_url: profile.photo_url || user.photo_url || ''
         });
       } else {
-        setFormData(prev => ({
+        setFormState(prev => ({
           ...prev,
           full_name: user.full_name || '',
           photo_url: user.photo_url || ''
         }));
       }
       
-      if (prefs.length > 0) {
+      if (prefs && prefs.length > 0) {
         const pref = prefs[0];
         setPreferencesId(pref.id);
         setPreferences({
@@ -80,12 +80,8 @@ export default function PassengerProfile() {
         });
       }
     } catch (error) {
-      console.error('Erro ao carregar:', error);
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-        base44.auth.redirectToLogin();
-      } else {
-        toast.error('Erro ao carregar dados');
-      }
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar perfil');
     } finally {
       setLoading(false);
     }
@@ -122,7 +118,7 @@ export default function PassengerProfile() {
     if (date < minDate) return false;
     
     const age = calculateAge(dateString);
-    if (age < 13) return false;
+    if (age !== null && age < 13) return false;
     
     return true;
   };
@@ -133,30 +129,30 @@ export default function PassengerProfile() {
     
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, photo_url: file_url }));
-      toast.success('Foto atualizada!');
+      setFormState(prev => ({ ...prev, photo_url: file_url }));
+      toast.success('Foto carregada!');
     } catch (error) {
-      console.error('Erro ao fazer upload:', error);
-      toast.error('Erro ao fazer upload');
+      console.error('Erro upload:', error);
+      toast.error('Erro ao carregar foto');
     }
   };
 
-  const handleSave = async () => {
-    if (!formData.full_name || formData.full_name.length < 3) {
-      toast.error('Digite seu nome completo (mínimo 3 caracteres)');
+  const handleSaveProfile = async () => {
+    if (!formState.full_name || formState.full_name.trim().length < 3) {
+      toast.error('Nome deve ter pelo menos 3 caracteres');
       return;
     }
     
-    if (formData.phone) {
-      const cleaned = formData.phone.replace(/\D/g, '');
+    if (formState.phone) {
+      const cleaned = formState.phone.replace(/\D/g, '');
       if (cleaned.length < 10 || cleaned.length > 11) {
-        toast.error('Telefone inválido. Use o formato (00) 00000-0000');
+        toast.error('Telefone inválido');
         return;
       }
     }
     
-    if (formData.birth_date && !validateDate(formData.birth_date)) {
-      toast.error('Data de nascimento inválida. Idade mínima: 13 anos');
+    if (formState.birth_date && !validateDate(formState.birth_date)) {
+      toast.error('Data de nascimento inválida');
       return;
     }
     
@@ -164,42 +160,39 @@ export default function PassengerProfile() {
     try {
       const profileData = {
         user_id: user.id,
-        full_name: formData.full_name,
-        phone: formData.phone || null,
-        gender: formData.gender,
-        birth_date: formData.birth_date || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        photo_url: formData.photo_url || null
+        full_name: formState.full_name.trim(),
+        phone: formState.phone || null,
+        gender: formState.gender,
+        birth_date: formState.birth_date || null,
+        city: formState.city || null,
+        state: formState.state || null,
+        photo_url: formState.photo_url || null
       };
       
-      let savedProfile;
       if (profileId) {
-        savedProfile = await base44.entities.UserProfile.update(profileId, profileData);
+        await base44.entities.UserProfile.update(profileId, profileData);
       } else {
-        savedProfile = await base44.entities.UserProfile.create(profileData);
-        setProfileId(savedProfile.id);
+        const created = await base44.entities.UserProfile.create(profileData);
+        setProfileId(created.id);
       }
       
       await base44.auth.updateMe({
-        full_name: formData.full_name,
-        photo_url: formData.photo_url
+        full_name: formState.full_name.trim(),
+        photo_url: formState.photo_url
       });
       
       await refreshUser();
-      toast.success('✓ Todas as informações foram salvas com sucesso!');
+      toast.success('✓ Perfil salvo com sucesso!');
     } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
-      const errorMsg = error.message || error.toString();
-      toast.error(`Erro ao salvar: ${errorMsg}`);
+      console.error('Erro ao salvar:', error);
+      toast.error(`Erro: ${error.message || 'Não foi possível salvar'}`);
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePreferenceToggle = async (key) => {
+  const togglePreference = async (key) => {
     const newValue = !preferences[key];
-    
     setPreferences(prev => ({ ...prev, [key]: newValue }));
     
     try {
@@ -214,7 +207,7 @@ export default function PassengerProfile() {
       
       toast.success('✓ Preferência salva!');
     } catch (error) {
-      console.error('Erro ao atualizar preferência:', error);
+      console.error('Erro preferência:', error);
       setPreferences(prev => ({ ...prev, [key]: !newValue }));
       toast.error('Erro ao salvar preferência');
     }
@@ -228,7 +221,7 @@ export default function PassengerProfile() {
     );
   }
 
-  const age = calculateAge(formData.birth_date);
+  const age = calculateAge(formState.birth_date);
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
@@ -242,13 +235,12 @@ export default function PassengerProfile() {
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Editar Perfil</h1>
         </div>
 
-        {/* Photo */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F22998]">
-                {formData.photo_url ? (
-                  <img src={formData.photo_url} alt="" className="w-full h-full object-cover" />
+                {formState.photo_url ? (
+                  <img src={formState.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
                     <User className="w-12 h-12 text-white" />
@@ -264,7 +256,6 @@ export default function PassengerProfile() {
           </div>
         </Card>
 
-        {/* Personal Info */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Informações Pessoais</h3>
           
@@ -272,8 +263,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
               <Input
-                value={formData.full_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                value={formState.full_name}
+                onChange={(e) => setFormState(prev => ({ ...prev, full_name: e.target.value }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="Digite seu nome"
               />
@@ -282,8 +273,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
               <Input
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: maskPhone(e.target.value) }))}
+                value={formState.phone}
+                onChange={(e) => setFormState(prev => ({ ...prev, phone: maskPhone(e.target.value) }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="(00) 00000-0000"
                 maxLength={15}
@@ -293,8 +284,8 @@ export default function PassengerProfile() {
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
               <select
-                value={formData.gender}
-                onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                value={formState.gender}
+                onChange={(e) => setFormState(prev => ({ ...prev, gender: e.target.value }))}
                 className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
               >
                 <option value="feminino">Feminino</option>
@@ -311,8 +302,8 @@ export default function PassengerProfile() {
               </label>
               <Input
                 type="date"
-                value={formData.birth_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
+                value={formState.birth_date}
+                onChange={(e) => setFormState(prev => ({ ...prev, birth_date: e.target.value }))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
               />
               <div className="flex items-start gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg">
@@ -327,8 +318,8 @@ export default function PassengerProfile() {
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
                 <Input
-                  value={formData.city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                  value={formState.city}
+                  onChange={(e) => setFormState(prev => ({ ...prev, city: e.target.value }))}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="Sua cidade"
                 />
@@ -336,8 +327,8 @@ export default function PassengerProfile() {
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
                 <Input
-                  value={formData.state}
-                  onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
+                  value={formState.state}
+                  onChange={(e) => setFormState(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="UF"
                   maxLength={2}
@@ -347,7 +338,6 @@ export default function PassengerProfile() {
           </div>
         </Card>
 
-        {/* Preferences */}
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Preferências de Viagem</h3>
           
@@ -356,7 +346,7 @@ export default function PassengerProfile() {
               <span className="text-[#F2F2F2]">Viajo com pet</span>
               <Switch
                 checked={preferences.travel_with_pet}
-                onCheckedChange={() => handlePreferenceToggle('travel_with_pet')}
+                onCheckedChange={() => togglePreference('travel_with_pet')}
               />
             </div>
             
@@ -364,7 +354,7 @@ export default function PassengerProfile() {
               <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
               <Switch
                 checked={preferences.accessibility_needs}
-                onCheckedChange={() => handlePreferenceToggle('accessibility_needs')}
+                onCheckedChange={() => togglePreference('accessibility_needs')}
               />
             </div>
             
@@ -372,7 +362,7 @@ export default function PassengerProfile() {
               <span className="text-[#F2F2F2]">Prefiro silêncio</span>
               <Switch
                 checked={preferences.prefer_silence}
-                onCheckedChange={() => handlePreferenceToggle('prefer_silence')}
+                onCheckedChange={() => togglePreference('prefer_silence')}
               />
             </div>
             
@@ -380,20 +370,18 @@ export default function PassengerProfile() {
               <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
               <Switch
                 checked={preferences.prefer_ac}
-                onCheckedChange={() => handlePreferenceToggle('prefer_ac')}
+                onCheckedChange={() => togglePreference('prefer_ac')}
               />
             </div>
           </div>
         </Card>
 
         <Button
-          onClick={handleSave}
+          onClick={handleSaveProfile}
           disabled={saving}
           className="w-full btn-gradient py-6 rounded-2xl"
         >
-          {saving ? (
-            <>Salvando...</>
-          ) : (
+          {saving ? 'Salvando...' : (
             <>
               <Save className="w-5 h-5 mr-2" />
               Salvar Alterações
