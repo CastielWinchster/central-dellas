@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { format } from 'date-fns';
 
 export default function BlockedUsers() {
   const [user, setUser] = useState(null);
@@ -24,15 +25,24 @@ export default function BlockedUsers() {
       
       const blockedList = await base44.entities.BlockedUser.filter({ user_id: userData.id });
       
-      const blockedWithInfo = await Promise.all(
-        blockedList.map(async (block) => {
-          const blockedUserInfo = await base44.entities.User.filter({ id: block.blocked_user_id });
-          return {
+      // Carregar informações dos usuários bloqueados
+      const blockedWithInfo = [];
+      for (const block of blockedList) {
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_id: block.blocked_user_id });
+          const profile = profiles.length > 0 ? profiles[0] : null;
+          blockedWithInfo.push({
             ...block,
-            blockedUser: blockedUserInfo[0]
-          };
-        })
-      );
+            blockedUser: profile
+          });
+        } catch (error) {
+          console.error('Erro ao carregar perfil bloqueado:', error);
+          blockedWithInfo.push({
+            ...block,
+            blockedUser: null
+          });
+        }
+      }
       
       setBlocked(blockedWithInfo);
     } catch (error) {
