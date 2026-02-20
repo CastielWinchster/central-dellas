@@ -63,19 +63,15 @@ export default function PassengerSecurity() {
     
     setLoading(true);
     try {
-      // Base44 password change via auth
       await base44.auth.updatePassword({
         current_password: currentPassword,
         new_password: newPassword
       });
       
-      toast.success('Senha alterada com sucesso!');
+      toast.success('✓ Senha alterada com sucesso!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => {
-        window.location.href = createPageUrl('PassengerOptions');
-      }, 1500);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao alterar senha. Verifique sua senha atual.');

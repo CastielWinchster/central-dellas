@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { User, Camera, Save, ChevronLeft, AlertCircle } from 'lucide-react';
+import { User, Camera, ChevronLeft, AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,7 @@ export default function PassengerProfile() {
   const { user, refreshUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const saveTimeoutRef = useRef(null);
   
   const [formState, setFormState] = useState({
     full_name: '',
@@ -137,36 +138,26 @@ export default function PassengerProfile() {
     }
   };
 
-  const handleSaveProfile = async () => {
-    if (!formState.full_name || formState.full_name.trim().length < 3) {
-      toast.error('Nome deve ter pelo menos 3 caracteres');
-      return;
+  const autoSaveProfile = async (data) => {
+    if (!data.full_name || data.full_name.trim().length < 3) return;
+    
+    if (data.phone) {
+      const cleaned = data.phone.replace(/\D/g, '');
+      if (cleaned.length > 0 && cleaned.length < 10) return;
     }
     
-    if (formState.phone) {
-      const cleaned = formState.phone.replace(/\D/g, '');
-      if (cleaned.length < 10 || cleaned.length > 11) {
-        toast.error('Telefone inválido');
-        return;
-      }
-    }
+    if (data.birth_date && !validateDate(data.birth_date)) return;
     
-    if (formState.birth_date && !validateDate(formState.birth_date)) {
-      toast.error('Data de nascimento inválida');
-      return;
-    }
-    
-    setSaving(true);
     try {
       const profileData = {
         user_id: user.id,
-        full_name: formState.full_name.trim(),
-        phone: formState.phone || null,
-        gender: formState.gender,
-        birth_date: formState.birth_date || null,
-        city: formState.city || null,
-        state: formState.state || null,
-        photo_url: formState.photo_url || null
+        full_name: data.full_name.trim(),
+        phone: data.phone || null,
+        gender: data.gender,
+        birth_date: data.birth_date || null,
+        city: data.city || null,
+        state: data.state || null,
+        photo_url: data.photo_url || null
       };
       
       if (profileId) {
@@ -177,21 +168,28 @@ export default function PassengerProfile() {
       }
       
       await base44.auth.updateMe({
-        full_name: formState.full_name.trim(),
-        photo_url: formState.photo_url
+        full_name: data.full_name.trim(),
+        photo_url: data.photo_url
       });
       
       await refreshUser();
-      toast.success('✓ Perfil salvo com sucesso!');
-      setTimeout(() => {
-        window.location.href = createPageUrl('PassengerOptions');
-      }, 1000);
+      toast.success('✓ Salvo automaticamente');
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      toast.error(`Erro: ${error.message || 'Não foi possível salvar'}`);
-    } finally {
-      setSaving(false);
     }
+  };
+
+  const handleFieldChange = (field, value) => {
+    const newFormState = { ...formState, [field]: value };
+    setFormState(newFormState);
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSaveProfile(newFormState);
+    }, 1500);
   };
 
   const togglePreference = async (key) => {
@@ -267,7 +265,7 @@ export default function PassengerProfile() {
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
               <Input
                 value={formState.full_name}
-                onChange={(e) => setFormState(prev => ({ ...prev, full_name: e.target.value }))}
+                onChange={(e) => handleFieldChange('full_name', e.target.value)}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="Digite seu nome"
               />
@@ -277,7 +275,7 @@ export default function PassengerProfile() {
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
               <Input
                 value={formState.phone}
-                onChange={(e) => setFormState(prev => ({ ...prev, phone: maskPhone(e.target.value) }))}
+                onChange={(e) => handleFieldChange('phone', maskPhone(e.target.value))}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                 placeholder="(00) 00000-0000"
                 maxLength={15}
@@ -288,7 +286,7 @@ export default function PassengerProfile() {
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
               <select
                 value={formState.gender}
-                onChange={(e) => setFormState(prev => ({ ...prev, gender: e.target.value }))}
+                onChange={(e) => handleFieldChange('gender', e.target.value)}
                 className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
               >
                 <option value="feminino">Feminino</option>
@@ -306,7 +304,7 @@ export default function PassengerProfile() {
               <Input
                 type="date"
                 value={formState.birth_date}
-                onChange={(e) => setFormState(prev => ({ ...prev, birth_date: e.target.value }))}
+                onChange={(e) => handleFieldChange('birth_date', e.target.value)}
                 className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
               />
               <div className="flex items-start gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg">
@@ -322,7 +320,7 @@ export default function PassengerProfile() {
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
                 <Input
                   value={formState.city}
-                  onChange={(e) => setFormState(prev => ({ ...prev, city: e.target.value }))}
+                  onChange={(e) => handleFieldChange('city', e.target.value)}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="Sua cidade"
                 />
@@ -331,7 +329,7 @@ export default function PassengerProfile() {
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
                 <Input
                   value={formState.state}
-                  onChange={(e) => setFormState(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
+                  onChange={(e) => handleFieldChange('state', e.target.value.toUpperCase())}
                   className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
                   placeholder="UF"
                   maxLength={2}
@@ -379,18 +377,12 @@ export default function PassengerProfile() {
           </div>
         </Card>
 
-        <Button
-          onClick={handleSaveProfile}
-          disabled={saving}
-          className="w-full btn-gradient py-6 rounded-2xl"
-        >
-          {saving ? 'Salvando...' : (
-            <>
-              <Save className="w-5 h-5 mr-2" />
-              Salvar Alterações
-            </>
-          )}
-        </Button>
+        <div className="flex items-center justify-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
+          <Check className="w-5 h-5 text-green-400" />
+          <p className="text-sm text-green-400">
+            Todas as alterações são salvas automaticamente
+          </p>
+        </div>
       </div>
     </div>
   );
