@@ -73,6 +73,9 @@ export default function PassengerSecurity() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setTimeout(() => {
+        window.location.href = createPageUrl('PassengerOptions');
+      }, 1500);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao alterar senha. Verifique sua senha atual.');

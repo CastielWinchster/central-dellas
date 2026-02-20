@@ -155,6 +155,9 @@ export default function CardsAndPix() {
       setShowAddForm(false);
       resetForm();
       loadData();
+      setTimeout(() => {
+        window.location.href = createPageUrl('PassengerOptions');
+      }, 1000);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao adicionar Pix');
@@ -184,6 +187,9 @@ export default function CardsAndPix() {
       setShowAddForm(false);
       resetForm();
       loadData();
+      setTimeout(() => {
+        window.location.href = createPageUrl('PassengerOptions');
+      }, 1000);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao adicionar cartão');

@@ -117,6 +117,9 @@ export default function FavoritePlaces() {
       
       resetForm();
       loadData();
+      setTimeout(() => {
+        window.location.href = createPageUrl('PassengerOptions');
+      }, 1000);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao salvar');

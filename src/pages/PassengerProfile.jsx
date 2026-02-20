@@ -183,6 +183,9 @@ export default function PassengerProfile() {
       
       await refreshUser();
       toast.success('✓ Perfil salvo com sucesso!');
+      setTimeout(() => {
+        window.location.href = createPageUrl('PassengerOptions');
+      }, 1000);
     } catch (error) {
       console.error('Erro ao salvar:', error);
       toast.error(`Erro: ${error.message || 'Não foi possível salvar'}`);
