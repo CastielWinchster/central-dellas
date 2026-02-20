@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { motion } from 'framer-motion';
-import { User, Camera, ChevronLeft, AlertCircle, Check, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Camera, ChevronLeft, AlertCircle, Pencil, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -15,7 +15,7 @@ export default function PassengerProfile() {
   const { user, refreshUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const saveTimeoutRef = useRef(null);
+  const [editingSection, setEditingSection] = useState(null); // 'info', 'preferences', null
   
   const [formState, setFormState] = useState({
     full_name: '',
@@ -27,12 +27,16 @@ export default function PassengerProfile() {
     photo_url: ''
   });
 
+  const [editForm, setEditForm] = useState({});
+
   const [preferences, setPreferences] = useState({
     travel_with_pet: false,
     accessibility_needs: false,
     prefer_silence: false,
     prefer_ac: false
   });
+
+  const [editPreferences, setEditPreferences] = useState({});
 
   const [profileId, setProfileId] = useState(null);
   const [preferencesId, setPreferencesId] = useState(null);
@@ -131,110 +135,125 @@ export default function PassengerProfile() {
     try {
       setSaving(true);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormState(prev => ({ ...prev, photo_url: file_url }));
-      
-      // Salvar imediatamente após upload
-      await autoSaveProfile({ ...formState, photo_url: file_url });
-      toast.success('Foto atualizada!');
-    } catch (error) {
-      console.error('Erro upload:', error);
-      toast.error('Erro ao carregar foto: ' + error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const autoSaveProfile = async (data) => {
-    if (!data.full_name || data.full_name.trim().length < 3) return;
-    
-    if (data.phone) {
-      const cleaned = data.phone.replace(/\D/g, '');
-      if (cleaned.length > 0 && cleaned.length < 10) return;
-    }
-    
-    if (data.birth_date && !validateDate(data.birth_date)) return;
-    
-    setSaving(true);
-    
-    try {
-      console.log('🔄 Salvando perfil...', data);
       
       const profileData = {
         user_id: user.id,
-        full_name: data.full_name.trim(),
-        phone: data.phone || null,
-        gender: data.gender,
-        birth_date: data.birth_date || null,
-        city: data.city || null,
-        state: data.state || null,
-        photo_url: data.photo_url || null
+        ...formState,
+        photo_url: file_url
       };
       
       if (profileId) {
-        console.log('📝 Atualizando perfil existente ID:', profileId);
         await base44.entities.UserProfile.update(profileId, profileData);
       } else {
-        console.log('✨ Criando novo perfil');
         const created = await base44.entities.UserProfile.create(profileData);
         setProfileId(created.id);
-        console.log('✅ Perfil criado com ID:', created.id);
       }
       
-      await base44.auth.updateMe({
-        full_name: data.full_name.trim(),
-        photo_url: data.photo_url
-      });
-      
+      await base44.auth.updateMe({ photo_url: file_url });
       await refreshUser();
-      console.log('✅ Perfil salvo com sucesso!');
-      toast.success('✓ Salvo automaticamente');
+      
+      setFormState(prev => ({ ...prev, photo_url: file_url }));
+      toast.success('Foto atualizada!');
     } catch (error) {
-      console.error('❌ Erro ao salvar perfil:', error);
-      toast.error('Erro ao salvar perfil: ' + error.message);
+      console.error('Erro upload:', error);
+      toast.error('Erro ao carregar foto');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleFieldChange = (field, value) => {
-    const newFormState = { ...formState, [field]: value };
-    setFormState(newFormState);
-    
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    
-    saveTimeoutRef.current = setTimeout(() => {
-      autoSaveProfile(newFormState);
-    }, 1500);
+  const openEditInfo = () => {
+    setEditForm({ ...formState });
+    setEditingSection('info');
   };
 
-  const togglePreference = async (key) => {
-    const newValue = !preferences[key];
-    setPreferences(prev => ({ ...prev, [key]: newValue }));
+  const openEditPreferences = () => {
+    setEditPreferences({ ...preferences });
+    setEditingSection('preferences');
+  };
+
+  const closeEdit = () => {
+    setEditingSection(null);
+    setEditForm({});
+    setEditPreferences({});
+  };
+
+  const saveInfo = async () => {
+    if (!editForm.full_name || editForm.full_name.trim().length < 3) {
+      toast.error('Nome deve ter pelo menos 3 caracteres');
+      return;
+    }
+    
+    if (editForm.phone) {
+      const cleaned = editForm.phone.replace(/\D/g, '');
+      if (cleaned.length > 0 && cleaned.length < 10) {
+        toast.error('Telefone inválido');
+        return;
+      }
+    }
+    
+    if (editForm.birth_date && !validateDate(editForm.birth_date)) {
+      toast.error('Data de nascimento inválida');
+      return;
+    }
+    
     setSaving(true);
     
     try {
-      console.log('🔄 Salvando preferência:', key, '=', newValue);
+      const profileData = {
+        user_id: user.id,
+        full_name: editForm.full_name.trim(),
+        phone: editForm.phone || null,
+        gender: editForm.gender,
+        birth_date: editForm.birth_date || null,
+        city: editForm.city || null,
+        state: editForm.state || null,
+        photo_url: editForm.photo_url || null
+      };
       
-      const prefData = { user_id: user.id, [key]: newValue };
-      
-      if (preferencesId) {
-        console.log('📝 Atualizando preferência ID:', preferencesId);
-        await base44.entities.UserPreferences.update(preferencesId, prefData);
+      if (profileId) {
+        await base44.entities.UserProfile.update(profileId, profileData);
       } else {
-        console.log('✨ Criando nova preferência');
-        const created = await base44.entities.UserPreferences.create({ ...preferences, ...prefData });
-        setPreferencesId(created.id);
-        console.log('✅ Preferência criada com ID:', created.id);
+        const created = await base44.entities.UserProfile.create(profileData);
+        setProfileId(created.id);
       }
       
-      console.log('✅ Preferência salva com sucesso!');
-      toast.success('✓ Preferência salva!');
+      await base44.auth.updateMe({
+        full_name: editForm.full_name.trim(),
+        photo_url: editForm.photo_url
+      });
+      
+      await refreshUser();
+      setFormState({ ...editForm });
+      toast.success('✓ Informações salvas!');
+      closeEdit();
     } catch (error) {
-      console.error('❌ Erro ao salvar preferência:', error);
-      setPreferences(prev => ({ ...prev, [key]: !newValue }));
-      toast.error('Erro ao salvar preferência: ' + error.message);
+      console.error('Erro ao salvar:', error);
+      toast.error('Erro ao salvar: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const savePreferences = async () => {
+    setSaving(true);
+    
+    try {
+      const prefData = { user_id: user.id, ...editPreferences };
+      
+      if (preferencesId) {
+        await base44.entities.UserPreferences.update(preferencesId, prefData);
+      } else {
+        const created = await base44.entities.UserPreferences.create(prefData);
+        setPreferencesId(created.id);
+      }
+      
+      setPreferences({ ...editPreferences });
+      toast.success('✓ Preferências salvas!');
+      closeEdit();
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -259,7 +278,7 @@ export default function PassengerProfile() {
               <ChevronLeft className="w-6 h-6" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-[#F2F2F2]">Editar Perfil</h1>
+          <h1 className="text-2xl font-bold text-[#F2F2F2]">Meu Perfil</h1>
         </div>
 
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
@@ -284,142 +303,303 @@ export default function PassengerProfile() {
         </Card>
 
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
-          <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Informações Pessoais</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[#F2F2F2]">Informações Pessoais</h3>
+            <Button
+              onClick={openEditInfo}
+              size="sm"
+              variant="ghost"
+              className="text-[#F22998] hover:bg-[#F22998]/10"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </div>
           
           <div className="space-y-4">
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
-              <Input
-                value={formState.full_name}
-                onChange={(e) => handleFieldChange('full_name', e.target.value)}
-                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                placeholder="Digite seu nome"
-              />
+              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                {formState.full_name || '-'}
+              </div>
             </div>
             
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
-              <Input
-                value={formState.phone}
-                onChange={(e) => handleFieldChange('phone', maskPhone(e.target.value))}
-                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                placeholder="(00) 00000-0000"
-                maxLength={15}
-              />
+              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                {formState.phone || '-'}
+              </div>
             </div>
             
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
-              <select
-                value={formState.gender}
-                onChange={(e) => handleFieldChange('gender', e.target.value)}
-                className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
-              >
-                <option value="feminino">Feminino</option>
-                <option value="masculino">Masculino</option>
-                <option value="nao_informar">Prefiro não informar</option>
-                <option value="outro">Outro</option>
-              </select>
+              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                {formState.gender === 'feminino' ? 'Feminino' : 
+                 formState.gender === 'masculino' ? 'Masculino' : 
+                 formState.gender === 'outro' ? 'Outro' : 'Prefiro não informar'}
+              </div>
             </div>
             
             <div>
-              <label className="text-sm text-[#F2F2F2]/70 mb-2 block flex items-center gap-2">
-                Data de Nascimento
-                {age && <span className="text-xs text-[#F22998]">({age} anos)</span>}
-              </label>
-              <Input
-                type="date"
-                value={formState.birth_date}
-                onChange={(e) => handleFieldChange('birth_date', e.target.value)}
-                className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-              />
-              <div className="flex items-start gap-2 mt-2 p-2 bg-blue-500/10 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-blue-200">
-                  Sua data de nascimento é privada e usada apenas para segurança
-                </p>
+              <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
+              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                {formState.birth_date ? `${new Date(formState.birth_date).toLocaleDateString('pt-BR')}${age ? ` (${age} anos)` : ''}` : '-'}
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
-                <Input
-                  value={formState.city}
-                  onChange={(e) => handleFieldChange('city', e.target.value)}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                  placeholder="Sua cidade"
-                />
+                <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                  {formState.city || '-'}
+                </div>
               </div>
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
-                <Input
-                  value={formState.state}
-                  onChange={(e) => handleFieldChange('state', e.target.value.toUpperCase())}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
-                  placeholder="UF"
-                  maxLength={2}
-                />
+                <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                  {formState.state || '-'}
+                </div>
               </div>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
-          <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Preferências de Viagem</h3>
+        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[#F2F2F2]">Preferências de Viagem</h3>
+            <Button
+              onClick={openEditPreferences}
+              size="sm"
+              variant="ghost"
+              className="text-[#F22998] hover:bg-[#F22998]/10"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Viajo com pet</span>
-              <Switch
-                checked={preferences.travel_with_pet}
-                onCheckedChange={() => togglePreference('travel_with_pet')}
-              />
+              <div className={`w-10 h-6 rounded-full ${preferences.travel_with_pet ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.travel_with_pet ? 'justify-end' : 'justify-start'} px-1`}>
+                <div className="w-4 h-4 bg-white rounded-full" />
+              </div>
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
-              <Switch
-                checked={preferences.accessibility_needs}
-                onCheckedChange={() => togglePreference('accessibility_needs')}
-              />
+              <div className={`w-10 h-6 rounded-full ${preferences.accessibility_needs ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.accessibility_needs ? 'justify-end' : 'justify-start'} px-1`}>
+                <div className="w-4 h-4 bg-white rounded-full" />
+              </div>
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Prefiro silêncio</span>
-              <Switch
-                checked={preferences.prefer_silence}
-                onCheckedChange={() => togglePreference('prefer_silence')}
-              />
+              <div className={`w-10 h-6 rounded-full ${preferences.prefer_silence ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.prefer_silence ? 'justify-end' : 'justify-start'} px-1`}>
+                <div className="w-4 h-4 bg-white rounded-full" />
+              </div>
             </div>
             
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
-              <Switch
-                checked={preferences.prefer_ac}
-                onCheckedChange={() => togglePreference('prefer_ac')}
-              />
+              <div className={`w-10 h-6 rounded-full ${preferences.prefer_ac ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.prefer_ac ? 'justify-end' : 'justify-start'} px-1`}>
+                <div className="w-4 h-4 bg-white rounded-full" />
+              </div>
             </div>
           </div>
         </Card>
-
-        <div className="flex items-center justify-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
-          {saving ? (
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <Clock className="w-5 h-5 text-green-400" />
-            </motion.div>
-          ) : (
-            <Check className="w-5 h-5 text-green-400" />
-          )}
-          <p className="text-sm text-green-400">
-            {saving ? 'Salvando...' : 'Todas as alterações são salvas automaticamente'}
-          </p>
-        </div>
       </div>
+
+      {/* Modal de Edição de Informações */}
+      <AnimatePresence>
+        {editingSection === 'info' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={closeEdit}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#1A1A1A] rounded-2xl border border-[#F22998]/20 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[#F2F2F2]">Editar Informações</h2>
+                <Button onClick={closeEdit} variant="ghost" size="icon">
+                  <X className="w-5 h-5 text-[#F2F2F2]" />
+                </Button>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
+                  <Input
+                    value={editForm.full_name}
+                    onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    placeholder="Digite seu nome"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
+                  <Input
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
+                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
+                  <select
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                    className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
+                  >
+                    <option value="feminino">Feminino</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="nao_informar">Prefiro não informar</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
+                  <Input
+                    type="date"
+                    value={editForm.birth_date}
+                    onChange={(e) => setEditForm({ ...editForm, birth_date: e.target.value })}
+                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
+                    <Input
+                      value={editForm.city}
+                      onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      placeholder="Sua cidade"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
+                    <Input
+                      value={editForm.state}
+                      onChange={(e) => setEditForm({ ...editForm, state: e.target.value.toUpperCase() })}
+                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      placeholder="UF"
+                      maxLength={2}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={closeEdit}
+                  variant="outline"
+                  className="flex-1 border-[#F22998]/20 text-[#F2F2F2]"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={saveInfo}
+                  disabled={saving}
+                  className="flex-1 bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white"
+                >
+                  {saving ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Edição de Preferências */}
+      <AnimatePresence>
+        {editingSection === 'preferences' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={closeEdit}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#1A1A1A] rounded-2xl border border-[#F22998]/20 p-6 max-w-lg w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[#F2F2F2]">Editar Preferências</h2>
+                <Button onClick={closeEdit} variant="ghost" size="icon">
+                  <X className="w-5 h-5 text-[#F2F2F2]" />
+                </Button>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+                  <span className="text-[#F2F2F2]">Viajo com pet</span>
+                  <Switch
+                    checked={editPreferences.travel_with_pet}
+                    onCheckedChange={(checked) => setEditPreferences({ ...editPreferences, travel_with_pet: checked })}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+                  <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
+                  <Switch
+                    checked={editPreferences.accessibility_needs}
+                    onCheckedChange={(checked) => setEditPreferences({ ...editPreferences, accessibility_needs: checked })}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+                  <span className="text-[#F2F2F2]">Prefiro silêncio</span>
+                  <Switch
+                    checked={editPreferences.prefer_silence}
+                    onCheckedChange={(checked) => setEditPreferences({ ...editPreferences, prefer_silence: checked })}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+                  <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
+                  <Switch
+                    checked={editPreferences.prefer_ac}
+                    onCheckedChange={(checked) => setEditPreferences({ ...editPreferences, prefer_ac: checked })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={closeEdit}
+                  variant="outline"
+                  className="flex-1 border-[#F22998]/20 text-[#F2F2F2]"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={savePreferences}
+                  disabled={saving}
+                  className="flex-1 bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white"
+                >
+                  {saving ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
