@@ -102,18 +102,47 @@ export default function PassengerProfile() {
     }
   };
 
+  const validateDate = (dateString) => {
+    if (!dateString) return true;
+    const date = new Date(dateString);
+    const today = new Date();
+    const minDate = new Date(1900, 0, 1);
+    
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+    if (date > today) {
+      return false;
+    }
+    if (date < minDate) {
+      return false;
+    }
+    
+    const age = calculateAge(dateString);
+    if (age < 13) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSave = async () => {
     if (!fullName || fullName.length < 3) {
-      toast.error('Digite seu nome completo');
+      toast.error('Digite seu nome completo (mínimo 3 caracteres)');
       return;
     }
     
     if (phone) {
       const cleaned = phone.replace(/\D/g, '');
       if (cleaned.length < 10 || cleaned.length > 11) {
-        toast.error('Telefone inválido');
+        toast.error('Telefone inválido. Use o formato (00) 00000-0000');
         return;
       }
+    }
+    
+    if (birthDate && !validateDate(birthDate)) {
+      toast.error('Data de nascimento inválida. Idade mínima: 13 anos');
+      return;
     }
     
     setSaving(true);
@@ -121,12 +150,12 @@ export default function PassengerProfile() {
       const profileData = {
         user_id: user.id,
         full_name: fullName,
-        phone,
+        phone: phone || null,
         gender,
-        birth_date: birthDate,
-        city,
-        state,
-        photo_url: photoUrl
+        birth_date: birthDate || null,
+        city: city || null,
+        state: state || null,
+        photo_url: photoUrl || null
       };
       
       if (profile) {
@@ -140,12 +169,13 @@ export default function PassengerProfile() {
         photo_url: photoUrl
       });
       
-      toast.success('Perfil atualizado!');
       await refreshUser();
-      loadData();
+      toast.success('Salvo!');
+      await loadData();
     } catch (error) {
-      console.error(error);
-      toast.error('Erro ao salvar');
+      console.error('Erro ao salvar perfil:', error);
+      const errorMsg = error.message || error.toString();
+      toast.error(`Erro ao salvar: ${errorMsg}`);
     } finally {
       setSaving(false);
     }
