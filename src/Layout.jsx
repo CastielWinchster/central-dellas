@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useAuthUser } from '@/components/AuthProvider';
 
 const NotificationBell = lazy(() => import('./components/NotificationBell'));
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -15,33 +16,16 @@ const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsH
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, isLoading: loading } = useAuthUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-        
-        // Apply theme to document
-        if (userData?.theme) {
-          document.documentElement.classList.toggle('light-theme', userData.theme === 'light');
-          document.documentElement.classList.toggle('dark-theme', userData.theme === 'dark');
-        }
-      } catch (e) {
-        console.log('User not logged in');
-        // Redirecionar para login se não estiver autenticado e não estiver em páginas públicas
-        const loginPages = ['PassengerLogin', 'DriverLogin', 'PassengerHome'];
-        if (!loginPages.includes(currentPageName)) {
-          navigate(createPageUrl('PassengerHome'));
-        }
-      }
-      setLoading(false);
-    };
-    loadUser();
-  }, [currentPageName, navigate]);
+    // Apply theme to document
+    if (user?.theme) {
+      document.documentElement.classList.toggle('light-theme', user.theme === 'light');
+      document.documentElement.classList.toggle('dark-theme', user.theme === 'dark');
+    }
+  }, [user]);
 
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [

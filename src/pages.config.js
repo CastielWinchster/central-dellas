@@ -65,6 +65,7 @@ import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
 import PassengerChat from './pages/PassengerChat';
 import PassengerDashboard from './pages/PassengerDashboard';
+import PassengerHelp from './pages/PassengerHelp';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerMessages from './pages/PassengerMessages';
@@ -80,7 +81,6 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import PassengerHelp from './pages/PassengerHelp';
 import __Layout from './Layout.jsx';
 
 
@@ -103,6 +103,7 @@ export const PAGES = {
     "Notifications": Notifications,
     "PassengerChat": PassengerChat,
     "PassengerDashboard": PassengerDashboard,
+    "PassengerHelp": PassengerHelp,
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
     "PassengerMessages": PassengerMessages,
@@ -118,7 +119,6 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "PassengerHelp": PassengerHelp,
 }
 
 export const pagesConfig = {
