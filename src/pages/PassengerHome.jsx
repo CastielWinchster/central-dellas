@@ -8,20 +8,11 @@ import {
   ChevronRight, Clock, Sparkles, Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuthUser } from '@/components/AuthProvider';
 
 export default function PassengerHome() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (e) {}
-    };
-    loadUser();
-  }, []);
+  const { user } = useAuthUser();
 
   const features = [
     {
