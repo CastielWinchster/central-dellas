@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { User, Camera, ChevronLeft, AlertCircle, Check } from 'lucide-react';
+import { User, Camera, ChevronLeft, AlertCircle, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -129,12 +129,18 @@ export default function PassengerProfile() {
     if (!file) return;
     
     try {
+      setSaving(true);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setFormState(prev => ({ ...prev, photo_url: file_url }));
-      toast.success('Foto carregada!');
+      
+      // Salvar imediatamente após upload
+      await autoSaveProfile({ ...formState, photo_url: file_url });
+      toast.success('Foto atualizada!');
     } catch (error) {
       console.error('Erro upload:', error);
-      toast.error('Erro ao carregar foto');
+      toast.error('Erro ao carregar foto: ' + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -148,7 +154,11 @@ export default function PassengerProfile() {
     
     if (data.birth_date && !validateDate(data.birth_date)) return;
     
+    setSaving(true);
+    
     try {
+      console.log('🔄 Salvando perfil...', data);
+      
       const profileData = {
         user_id: user.id,
         full_name: data.full_name.trim(),
@@ -161,10 +171,13 @@ export default function PassengerProfile() {
       };
       
       if (profileId) {
+        console.log('📝 Atualizando perfil existente ID:', profileId);
         await base44.entities.UserProfile.update(profileId, profileData);
       } else {
+        console.log('✨ Criando novo perfil');
         const created = await base44.entities.UserProfile.create(profileData);
         setProfileId(created.id);
+        console.log('✅ Perfil criado com ID:', created.id);
       }
       
       await base44.auth.updateMe({
@@ -173,9 +186,13 @@ export default function PassengerProfile() {
       });
       
       await refreshUser();
+      console.log('✅ Perfil salvo com sucesso!');
       toast.success('✓ Salvo automaticamente');
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error('❌ Erro ao salvar perfil:', error);
+      toast.error('Erro ao salvar perfil: ' + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -195,22 +212,31 @@ export default function PassengerProfile() {
   const togglePreference = async (key) => {
     const newValue = !preferences[key];
     setPreferences(prev => ({ ...prev, [key]: newValue }));
+    setSaving(true);
     
     try {
+      console.log('🔄 Salvando preferência:', key, '=', newValue);
+      
       const prefData = { user_id: user.id, [key]: newValue };
       
       if (preferencesId) {
+        console.log('📝 Atualizando preferência ID:', preferencesId);
         await base44.entities.UserPreferences.update(preferencesId, prefData);
       } else {
+        console.log('✨ Criando nova preferência');
         const created = await base44.entities.UserPreferences.create({ ...preferences, ...prefData });
         setPreferencesId(created.id);
+        console.log('✅ Preferência criada com ID:', created.id);
       }
       
+      console.log('✅ Preferência salva com sucesso!');
       toast.success('✓ Preferência salva!');
     } catch (error) {
-      console.error('Erro preferência:', error);
+      console.error('❌ Erro ao salvar preferência:', error);
       setPreferences(prev => ({ ...prev, [key]: !newValue }));
-      toast.error('Erro ao salvar preferência');
+      toast.error('Erro ao salvar preferência: ' + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -378,9 +404,19 @@ export default function PassengerProfile() {
         </Card>
 
         <div className="flex items-center justify-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
-          <Check className="w-5 h-5 text-green-400" />
+          {saving ? (
+            <motion.div
+              initial={{ rotate: 0 }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <Clock className="w-5 h-5 text-green-400" />
+            </motion.div>
+          ) : (
+            <Check className="w-5 h-5 text-green-400" />
+          )}
           <p className="text-sm text-green-400">
-            Todas as alterações são salvas automaticamente
+            {saving ? 'Salvando...' : 'Todas as alterações são salvas automaticamente'}
           </p>
         </div>
       </div>
