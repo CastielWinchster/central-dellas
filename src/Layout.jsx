@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAuthUser } from '@/components/AuthProvider';
+import { useAuthUser, AuthProvider } from '@/components/AuthProvider';
 
 const NotificationBell = lazy(() => import('./components/NotificationBell'));
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -345,6 +345,7 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 </motion.nav>
                 )}
+      </AuthProvider>
     </div>
   );
 }
