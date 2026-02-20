@@ -15,7 +15,7 @@ export default function PassengerProfile() {
   const { user, refreshUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editingSection, setEditingSection] = useState(null); // 'info', 'preferences', null
+  const [editingSection, setEditingSection] = useState(null);
   
   const [formState, setFormState] = useState({
     full_name: '',
@@ -137,15 +137,22 @@ export default function PassengerProfile() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const profileData = {
-        user_id: user.id,
-        ...formState,
+        full_name: formState.full_name || user.full_name,
+        phone: formState.phone || null,
+        gender: formState.gender,
+        birth_date: formState.birth_date || null,
+        city: formState.city || null,
+        state: formState.state || null,
         photo_url: file_url
       };
       
       if (profileId) {
         await base44.entities.UserProfile.update(profileId, profileData);
       } else {
-        const created = await base44.entities.UserProfile.create(profileData);
+        const created = await base44.entities.UserProfile.create({
+          ...profileData,
+          user_id: user.id
+        });
         setProfileId(created.id);
       }
       
@@ -200,8 +207,9 @@ export default function PassengerProfile() {
     setSaving(true);
     
     try {
+      console.log('🔄 Salvando perfil...');
+      
       const profileData = {
-        user_id: user.id,
         full_name: editForm.full_name.trim(),
         phone: editForm.phone || null,
         gender: editForm.gender,
@@ -212,10 +220,16 @@ export default function PassengerProfile() {
       };
       
       if (profileId) {
+        console.log('📝 Atualizando perfil ID:', profileId);
         await base44.entities.UserProfile.update(profileId, profileData);
       } else {
-        const created = await base44.entities.UserProfile.create(profileData);
+        console.log('✨ Criando novo perfil');
+        const created = await base44.entities.UserProfile.create({
+          ...profileData,
+          user_id: user.id
+        });
         setProfileId(created.id);
+        console.log('✅ Perfil criado com ID:', created.id);
       }
       
       await base44.auth.updateMe({
@@ -228,7 +242,7 @@ export default function PassengerProfile() {
       toast.success('✓ Informações salvas!');
       closeEdit();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error('❌ Erro ao salvar:', error);
       toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setSaving(false);
@@ -239,20 +253,33 @@ export default function PassengerProfile() {
     setSaving(true);
     
     try {
-      const prefData = { user_id: user.id, ...editPreferences };
+      console.log('🔄 Salvando preferências...');
+      
+      const prefData = {
+        travel_with_pet: editPreferences.travel_with_pet,
+        accessibility_needs: editPreferences.accessibility_needs,
+        prefer_silence: editPreferences.prefer_silence,
+        prefer_ac: editPreferences.prefer_ac
+      };
       
       if (preferencesId) {
+        console.log('📝 Atualizando preferências ID:', preferencesId);
         await base44.entities.UserPreferences.update(preferencesId, prefData);
       } else {
-        const created = await base44.entities.UserPreferences.create(prefData);
+        console.log('✨ Criando novas preferências');
+        const created = await base44.entities.UserPreferences.create({
+          ...prefData,
+          user_id: user.id
+        });
         setPreferencesId(created.id);
+        console.log('✅ Preferências criadas com ID:', created.id);
       }
       
       setPreferences({ ...editPreferences });
       toast.success('✓ Preferências salvas!');
       closeEdit();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error('❌ Erro ao salvar:', error);
       toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setSaving(false);
