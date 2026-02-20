@@ -184,19 +184,21 @@ export default function PassengerProfile() {
 
   const handlePreferenceToggle = async (key, value) => {
     try {
+      let updatedPrefs;
       if (preferences) {
-        await base44.entities.UserPreferences.update(preferences.id, { [key]: value });
+        updatedPrefs = await base44.entities.UserPreferences.update(preferences.id, { [key]: value });
       } else {
-        const newPrefs = await base44.entities.UserPreferences.create({
+        updatedPrefs = await base44.entities.UserPreferences.create({
           user_id: user.id,
           [key]: value
         });
-        setPreferences(newPrefs);
       }
-      setPreferences(prev => ({ ...prev, [key]: value }));
-      toast.success('Preferência atualizada');
+      setPreferences(updatedPrefs);
+      toast.success('✓ Preferência salva!');
     } catch (error) {
-      toast.error('Erro ao atualizar');
+      console.error('Erro ao atualizar preferência:', error);
+      const errorMsg = error.message || error.toString();
+      toast.error(`Erro: ${errorMsg}`);
     }
   };
 
