@@ -158,10 +158,11 @@ export default function PassengerProfile() {
         photo_url: photoUrl || null
       };
       
+      let savedProfile;
       if (profile) {
-        await base44.entities.UserProfile.update(profile.id, profileData);
+        savedProfile = await base44.entities.UserProfile.update(profile.id, profileData);
       } else {
-        await base44.entities.UserProfile.create(profileData);
+        savedProfile = await base44.entities.UserProfile.create(profileData);
       }
       
       await base44.auth.updateMe({
@@ -169,9 +170,9 @@ export default function PassengerProfile() {
         photo_url: photoUrl
       });
       
+      setProfile(savedProfile);
       await refreshUser();
-      toast.success('Salvo!');
-      await loadData();
+      toast.success('✓ Todas as informações foram salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
       const errorMsg = error.message || error.toString();
