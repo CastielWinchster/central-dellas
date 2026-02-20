@@ -14,7 +14,7 @@ const NotificationBell = lazy(() => import('./components/NotificationBell'));
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
 
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const { user, isLoading: loading } = useAuthUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
