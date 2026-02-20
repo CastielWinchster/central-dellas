@@ -76,7 +76,6 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className={`min-h-screen transition-colors ${isDark ? 'bg-[#0D0D0D] text-[#F2F2F2]' : 'bg-gray-50 text-gray-900'}`}>
-      <AuthProvider>
       <style>{`
         :root {
           --rosa-principal: #BF3B79;
@@ -345,7 +344,14 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 </motion.nav>
                 )}
-      </AuthProvider>
     </div>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <AuthProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
+    </AuthProvider>
   );
 }
