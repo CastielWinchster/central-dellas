@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl } from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
 import { Car, MapPin, Target, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { MAPBOX_CONFIG, validateMapboxConfig } from '@/components/utils/mapboxConfig';
