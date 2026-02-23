@@ -65,10 +65,10 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 // ========================================
-// 3) PHOTON SEARCH (POIs e Lugares)
+// 3) MAPBOX GEOCODING SEARCH
 // ========================================
-async function searchPhoton(placeQuery, userLat, userLon, signal) {
-  const cacheKey = `photon:${placeQuery}:${userLat}:${userLon}`;
+async function searchMapbox(query, userLat, userLon, signal) {
+  const cacheKey = `mapbox:${query}:${userLat}:${userLon}`;
   const cached = cache.get(cacheKey);
   
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -76,83 +76,44 @@ async function searchPhoton(placeQuery, userLat, userLon, signal) {
   }
   
   const params = new URLSearchParams({
-    q: placeQuery,
-    limit: 8,
-    lang: 'pt'
+    access_token: MAPBOX_TOKEN,
+    language: 'pt',
+    country: 'br',
+    limit: 10,
+    types: 'address,poi,place,locality,neighborhood'
   });
   
   if (userLat && userLon) {
-    params.append('lat', userLat);
-    params.append('lon', userLon);
+    params.append('proximity', `${userLon},${userLat}`);
   }
-  
-  const response = await fetch(`https://photon.komoot.io/api/?${params}`, { signal });
-  const data = await response.json();
-  
-  const results = (data.features || []).map(feature => ({
-    type: 'photon',
-    id: `${feature.properties.osm_type}-${feature.properties.osm_id}`,
-    lat: feature.geometry.coordinates[1],
-    lon: feature.geometry.coordinates[0],
-    name: feature.properties.name || feature.properties.street || '',
-    street: feature.properties.street || '',
-    housenumber: feature.properties.housenumber || '',
-    city: feature.properties.city || feature.properties.town || feature.properties.village || '',
-    state: feature.properties.state || '',
-    country: feature.properties.country || '',
-    category: feature.properties.osm_value || feature.properties.type || 'place',
-    raw: feature.properties
-  }));
-  
-  cache.set(cacheKey, { data: results, timestamp: Date.now() });
-  return results;
-}
-
-// ========================================
-// 4) NOMINATIM SEARCH (Números de Casa)
-// ========================================
-async function searchNominatim(placeQuery, houseNumber, userLat, userLon, signal) {
-  const cacheKey = `nominatim:${placeQuery}:${houseNumber}`;
-  const cached = cache.get(cacheKey);
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-  
-  const query = houseNumber 
-    ? `${placeQuery}, ${houseNumber}, Brasil`
-    : `${placeQuery}, Brasil`;
-  
-  const params = new URLSearchParams({
-    q: query,
-    format: 'jsonv2',
-    addressdetails: 1,
-    limit: 5,
-    countrycodes: 'br',
-    'accept-language': 'pt-BR'
-  });
   
   const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?${params}`,
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params}`,
     { signal }
   );
   const data = await response.json();
   
-  const results = data.map(item => ({
-    type: 'nominatim',
-    id: `nom-${item.place_id}`,
-    lat: parseFloat(item.lat),
-    lon: parseFloat(item.lon),
-    name: item.display_name.split(',')[0],
-    street: item.address?.road || '',
-    housenumber: item.address?.house_number || houseNumber,
-    city: item.address?.city || item.address?.town || item.address?.village || '',
-    state: item.address?.state || '',
-    country: item.address?.country || '',
-    category: item.type || 'address',
-    raw: item.address,
-    userProvidedNumber: houseNumber
-  }));
+  const results = (data.features || []).map(feature => {
+    const context = feature.context || [];
+    const getContext = (type) => context.find(c => c.id.startsWith(type))?.text || '';
+    
+    return {
+      type: 'mapbox',
+      id: feature.id,
+      lat: feature.center[1],
+      lon: feature.center[0],
+      name: feature.text || '',
+      street: feature.properties?.address || '',
+      housenumber: feature.address || '',
+      city: getContext('place') || getContext('locality'),
+      state: getContext('region'),
+      country: getContext('country'),
+      category: feature.place_type?.[0] || 'place',
+      placeType: feature.place_type,
+      placeName: feature.place_name,
+      raw: feature
+    };
+  });
   
   cache.set(cacheKey, { data: results, timestamp: Date.now() });
   return results;
