@@ -298,8 +298,9 @@ export default function MapView({
     if (showRoute && pickupLocation && destinationLocation) {
       const getRoute = async () => {
         try {
+          const accessToken = 'pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA';
           const response = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${pickupLocation.lng},${pickupLocation.lat};${destinationLocation.lng},${destinationLocation.lat}?overview=full&geometries=geojson`
+            `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupLocation.lng},${pickupLocation.lat};${destinationLocation.lng},${destinationLocation.lat}?geometries=geojson&access_token=${accessToken}`
           );
           const data = await response.json();
           
@@ -438,8 +439,10 @@ export default function MapView({
         }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
+          url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA`}
+          tileSize={512}
+          zoomOffset={-1}
         />
         <MapController 
           center={mapCenter} 
