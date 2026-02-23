@@ -430,13 +430,16 @@ export default function MapView({
       <MapContainer
         center={mapCenter}
         zoom={14}
-        style={{ height: '100%', width: '100%', minHeight: '300px' }}
+        style={{ width: "100%", height: "360px" }}
         zoomControl={false}
-        onClick={(e) => {
-          if (onMapClick) {
-            onMapClick(e.latlng.lat, e.latlng.lng);
-          }
-        }}
+        whenReady={(e) => {
+        setTimeout(() => {
+        e.target.invalidateSize();
+        }, 800);
+       }}
+       onClick={(e) => {
+       if (onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+       }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
