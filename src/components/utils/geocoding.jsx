@@ -1,8 +1,8 @@
-// Sistema híbrido de geocoding para apps de mobilidade
-// Photon (POIs) + Nominatim (números e reverse)
+// Sistema de geocoding usando Mapbox Geocoding API
 
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA';
 
 // ========================================
 // 1) PARSER ROBUSTO DO INPUT
@@ -164,6 +164,7 @@ async function searchNominatim(placeQuery, houseNumber, userLat, userLon, signal
 export function getCategoryIcon(category) {
   const categoryMap = {
     // POIs
+    'poi': '📍',
     'restaurant': '🍴',
     'cafe': '☕',
     'bar': '🍺',
@@ -207,24 +208,24 @@ export function getCategoryIcon(category) {
     'station': '🚉',
     
     // Endereços
+    'address': '🏠',
     'house': '🏠',
     'building': '🏢',
-    'address': '📍',
     'road': '🛣️',
     'highway': '🛣️',
     'street': '🛣️',
     
     // Cidade
+    'place': '🏙️',
+    'locality': '🏘️',
+    'neighborhood': '🏡',
     'city': '🏙️',
     'town': '🏘️',
     'village': '🏡',
     
     // Religião
     'church': '⛪',
-    'temple': '🕌',
-    
-    // Default
-    'place': '📍'
+    'temple': '🕌'
   };
   
   return categoryMap[category?.toLowerCase()] || '📍';
@@ -251,61 +252,38 @@ export function getCategoryLabel(category) {
 }
 
 // ========================================
-// 6) BUSCA HÍBRIDA PRINCIPAL
+// 6) BUSCA PRINCIPAL USANDO MAPBOX
 // ========================================
 export async function searchPlaces(text, userLocation, signal) {
   if (!text || text.length < 3) return [];
   
   const { placeQuery, houseNumber } = parseQuery(text);
   
-  if (!placeQuery) return [];
+  // Construir query com número se fornecido
+  const fullQuery = houseNumber 
+    ? `${placeQuery} ${houseNumber}`
+    : placeQuery;
+  
+  if (!fullQuery) return [];
   
   const userLat = userLocation?.lat;
   const userLon = userLocation?.lng;
   
   try {
-    // Executar buscas em paralelo
-    const [photonResults, nominatimResults] = await Promise.all([
-      searchPhoton(placeQuery, userLat, userLon, signal).catch(() => []),
-      houseNumber 
-        ? searchNominatim(placeQuery, houseNumber, userLat, userLon, signal).catch(() => [])
-        : Promise.resolve([])
-    ]);
+    const results = await searchMapbox(fullQuery, userLat, userLon, signal);
     
-    // Combinar resultados
-    let combined = [];
-    
-    // 1) Nominatim com número primeiro (se houver)
-    if (nominatimResults.length > 0) {
-      combined.push(...nominatimResults.map(r => ({
-        ...r,
-        priority: 1,
-        distance: userLat && userLon ? haversineDistance(userLat, userLon, r.lat, r.lon) : 999
-      })));
-    }
-    
-    // 2) Photon POIs e lugares
-    combined.push(...photonResults.map(r => ({
+    // Adicionar distância e prioridade
+    const withMetadata = results.map(r => ({
       ...r,
-      priority: r.name ? 2 : 3, // POIs com nome têm prioridade sobre ruas
-      distance: userLat && userLon ? haversineDistance(userLat, userLon, r.lat, r.lon) : 999
-    })));
-    
-    // Filtrar duplicatas por coordenadas próximas (< 50m)
-    const unique = [];
-    for (const item of combined) {
-      const isDuplicate = unique.some(existing => 
-        haversineDistance(existing.lat, existing.lon, item.lat, item.lon) < 0.05
-      );
-      if (!isDuplicate) {
-        unique.push(item);
-      }
-    }
+      distance: userLat && userLon ? haversineDistance(userLat, userLon, r.lat, r.lon) : 999,
+      priority: r.housenumber ? 1 : r.placeType?.includes('poi') ? 2 : 3,
+      userProvidedNumber: houseNumber
+    }));
     
     // Filtrar por proximidade (30km)
     const RADIUS_KM = 30;
-    const nearby = unique.filter(item => item.distance <= RADIUS_KM);
-    const faraway = unique.filter(item => item.distance > RADIUS_KM).slice(0, 2);
+    const nearby = withMetadata.filter(item => item.distance <= RADIUS_KM);
+    const faraway = withMetadata.filter(item => item.distance > RADIUS_KM).slice(0, 2);
     
     // Ordenar por priority e distance
     nearby.sort((a, b) => {
@@ -318,7 +296,7 @@ export async function searchPlaces(text, userLocation, signal) {
       id: item.id,
       lat: item.lat,
       lon: item.lon,
-      name: item.name,
+      name: item.name || item.placeName?.split(',')[0] || '',
       street: item.street,
       housenumber: item.housenumber,
       city: item.city,
@@ -340,28 +318,31 @@ export async function searchPlaces(text, userLocation, signal) {
 }
 
 // ========================================
-// 7) REVERSE GEOCODE
+// 7) REVERSE GEOCODE USANDO MAPBOX
 // ========================================
 export async function reverseGeocode(lat, lon) {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&accept-language=pt-BR`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_TOKEN}&language=pt&types=address,poi,place,locality,neighborhood`
     );
     const data = await response.json();
     
-    if (!data.address) return null;
+    if (!data.features || data.features.length === 0) return null;
     
-    const addr = data.address;
+    const feature = data.features[0];
+    const context = feature.context || [];
+    const getContext = (type) => context.find(c => c.id.startsWith(type))?.text || '';
+    
     return {
       lat,
       lon,
-      street: addr.road || '',
-      housenumber: addr.house_number || null,
-      city: addr.city || addr.town || addr.village || '',
-      suburb: addr.suburb || addr.neighbourhood || '',
-      state: addr.state || '',
-      country: addr.country || '',
-      raw: addr
+      street: feature.text || '',
+      housenumber: feature.address || null,
+      city: getContext('place') || getContext('locality') || '',
+      suburb: getContext('neighborhood') || '',
+      state: getContext('region') || '',
+      country: getContext('country') || '',
+      raw: feature
     };
   } catch (error) {
     console.error('Erro no reverse geocode:', error);
