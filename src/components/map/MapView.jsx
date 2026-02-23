@@ -440,7 +440,7 @@ export default function MapView({
       >
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
-          url={`https://api.mapbox.com/styles/v1/luisbracale/cmlzdk84n003e01s29qedaex4/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA`}
+          url={`https://api.mapbox.com/styles/v1/luisbracale/cmlzdk84n003e01s29qedaex4/tiles/512/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA`}
           tileSize={512}
           zoomOffset={-1}
         />
