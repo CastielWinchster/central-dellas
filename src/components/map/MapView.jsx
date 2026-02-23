@@ -110,7 +110,7 @@ export default function MapView({
   pickupLocation, 
   destinationLocation, 
   nearbyDrivers = [],
-  center = [-23.5505, -46.6333],
+  center = [-20.7195, -47.8864],
   showRoute = false,
   className = '',
   showRealTimeDrivers = false,
