@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl } from 'react-map-gl';
 import { Car, MapPin, Target, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
-import { MAPBOX_CONFIG, validateMapboxConfig } from '@/config/mapbox';
+import { MAPBOX_CONFIG, validateMapboxConfig } from '@/components/utils/mapboxConfig';
 import { reverseGeocode } from '@/components/utils/geocoding';
 import 'mapbox-gl/dist/mapbox-gl.css';
 

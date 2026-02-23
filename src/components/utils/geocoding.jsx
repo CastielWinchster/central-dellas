@@ -1,8 +1,10 @@
 // Sistema de geocoding usando Mapbox Geocoding API
 
+import { MAPBOX_CONFIG } from './mapboxConfig';
+
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA';
+const MAPBOX_TOKEN = MAPBOX_CONFIG.ACCESS_TOKEN;
 
 // ========================================
 // 1) PARSER ROBUSTO DO INPUT
