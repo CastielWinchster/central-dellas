@@ -366,10 +366,10 @@ export default function MapView({
   };
 
   return (
-    <div className={`relative rounded-2xl overflow-hidden ${className}`}>
+    <div className={`relative rounded-2xl overflow-hidden h-[320px] w-full ${className}`}>
       <style>{`
         .leaflet-container {
-          background: #ffffff;
+          background: transparent;
         }
         .leaflet-tile {
           filter: none;
