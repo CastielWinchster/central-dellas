@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const ALLOWED_EMAILS = [
-  'dellasadvogadas@gmail.com' // Email do desenvolvedor autorizado
+  'luishcosta3@gmail.com' // Email do desenvolvedor autorizado
 ];
 
 const TEST_USERS = {
