@@ -8,11 +8,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAuthUser, AuthProvider } from '@/components/AuthProvider';
-
+import { useAuthUser } from './hooks/useAuthUser';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
+
+// Rotas públicas que não exigem autenticação
+const PUBLIC_ROUTES = ['PassengerHome', 'Login', 'Signup', 'Download'];
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -49,7 +51,36 @@ function LayoutContent({ children, currentPageName }) {
 
   const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Messages', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
-  // Não bloquear o carregamento se não houver usuário (app público)
+  // Redirect para login se não estiver autenticado e não estiver em rota pública
+  useEffect(() => {
+    if (!loading && !user && !PUBLIC_ROUTES.includes(currentPageName)) {
+      navigate(createPageUrl('Login'));
+    }
+  }, [loading, user, currentPageName, navigate]);
+
+  // Loading screen elegante
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] via-[#1a0a1a] to-[#0D0D0D] flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="mb-4"
+          >
+            <Car className="w-16 h-16 text-[#F22998]" />
+          </motion.div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#BF3B79] to-[#F22998] bg-clip-text text-transparent">
+            Central Dellas
+          </h1>
+        </motion.div>
+      </div>
+    );
+  }
 
   const isDark = user?.theme !== 'light';
 
@@ -184,15 +215,15 @@ function LayoutContent({ children, currentPageName }) {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Link to={createPageUrl('PassengerLogin')}>
+                <div className="hidden md:flex gap-2">
+                  <Link to={createPageUrl('Login')}>
                     <Button className="btn-gradient px-6 py-2 rounded-full text-white font-medium">
-                      Login Passageira
+                      Entrar
                     </Button>
                   </Link>
-                  <Link to={createPageUrl('DriverLogin')}>
+                  <Link to={createPageUrl('Signup')}>
                     <Button variant="outline" className="border-[#F22998]/30 text-[#F22998] px-6 py-2 rounded-full font-medium">
-                      Login Motorista
+                      Cadastrar
                     </Button>
                   </Link>
                 </div>
@@ -259,8 +290,8 @@ function LayoutContent({ children, currentPageName }) {
               {user && (
                 <button
                   onClick={async () => {
-                    const loginUrl = window.location.origin + createPageUrl('PassengerLogin');
-                    await base44.auth.logout(loginUrl);
+                    await base44.auth.signOut();
+                    window.location.href = createPageUrl('Login');
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >
@@ -325,9 +356,5 @@ function LayoutContent({ children, currentPageName }) {
 }
 
 export default function Layout({ children, currentPageName }) {
-  return (
-    <AuthProvider>
-      <LayoutContent children={children} currentPageName={currentPageName} />
-    </AuthProvider>
-  );
+  return <LayoutContent children={children} currentPageName={currentPageName} />;
 }
