@@ -33,15 +33,19 @@ export default function NotificationBell({ userId }) {
 
   const loadNotifications = async () => {
     try {
+      if (!userId) return;
+      
       const userNotifications = await base44.entities.Notification.filter(
         { user_id: userId },
         '-created_date',
         10
       );
+      
+      console.log('📬 Notificações carregadas no sino:', userNotifications);
       setNotifications(userNotifications);
       setUnreadCount(userNotifications.filter(n => !n.is_read).length);
     } catch (error) {
-      console.error('Error loading notifications:', error);
+      console.error('❌ Erro ao carregar notificações:', error);
     }
   };
 
