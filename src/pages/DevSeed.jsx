@@ -57,16 +57,10 @@ export default function DevSeed() {
       const response = await base44.functions.invoke('devSeed', { 
         action: 'get_status' 
       });
-      
-      if (response?.data) {
-        setStatus(response.data);
-      } else {
-        console.warn('Status response vazio:', response);
-        setStatus({ users: { passenger: null, driver: null }, conversation: null });
-      }
+      setStatus(response.data);
     } catch (error) {
       console.error('Erro ao carregar status:', error);
-      setStatus({ users: { passenger: null, driver: null }, conversation: null });
+      toast.error('Erro ao carregar status');
     }
   };
 
@@ -285,14 +279,8 @@ export default function DevSeed() {
             
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-lg bg-[#0D0D0D]">
-                <div className="flex-1">
-                  <span className="text-[#F2F2F2]/70">Passageira de Teste</span>
-                  <p className="text-xs text-[#F2F2F2]/40 mt-1">luishcosta3@gmail.com</p>
-                  {status.users?.passenger && (
-                    <p className="text-xs text-green-400 mt-1 font-mono">ID: {status.users.passenger}</p>
-                  )}
-                </div>
-                {status.users?.passenger ? (
+                <span className="text-[#F2F2F2]/70">Passageira de Teste</span>
+                {status.users.passenger ? (
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-400" />
                     <span className="text-xs text-green-400">Existe</span>
@@ -306,14 +294,8 @@ export default function DevSeed() {
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-[#0D0D0D]">
-                <div className="flex-1">
-                  <span className="text-[#F2F2F2]/70">Motorista de Teste</span>
-                  <p className="text-xs text-[#F2F2F2]/40 mt-1">rossideh77@gmail.com</p>
-                  {status.users?.driver && (
-                    <p className="text-xs text-green-400 mt-1 font-mono">ID: {status.users.driver}</p>
-                  )}
-                </div>
-                {status.users?.driver ? (
+                <span className="text-[#F2F2F2]/70">Motorista de Teste</span>
+                {status.users.driver ? (
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-400" />
                     <span className="text-xs text-green-400">Existe</span>
