@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const VERSION = "dev_seed_v3";
+const VERSION = "dev_seed_v4";
 
 const ALLOWED_EMAILS = [
   'dellasadvogadas@gmail.com',
@@ -39,10 +39,16 @@ Deno.serve(async (req) => {
     // Etapa 1: Parse request
     step = 'parse_request';
     let payload;
+    let receivedBody = null;
+    
     try {
-      payload = await req.json();
+      const bodyText = await req.text();
+      receivedBody = bodyText;
+      console.log('📥 Body recebido (texto bruto):', bodyText);
+      
+      payload = JSON.parse(bodyText);
       context.action = payload.action || 'unknown';
-      console.log('📦 Payload recebido:', payload);
+      console.log('📦 Payload parseado:', payload);
     } catch (err) {
       console.error('❌ Erro ao parsear request:', err);
       return Response.json({
@@ -50,7 +56,8 @@ Deno.serve(async (req) => {
         version: VERSION,
         step,
         message: 'Invalid JSON in request body',
-        stack: null,
+        stack: err?.stack || null,
+        receivedBody,
         context
       }, { status: 200 });
     }

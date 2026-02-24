@@ -25,7 +25,10 @@ export default function DevSeed() {
     lastRequestPayload: null,
     lastResponse: null,
     lastError: null,
-    timestamp: null
+    timestamp: null,
+    httpStatus: null,
+    responseText: null,
+    parsedJson: null
   });
 
   useEffect(() => {
@@ -120,7 +123,10 @@ export default function DevSeed() {
       lastRequestPayload: payload,
       lastResponse: null,
       lastError: null,
-      timestamp
+      timestamp,
+      httpStatus: null,
+      responseText: null,
+      parsedJson: null
     });
     
     try {
@@ -128,18 +134,34 @@ export default function DevSeed() {
       
       const response = await base44.functions.invoke('devSeed', payload);
       
-      console.log('📦 RESULT createChat - Resposta completa:', response);
-      console.log('📦 response.data:', response.data);
-      console.log('📦 response.status:', response.status);
+      console.log('📦 RESULT - HTTP Status:', response.status);
+      console.log('📦 RESULT - Response Headers:', response.headers);
+      console.log('📦 RESULT - Response.data:', response.data);
+      console.log('📦 RESULT - Response completo:', response);
+      
+      // Capturar informações completas
+      const httpStatus = response.status;
+      const responseData = response.data;
+      const responseText = typeof responseData === 'string' ? responseData : JSON.stringify(responseData);
+      let parsedJson = null;
+      
+      try {
+        parsedJson = typeof responseData === 'object' ? responseData : JSON.parse(responseData);
+      } catch (parseErr) {
+        console.warn('⚠️ Não foi possível parsear JSON:', parseErr);
+      }
       
       setDebugInfo(prev => ({
         ...prev,
-        lastResponse: response.data,
+        lastResponse: parsedJson,
+        httpStatus,
+        responseText,
+        parsedJson,
         timestamp: new Date().toISOString()
       }));
       
-      if (response.data?.ok === true) {
-        const { conversationId, messageId, senderId, receiverId, senderName, receiverName, context } = response.data;
+      if (parsedJson?.ok === true) {
+        const { conversationId, messageId, senderId, receiverId, senderName, receiverName, context } = parsedJson;
         
         console.log('✅ SUCESSO!', {
           conversationId,
@@ -154,28 +176,28 @@ export default function DevSeed() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         await loadStatus();
         
-      } else if (response.data?.ok === false) {
-        const { errorMessage, errorStack, context } = response.data;
+      } else if (parsedJson?.ok === false) {
+        const { message, stack, context } = parsedJson;
         
         console.error('❌ ERRO - ok:false', {
-          errorMessage,
-          errorStack,
+          message,
+          stack,
           context
         });
         
         setDebugInfo(prev => ({
           ...prev,
           lastError: {
-            message: errorMessage,
-            stack: errorStack,
+            message,
+            stack,
             context
           }
         }));
         
-        toast.error(`Erro: ${errorMessage}`);
+        toast.error(`Erro: ${message}`);
         
       } else {
-        console.warn('⚠️ Resposta sem campo "ok":', response.data);
+        console.warn('⚠️ Resposta sem campo "ok":', parsedJson);
         toast.warning('Resposta inesperada do servidor');
       }
       
@@ -183,16 +205,25 @@ export default function DevSeed() {
       console.error('💥 ERROR createChat - EXCEÇÃO capturada:', {
         message: error.message,
         stack: error.stack,
+        response: error.response,
         error
       });
       
+      // Capturar detalhes do erro HTTP (se for erro axios/fetch)
+      const errorDetails = {
+        message: error.message,
+        stack: error.stack,
+        fullError: error.toString(),
+        httpStatus: error.response?.status || null,
+        responseData: error.response?.data || null,
+        responseText: error.response?.data ? JSON.stringify(error.response.data) : null
+      };
+      
       setDebugInfo(prev => ({
         ...prev,
-        lastError: {
-          message: error.message,
-          stack: error.stack,
-          fullError: error.toString()
-        }
+        lastError: errorDetails,
+        httpStatus: error.response?.status || null,
+        responseText: errorDetails.responseText
       }));
       
       toast.error(`Erro ao criar chat: ${error.message}`);
@@ -403,16 +434,27 @@ export default function DevSeed() {
             
             <div className="space-y-3 text-xs">
               {/* Status Header com Version e Step */}
-              {debugInfo.lastResponse && (
-                <div className="flex gap-2 mb-3">
-                  {debugInfo.lastResponse.version && (
+              {debugInfo.httpStatus && (
+                <div className="flex gap-2 mb-3 flex-wrap">
+                  <div className={`px-3 py-1 rounded-full border ${
+                    debugInfo.httpStatus === 200 
+                      ? 'bg-green-500/20 border-green-500/30' 
+                      : 'bg-red-500/20 border-red-500/30'
+                  }`}>
+                    <span className={`font-mono text-[10px] ${
+                      debugInfo.httpStatus === 200 ? 'text-green-300' : 'text-red-300'
+                    }`}>
+                      HTTP {debugInfo.httpStatus}
+                    </span>
+                  </div>
+                  {debugInfo.lastResponse?.version && (
                     <div className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30">
                       <span className="text-purple-300 font-mono text-[10px]">
                         {debugInfo.lastResponse.version}
                       </span>
                     </div>
                   )}
-                  {debugInfo.lastResponse.step && (
+                  {debugInfo.lastResponse?.step && (
                     <div className={`px-3 py-1 rounded-full border ${
                       debugInfo.lastResponse.ok 
                         ? 'bg-green-500/20 border-green-500/30' 
@@ -425,7 +467,7 @@ export default function DevSeed() {
                       </span>
                     </div>
                   )}
-                  {debugInfo.lastResponse.ok !== undefined && (
+                  {debugInfo.lastResponse?.ok !== undefined && (
                     <div className={`px-3 py-1 rounded-full border ${
                       debugInfo.lastResponse.ok 
                         ? 'bg-green-500/20 border-green-500/30' 
@@ -449,16 +491,30 @@ export default function DevSeed() {
               </div>
 
               <div>
-                <p className="text-[#F2F2F2]/60 mb-1">Last Request Payload:</p>
+                <p className="text-[#F2F2F2]/60 mb-1">HTTP Status:</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-cyan-300 overflow-x-auto">
+                  {debugInfo.httpStatus !== null ? String(debugInfo.httpStatus) : 'null'}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Request Payload:</p>
                 <pre className="bg-[#0D0D0D] p-2 rounded text-blue-300 overflow-x-auto">
                   {debugInfo.lastRequestPayload ? JSON.stringify(debugInfo.lastRequestPayload, null, 2) : 'null'}
                 </pre>
               </div>
 
               <div>
-                <p className="text-[#F2F2F2]/60 mb-1">Last Response (Full JSON):</p>
+                <p className="text-[#F2F2F2]/60 mb-1">Response Text (Raw):</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-yellow-300 overflow-x-auto max-h-40">
+                  {debugInfo.responseText || 'null'}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Parsed JSON:</p>
                 <pre className="bg-[#0D0D0D] p-2 rounded text-green-300 overflow-x-auto max-h-60">
-                  {debugInfo.lastResponse ? JSON.stringify(debugInfo.lastResponse, null, 2) : 'null'}
+                  {debugInfo.parsedJson ? JSON.stringify(debugInfo.parsedJson, null, 2) : 'null'}
                 </pre>
               </div>
 
