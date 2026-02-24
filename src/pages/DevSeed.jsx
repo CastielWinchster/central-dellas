@@ -73,12 +73,12 @@ export default function DevSeed() {
         alert(
           'INSTRUÇÕES DE REGISTRO:\n\n' +
           'Os usuários de teste precisam ser registrados manualmente:\n\n' +
-          '1. Passageira:\n' +
-          '   Email: passageira.teste@centraldellas.dev\n' +
-          '   Senha: Central@12345\n\n' +
+          '1. Passageiro:\n' +
+          '   Email: luishcosta3@gmail.com\n' +
+          '   Senha: (definida por você)\n\n' +
           '2. Motorista:\n' +
-          '   Email: motorista.teste@centraldellas.dev\n' +
-          '   Senha: Central@12345\n\n' +
+          '   Email: rossideh77@gmail.com\n' +
+          '   Senha: (definida por você)\n\n' +
           'Faça logout e registre cada um na tela de login correspondente.'
         );
       }
@@ -355,9 +355,9 @@ export default function DevSeed() {
                 <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
                   <p className="text-xs text-blue-200">
                     <strong>Credenciais:</strong><br />
-                    Passageira: passageira.teste@centraldellas.dev<br />
-                    Motorista: motorista.teste@centraldellas.dev<br />
-                    Senha (ambos): Central@12345
+                    Passageiro: luishcosta3@gmail.com<br />
+                    Motorista: rossideh77@gmail.com<br />
+                    Senha: (definida por cada usuário)
                   </p>
                 </div>
               </div>
