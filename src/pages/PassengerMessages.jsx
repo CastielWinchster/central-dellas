@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { MessageCircle, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MessageCircle, ChevronRight, Code } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
 import moment from 'moment';
+import { Button } from '@/components/ui/button';
+
+const DEV_ALLOWED_EMAILS = ['luishcosta3@gmail.com'];
+const DEV_GIRLFRIEND_EMAIL = 'rossideh77@gmail.com';
 
 export default function PassengerMessages() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creatingDevChat, setCreatingDevChat] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -88,6 +94,72 @@ export default function PassengerMessages() {
     return message.text || '';
   };
 
+  const handleCreateDevChat = async () => {
+    setCreatingDevChat(true);
+    try {
+      const me = await base44.auth.me();
+      
+      // Buscar a outra usuária por email
+      const otherUsers = await base44.entities.User.filter({ 
+        email: DEV_GIRLFRIEND_EMAIL 
+      });
+      
+      if (otherUsers.length === 0) {
+        toast.error('Usuária não encontrada');
+        return;
+      }
+      
+      const otherId = otherUsers[0].id;
+      const otherName = otherUsers[0].full_name || otherUsers[0].email;
+      
+      // Buscar conversa existente
+      const existingConvos = await base44.entities.Conversation.filter({
+        $or: [
+          { passenger_id: me.id, driver_id: otherId },
+          { passenger_id: otherId, driver_id: me.id }
+        ]
+      });
+      
+      let conversation;
+      
+      if (existingConvos.length > 0) {
+        // Reutilizar conversa existente
+        conversation = existingConvos[0];
+        console.log('♻️ Reutilizando conversa:', conversation.id);
+      } else {
+        // Criar nova conversa (ride_id não é mais obrigatório)
+        conversation = await base44.entities.Conversation.create({
+          passenger_id: me.id,
+          driver_id: otherId,
+          status: 'active',
+          kind: 'test'
+        });
+        console.log('✅ Conversa criada:', conversation.id);
+      }
+      
+      // Criar mensagem "Oi"
+      await base44.entities.Message.create({
+        conversation_id: conversation.id,
+        sender_id: me.id,
+        type: 'text',
+        text: 'Oi',
+        status: 'visible',
+        is_read: false
+      });
+      
+      toast.success(`Chat iniciado com ${otherName}!`);
+      
+      // Navegar para o chat
+      navigate(createPageUrl(`Chat?conversation=${conversation.id}`));
+      
+    } catch (error) {
+      console.error('Erro ao criar chat dev:', error);
+      toast.error(`Erro: ${error.message}`);
+    } finally {
+      setCreatingDevChat(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
@@ -96,10 +168,25 @@ export default function PassengerMessages() {
     );
   }
 
+  const isDevUser = user && DEV_ALLOWED_EMAILS.includes(user.email);
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-[#F2F2F2] mb-6">Mensagens</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-[#F2F2F2]">Mensagens</h1>
+          
+          {isDevUser && (
+            <Button
+              onClick={handleCreateDevChat}
+              disabled={creatingDevChat}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+            >
+              <Code className="w-4 h-4" />
+              {creatingDevChat ? 'Criando...' : 'DEV: Chat com Rossi'}
+            </Button>
+          )}
+        </div>
 
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
