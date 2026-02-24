@@ -8,15 +8,13 @@ const ALLOWED_EMAILS = [
 
 const TEST_USERS = {
   passenger: {
-    email: 'passageira.teste@centraldellas.dev',
-    password: 'Central@12345',
-    full_name: 'Passageira Teste',
+    email: 'luishcosta3@gmail.com',
+    full_name: 'Luis Costa',
     role: 'passenger'
   },
   driver: {
-    email: 'motorista.teste@centraldellas.dev',
-    password: 'Central@12345',
-    full_name: 'Motorista Teste',
+    email: 'rossideh77@gmail.com',
+    full_name: 'Rossi Dellas',
     role: 'driver'
   }
 };
@@ -100,11 +98,7 @@ async function createTestUsers(base44) {
       // O usuário precisará se registrar manualmente na primeira vez
       results[type] = {
         created: false,
-        message: 'Usuário precisa se registrar manualmente com email: ' + userData.email,
-        credentials: {
-          email: userData.email,
-          password: userData.password
-        }
+        message: 'Usuário precisa se registrar manualmente com email: ' + userData.email
       };
 
     } catch (error) {
