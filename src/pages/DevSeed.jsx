@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 
-const ALLOWED_EMAILS = ['dellasadvogadas@gmail.com'];
+const ALLOWED_EMAILS = ['dellasadvogadas@gmail.com', 'luishcosta3@gmail.com', 'rossideh77@gmail.com'];
 
 export default function DevSeed() {
   const [user, setUser] = useState(null);
