@@ -44,18 +44,62 @@ export default function PassengerHome() {
   return (
     <div className="min-h-screen pb-24 md:pb-10">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#8C0D60]/30 via-[#0D0D0D] to-[#0D0D0D]" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#F22998]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#BF3B79]/10 rounded-full blur-3xl" />
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+        {/* Animated Gradient Background */}
+        <div className="absolute inset-0 animated-gradient" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20">
+        <style>{`
+          @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          
+          .animated-gradient {
+            background: linear-gradient(135deg, #8C0D60 0%, #BF3B79 25%, #F22998 50%, #8C0D60 75%, #0D0D0D 100%);
+            background-size: 300% 300%;
+            animation: gradientMove 25s ease infinite;
+          }
+          
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes floatSubtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+          }
+          
+          .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+          }
+          
+          .float-subtle {
+            animation: floatSubtle 3s ease-in-out infinite;
+          }
+          
+          .logo-glass {
+            background: rgba(13, 13, 13, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(242, 41, 152, 0.1);
+          }
+        `}</style>
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 w-full">
           <div className="grid md:grid-cols-2 gap-10 items-center">
+            {/* Left: Text Content */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center md:text-left"
+              className="text-center md:text-left fade-in-up"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -106,46 +150,39 @@ export default function PassengerHome() {
               </div>
             </motion.div>
 
+            {/* Right: Logos */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative hidden md:block"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="relative hidden md:flex flex-col items-center justify-center gap-6 py-12 fade-in-up"
             >
-              <div className="relative">
-                <motion.div
-                  animate={{ 
-                    y: [0, -10, 0],
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="relative z-10"
-                >
-                  <div className="w-80 h-80 mx-auto rounded-full bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 flex items-center justify-center">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                      className="w-64 h-64 rounded-full border-2 border-dashed border-[#F22998]/30 flex items-center justify-center"
-                    >
-                      <Car className="w-32 h-32 text-[#F22998]" />
-                    </motion.div>
-                  </div>
-                </motion.div>
-                
-                {/* Floating elements */}
-                <motion.div
-                  animate={{ y: [0, 15, 0], x: [0, 10, 0] }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                  className="absolute top-10 right-10 p-3 rounded-xl glass-effect"
-                >
-                  <Star className="w-6 h-6 text-[#F22998]" />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, -15, 0], x: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-                  className="absolute bottom-20 left-10 p-3 rounded-xl glass-effect"
-                >
-                  <Shield className="w-6 h-6 text-[#BF3B79]" />
-                </motion.div>
+              {/* Logo Central Dellas */}
+              <div className="logo-glass rounded-3xl p-8 float-subtle">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a971de28c_centraltranspa.png"
+                  alt="Central Dellas"
+                  className="w-80 h-auto object-contain"
+                />
+              </div>
+
+              {/* Texto de Parceria */}
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-sm text-[#F2F2F2]/60 font-light tracking-wide"
+              >
+                Em parceria com
+              </motion.p>
+
+              {/* Logo Rotta Roza */}
+              <div className="logo-glass rounded-3xl p-6 float-subtle" style={{ animationDelay: '1s' }}>
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/1d47fa63e_Rota.png"
+                  alt="Rotta Roza"
+                  className="w-48 h-auto object-contain"
+                />
               </div>
             </motion.div>
           </div>
@@ -226,31 +263,7 @@ export default function PassengerHome() {
         </motion.div>
       </section>
 
-      {/* Stats */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { value: '50K+', label: 'Corridas Realizadas' },
-            { value: '10K+', label: 'Passageiras Ativas' },
-            { value: '2K+', label: 'Motoristas Parceiras' },
-            { value: '4.9', label: 'Avaliação Média' }
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="text-center p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#F22998]/10"
-            >
-              <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#BF3B79] to-[#F22998] bg-clip-text text-transparent">
-                {stat.value}
-              </p>
-              <p className="text-[#F2F2F2]/60 text-sm mt-2">{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+
     </div>
   );
 }
