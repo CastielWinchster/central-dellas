@@ -49,28 +49,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Messages', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <motion.div
-            animate={{ x: [0, 50, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="mb-4"
-          >
-            <Car className="w-16 h-16 text-[#F22998]" />
-          </motion.div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#BF3B79] to-[#F22998] bg-clip-text text-transparent">
-            Central Dellas
-          </h1>
-        </motion.div>
-      </div>
-    );
-  }
+  // Não bloquear o carregamento se não houver usuário (app público)
 
   const isDark = user?.theme !== 'light';
 
