@@ -70,7 +70,6 @@ import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerMessages from './pages/PassengerMessages';
 import PassengerNotifications from './pages/PassengerNotifications';
-import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
 import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
@@ -108,7 +107,6 @@ export const PAGES = {
     "PassengerLogin": PassengerLogin,
     "PassengerMessages": PassengerMessages,
     "PassengerNotifications": PassengerNotifications,
-    "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
     "PassengerSafety": PassengerSafety,
     "PassengerSecurity": PassengerSecurity,
