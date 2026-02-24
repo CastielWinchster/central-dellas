@@ -54,7 +54,6 @@ import CardsAndPix from './pages/CardsAndPix';
 import Chat from './pages/Chat';
 import CustomLogin from './pages/CustomLogin';
 import CustomSignup from './pages/CustomSignup';
-import DevSeed from './pages/DevSeed';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverLogin from './pages/DriverLogin';
@@ -85,6 +84,7 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
+import DevSeed from './pages/DevSeed';
 import __Layout from './Layout.jsx';
 
 
@@ -96,7 +96,6 @@ export const PAGES = {
     "Chat": Chat,
     "CustomLogin": CustomLogin,
     "CustomSignup": CustomSignup,
-    "DevSeed": DevSeed,
     "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverLogin": DriverLogin,
@@ -127,6 +126,7 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
+    "DevSeed": DevSeed,
 }
 
 export const pagesConfig = {
