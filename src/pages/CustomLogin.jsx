@@ -43,11 +43,41 @@ export default function CustomLogin() {
     setLoading(true);
     
     try {
-      // Login usando Base44 Auth
-      await base44.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      // Bypass para emails .dev - criar conta automaticamente se não existir
+      if (formData.email.endsWith('.dev')) {
+        try {
+          await base44.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+        } catch (loginError) {
+          // Se falhar login, tentar criar a conta automaticamente
+          console.log('Conta .dev não existe, criando automaticamente...');
+          await base44.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+              data: {
+                full_name: formData.email.split('@')[0],
+                role: 'passenger'
+              },
+              emailRedirectTo: undefined // Skip email verification
+            }
+          });
+          
+          // Login após criar
+          await base44.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+        }
+      } else {
+        // Login normal
+        await base44.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+      }
       
       toast.success('Login realizado com sucesso!');
       window.location.href = createPageUrl('PassengerHome');

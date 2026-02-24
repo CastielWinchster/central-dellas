@@ -55,8 +55,8 @@ export default function CustomSignup() {
     setLoading(true);
     
     try {
-      // Criar conta usando Base44 Auth
-      const { user } = await base44.auth.signUp({
+      // Bypass de verificação de email para emails .dev
+      const signUpOptions = {
         email: formData.email,
         password: formData.password,
         options: {
@@ -65,7 +65,14 @@ export default function CustomSignup() {
             role: 'passenger'
           }
         }
-      });
+      };
+
+      // Para emails .dev, pular verificação de email
+      if (formData.email.endsWith('.dev')) {
+        signUpOptions.options.emailRedirectTo = undefined;
+      }
+
+      const { user } = await base44.auth.signUp(signUpOptions);
 
       // Atualizar o perfil do usuário no User entity
       if (user) {
@@ -77,6 +84,14 @@ export default function CustomSignup() {
         } catch (updateError) {
           console.warn('Erro ao atualizar perfil:', updateError);
         }
+      }
+
+      // Para emails .dev, fazer login automático
+      if (formData.email.endsWith('.dev')) {
+        await base44.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
       }
 
       toast.success('Conta criada com sucesso!');
