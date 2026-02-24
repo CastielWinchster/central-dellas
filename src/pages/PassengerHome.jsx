@@ -353,14 +353,9 @@ export default function PassengerHome() {
               description: 'Pequenas encomendas entregues com agilidade e cuidado.'
             },
             {
-              icon: Calendar,
-              title: 'Planos Mensais',
-              description: 'Assinaturas fixas com economia e praticidade.'
-            },
-            {
               icon: Sparkles,
-              title: 'Touca Higiênica',
-              description: 'Produto opcional disponível para sua comodidade.'
+              title: 'Touca Higiênica (Para Motos)',
+              description: 'Produto disponível para sua comodidade.'
             }
           ].map((service, idx) => (
             <motion.div
