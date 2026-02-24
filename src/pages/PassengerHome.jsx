@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -17,59 +17,38 @@ export default function PassengerHome() {
   const { user } = useAuthUser();
 
   const [showPreLaunchModal, setShowPreLaunchModal] = useState(false);
-  const [couponNotification, setCouponNotification] = useState(null);
-  const location = useLocation();
 
   useEffect(() => {
-    checkCouponNotification();
-  }, [location]);
+    // Verificar se é primeira visita
+    const hasSeenModal = localStorage.getItem('hasSeenPreLaunchModal');
+    if (!hasSeenModal) {
+      setTimeout(() => setShowPreLaunchModal(true), 1500);
+    }
+  }, []);
 
-  const checkCouponNotification = async () => {
+  const handleSaveCoupon = async () => {
     try {
       const userData = await base44.auth.me();
       
-      // Buscar notificação de cupom não usada
-      const notifications = await base44.entities.Notification.filter({
+      // Criar notificação persistente
+      await base44.entities.Notification.create({
         user_id: userData.id,
+        title: '🎉 Cupom de Boas-Vindas',
+        message: 'Seu cupom PRIMEIRA VELOZ está ativo! Use na sua primeira corrida e ganhe 50% de desconto.',
         type: 'coupon',
-        coupon_used: false
+        is_persistent: true,
+        is_read: false
       });
       
-      if (notifications.length > 0) {
-        const couponNotif = notifications[0];
-        setCouponNotification(couponNotif);
-        setTimeout(() => setShowPreLaunchModal(true), 1500);
-      } else {
-        // Criar notificação na primeira visita
-        const hasCreatedCoupon = localStorage.getItem('couponCreated');
-        if (!hasCreatedCoupon) {
-          const newNotification = await base44.entities.Notification.create({
-            user_id: userData.id,
-            title: '🎉 Cupom de Boas-Vindas',
-            message: 'Seu cupom PRIMEIRA VELOZ está ativo! Use na sua primeira corrida e ganhe 50% de desconto.',
-            type: 'coupon',
-            is_persistent: true,
-            is_read: false,
-            coupon_code: 'PRIMEIRA VELOZ',
-            coupon_used: false
-          });
-          localStorage.setItem('couponCreated', 'true');
-          setCouponNotification(newNotification);
-          setTimeout(() => setShowPreLaunchModal(true), 1500);
-        }
-      }
+      localStorage.setItem('hasSeenPreLaunchModal', 'true');
+      setShowPreLaunchModal(false);
+      toast.success('Cupom PRIMEIRA VELOZ salvo! Verifique suas notificações.');
     } catch (error) {
-      console.error('Erro ao verificar cupom:', error);
+      console.error('Erro ao salvar cupom:', error);
+      localStorage.setItem('hasSeenPreLaunchModal', 'true');
+      setShowPreLaunchModal(false);
+      toast.success('Cupom PRIMEIRA VELOZ salvo!');
     }
-  };
-
-  const handleSaveCoupon = () => {
-    setShowPreLaunchModal(false);
-    toast.success('Cupom salvo! Encontre na aba de notificações.');
-  };
-  
-  const handleCloseCouponModal = () => {
-    setShowPreLaunchModal(false);
   };
 
   return (
@@ -83,7 +62,10 @@ export default function PassengerHome() {
             className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#F22998]/30 overflow-hidden"
           >
             <button
-              onClick={handleCloseCouponModal}
+              onClick={() => {
+                localStorage.setItem('hasSeenPreLaunchModal', 'true');
+                setShowPreLaunchModal(false);
+              }}
               className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#F22998]/10 hover:bg-[#F22998]/20 flex items-center justify-center transition-colors"
             >
               <X className="w-4 h-4 text-[#F22998]" />

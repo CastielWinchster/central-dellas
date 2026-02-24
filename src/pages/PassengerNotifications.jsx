@@ -101,12 +101,6 @@ export default function PassengerNotifications() {
       markAsRead(notification.id);
     }
     
-    // Se for notificação de cupom, redirecionar para home que abrirá o modal
-    if (notification.type === 'coupon' && !notification.coupon_used) {
-      navigate(createPageUrl('PassengerHome'));
-      return;
-    }
-    
     if (notification.related_link) {
       navigate(notification.related_link);
     }
