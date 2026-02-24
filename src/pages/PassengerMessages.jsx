@@ -1,42 +1,92 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { MessageCircle, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { Send, User, Circle, MessageCircle, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
+import moment from 'moment';
 
 export default function PassengerMessages() {
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-        await loadConversations(userData.id);
-      } catch (e) {
-        base44.auth.redirectToLogin();
-      }
-      setLoading(false);
-    };
     loadData();
   }, []);
 
-  const loadConversations = async (userId) => {
-    const userRides = await base44.entities.Ride.filter({
-      passenger_id: userId
-    }, '-updated_date', 50);
-    
-    const filtered = userRides.filter(r => r.status !== 'cancelled');
-    setConversations(filtered);
+  const loadData = async () => {
+    try {
+      const userData = await base44.auth.me();
+      setUser(userData);
+
+      // Buscar conversas onde usuário é participante
+      const allConvos = await base44.entities.Conversation.filter({
+        $or: [
+          { passenger_id: userData.id },
+          { driver_id: userData.id }
+        ]
+      }, '-created_date');
+
+      // Buscar última mensagem e contagem de não lidas para cada conversa
+      const convosWithData = await Promise.all(
+        allConvos.map(async (convo) => {
+          const messages = await base44.entities.Message.filter(
+            { conversation_id: convo.id },
+            '-created_date',
+            1
+          );
+
+          const unreadMessages = await base44.entities.Message.filter({
+            conversation_id: convo.id,
+            sender_id: { $ne: userData.id },
+            is_read: false
+          });
+
+          // Buscar dados do outro participante
+          const otherUserId = convo.passenger_id === userData.id 
+            ? convo.driver_id 
+            : convo.passenger_id;
+          
+          let otherUser = null;
+          try {
+            const users = await base44.entities.User.filter({ id: otherUserId });
+            otherUser = users[0];
+          } catch (error) {
+            console.error('Erro ao buscar usuário:', error);
+          }
+
+          return {
+            ...convo,
+            lastMessage: messages[0] || null,
+            unreadCount: unreadMessages.length,
+            otherUser
+          };
+        })
+      );
+
+      setConversations(convosWithData);
+    } catch (error) {
+      console.error('Erro ao carregar conversas:', error);
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        base44.auth.redirectToLogin();
+      } else {
+        toast.error('Erro ao carregar conversas');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const isDark = user?.theme !== 'light';
+  const getLastMessageText = (message) => {
+    if (!message) return 'Nenhuma mensagem ainda';
+    if (message.status === 'removed') return 'Mensagem deletada por conteúdo ofensivo';
+    if (message.type === 'image') return '📷 Foto';
+    if (message.type === 'audio') return '🎤 Áudio';
+    if (message.type === 'system') return message.text;
+    return message.text || '';
+  };
 
   if (loading) {
     return (
@@ -47,92 +97,80 @@ export default function PassengerMessages() {
   }
 
   return (
-    <div className={`min-h-screen pb-24 md:pb-10 ${isDark ? 'bg-[#0D0D0D]' : 'bg-gray-50'}`}>
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-center gap-4"
-        >
-          <button 
-            onClick={() => navigate(createPageUrl('PassengerDashboard'))}
-            className="p-2 rounded-lg hover:bg-[#F22998]/10"
-          >
-            <ArrowLeft className="w-5 h-5 text-[#F2F2F2]" />
-          </button>
-          <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-              Mensagens
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
-              Conversas com suas motoristas
-            </p>
-          </div>
-        </motion.div>
+    <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <h1 className="text-2xl font-bold text-[#F2F2F2] mb-6">Mensagens</h1>
 
         {conversations.length === 0 ? (
-          <Card className={`p-8 rounded-3xl text-center ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white border-gray-200'}`}>
-            <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-[#F2F2F2]/30' : 'text-gray-300'}`} />
-            <p className={isDark ? 'text-[#F2F2F2]/50' : 'text-gray-500'}>
-              Nenhuma conversa ainda
-            </p>
-            <p className={`text-sm mt-2 ${isDark ? 'text-[#F2F2F2]/40' : 'text-gray-400'}`}>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-20 h-20 rounded-full bg-[#F22998]/10 flex items-center justify-center mb-4">
+              <MessageCircle className="w-10 h-10 text-[#F22998]/50" />
+            </div>
+            <p className="text-[#F2F2F2]/60 text-center">Nenhuma conversa ainda</p>
+            <p className="text-[#F2F2F2]/40 text-sm text-center mt-2">
               Suas conversas com motoristas aparecerão aqui
             </p>
-          </Card>
+          </div>
         ) : (
           <div className="space-y-3">
-            {conversations.map((conv) => (
-              <motion.button
-                key={conv.id}
+            {conversations.map((convo, index) => (
+              <motion.div
+                key={convo.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() => navigate(createPageUrl('PassengerChat') + '?ride=' + conv.id)}
-                className={`w-full p-4 rounded-2xl text-left transition-all ${
-                  isDark 
-                    ? 'bg-[#F2F2F2]/5 hover:bg-[#F22998]/10 border border-[#F22998]/10' 
-                    : 'bg-white hover:bg-gray-50 border border-gray-200'
-                }`}
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${isDark ? 'bg-[#F22998]/20' : 'bg-gray-200'}`}>
-                    <User className="w-7 h-7 text-[#F22998]" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className={`font-semibold ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
-                        Corrida para {conv.destination_address?.split(',')[0] || 'Destino'}
-                      </p>
-                      {conv.status === 'in_progress' && (
-                        <Circle className="w-3 h-3 fill-green-500 text-green-500 animate-pulse" />
+                <Link
+                  to={createPageUrl(`Chat?conversation=${convo.id}`)}
+                  className="block p-4 rounded-2xl bg-[#1A1A1A] border border-[#F22998]/20 hover:border-[#F22998]/40 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F22998] flex-shrink-0">
+                      {convo.otherUser?.photo_url ? (
+                        <img 
+                          src={convo.otherUser.photo_url} 
+                          alt="" 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                          <MessageCircle className="w-6 h-6 text-white" />
+                        </div>
                       )}
                     </div>
-                    
-                    <p className={`text-sm truncate ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
-                      {conv.pickup_address?.substring(0, 40)}...
-                    </p>
-                    
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        conv.status === 'in_progress' 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : conv.status === 'completed'
-                          ? 'bg-gray-500/20 text-gray-400'
-                          : 'bg-blue-500/20 text-blue-400'
-                      }`}>
-                        {conv.status === 'in_progress' ? 'Em andamento' : 
-                         conv.status === 'completed' ? 'Concluída' : 
-                         conv.status === 'arriving' ? 'Motorista chegando' : 'Aceita'}
-                      </span>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-[#F2F2F2] truncate">
+                          {convo.otherUser?.full_name || 'Usuária'}
+                        </h3>
+                        {convo.lastMessage && (
+                          <span className="text-xs text-[#F2F2F2]/40 ml-2">
+                            {moment(convo.lastMessage.created_date).fromNow()}
+                          </span>
+                        )}
+                      </div>
                       
-                      <span className={`text-xs ${isDark ? 'text-[#F2F2F2]/40' : 'text-gray-400'}`}>
-                        {new Date(conv.created_date).toLocaleDateString('pt-BR')}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm truncate ${convo.unreadCount > 0 ? 'text-[#F2F2F2] font-medium' : 'text-[#F2F2F2]/60'}`}>
+                          {getLastMessageText(convo.lastMessage)}
+                        </p>
+                        
+                        <div className="flex items-center gap-2 ml-2">
+                          {convo.unreadCount > 0 && (
+                            <div className="w-5 h-5 rounded-full bg-[#F22998] flex items-center justify-center">
+                              <span className="text-xs text-white font-bold">
+                                {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
+                              </span>
+                            </div>
+                          )}
+                          <ChevronRight className="w-4 h-4 text-[#F22998]" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.button>
+                </Link>
+              </motion.div>
             ))}
           </div>
         )}

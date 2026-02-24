@@ -81,6 +81,7 @@ import TrackRide from './pages/TrackRide';
 import PassengerOptions from './pages/PassengerOptions';
 import PassengerHome from './pages/PassengerHome';
 import PassengerNotifications from './pages/PassengerNotifications';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
@@ -119,6 +120,7 @@ export const PAGES = {
     "PassengerOptions": PassengerOptions,
     "PassengerHome": PassengerHome,
     "PassengerNotifications": PassengerNotifications,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {
