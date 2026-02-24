@@ -17,19 +17,49 @@ export default function PassengerHome() {
   const { user } = useAuthUser();
 
   const [showPreLaunchModal, setShowPreLaunchModal] = useState(false);
+  const [couponNotificationId, setCouponNotificationId] = useState(null);
 
   useEffect(() => {
-    // Verificar se é primeira visita
-    const hasSeenModal = localStorage.getItem('hasSeenPreLaunchModal');
-    if (!hasSeenModal) {
-      setTimeout(() => setShowPreLaunchModal(true), 1500);
-    }
+    checkCouponNotification();
   }, []);
 
+  const checkCouponNotification = async () => {
+    try {
+      const userData = await base44.auth.me();
+      if (!userData) return;
+
+      // Buscar notificação de cupom existente
+      const notifications = await base44.entities.Notification.filter({
+        user_id: userData.id,
+        type: 'coupon',
+        title: 'Obrigada por apoiar nosso lançamento!'
+      });
+
+      if (notifications.length > 0) {
+        // Já existe notificação, apenas mostrar modal
+        setCouponNotificationId(notifications[0].id);
+        setShowPreLaunchModal(true);
+      } else {
+        // Criar nova notificação
+        const newNotification = await base44.entities.Notification.create({
+          user_id: userData.id,
+          title: 'Obrigada por apoiar nosso lançamento!',
+          message: 'Cupom PRIMEIRA VELOZ: 50% OFF na primeira corrida. De mulher para mulher, sua segurança é nossa prioridade.',
+          type: 'coupon',
+          is_persistent: true,
+          is_read: false
+        });
+        setCouponNotificationId(newNotification.id);
+        setShowPreLaunchModal(true);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar cupom:', error);
+    }
+  };
+
   const handleSaveCoupon = () => {
-    localStorage.setItem('hasSeenPreLaunchModal', 'true');
     setShowPreLaunchModal(false);
-    toast.success('Cupom PRIMEIRA VELOZ salvo! Use na sua primeira corrida.');
+    toast.success('Cupom PRIMEIRA VELOZ salvo! Confira na aba de Notificações.');
   };
 
   return (
@@ -43,10 +73,7 @@ export default function PassengerHome() {
             className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#F22998]/30 overflow-hidden"
           >
             <button
-              onClick={() => {
-                localStorage.setItem('hasSeenPreLaunchModal', 'true');
-                setShowPreLaunchModal(false);
-              }}
+              onClick={() => setShowPreLaunchModal(false)}
               className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#F22998]/10 hover:bg-[#F22998]/20 flex items-center justify-center transition-colors"
             >
               <X className="w-4 h-4 text-[#F22998]" />

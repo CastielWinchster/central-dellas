@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuthUser, AuthProvider } from '@/components/AuthProvider';
 
-const NotificationBell = lazy(() => import('./components/NotificationBell'));
+
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
 
@@ -194,9 +194,6 @@ function LayoutContent({ children, currentPageName }) {
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
-                  <Suspense fallback={<div className="w-10 h-10" />}>
-                    <NotificationBell userId={user.id} />
-                  </Suspense>
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />

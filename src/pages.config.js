@@ -66,11 +66,8 @@ import Notifications from './pages/Notifications';
 import PassengerChat from './pages/PassengerChat';
 import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHelp from './pages/PassengerHelp';
-import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
 import PassengerMessages from './pages/PassengerMessages';
-import PassengerNotifications from './pages/PassengerNotifications';
-import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
 import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
@@ -81,6 +78,9 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
+import PassengerOptions from './pages/PassengerOptions';
+import PassengerHome from './pages/PassengerHome';
+import PassengerNotifications from './pages/PassengerNotifications';
 import __Layout from './Layout.jsx';
 
 
@@ -104,11 +104,8 @@ export const PAGES = {
     "PassengerChat": PassengerChat,
     "PassengerDashboard": PassengerDashboard,
     "PassengerHelp": PassengerHelp,
-    "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
     "PassengerMessages": PassengerMessages,
-    "PassengerNotifications": PassengerNotifications,
-    "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
     "PassengerSafety": PassengerSafety,
     "PassengerSecurity": PassengerSecurity,
@@ -119,6 +116,9 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
+    "PassengerOptions": PassengerOptions,
+    "PassengerHome": PassengerHome,
+    "PassengerNotifications": PassengerNotifications,
 }
 
 export const pagesConfig = {
