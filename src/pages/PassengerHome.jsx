@@ -27,7 +27,6 @@ export default function PassengerHome() {
   const checkCouponNotification = async () => {
     try {
       const userData = await base44.auth.me();
-      if (!userData) return;
       
       // Buscar notificação de cupom não usada
       const notifications = await base44.entities.Notification.filter({
@@ -37,19 +36,13 @@ export default function PassengerHome() {
       });
       
       if (notifications.length > 0) {
-        // Já existe notificação de cupom - mostrar modal sempre
         const couponNotif = notifications[0];
         setCouponNotification(couponNotif);
-        setTimeout(() => setShowPreLaunchModal(true), 1000);
+        setTimeout(() => setShowPreLaunchModal(true), 1500);
       } else {
-        // Verificar se já foi usado/deletado
-        const allCouponNotifications = await base44.entities.Notification.filter({
-          user_id: userData.id,
-          type: 'coupon'
-        });
-        
-        if (allCouponNotifications.length === 0) {
-          // Primeira vez - criar notificação
+        // Criar notificação na primeira visita
+        const hasCreatedCoupon = localStorage.getItem('couponCreated');
+        if (!hasCreatedCoupon) {
           const newNotification = await base44.entities.Notification.create({
             user_id: userData.id,
             title: '🎉 Cupom de Boas-Vindas',
@@ -57,11 +50,12 @@ export default function PassengerHome() {
             type: 'coupon',
             is_persistent: true,
             is_read: false,
-            coupon_code: 'PRIMEIRAVELOZ',
+            coupon_code: 'PRIMEIRA VELOZ',
             coupon_used: false
           });
+          localStorage.setItem('couponCreated', 'true');
           setCouponNotification(newNotification);
-          setTimeout(() => setShowPreLaunchModal(true), 1000);
+          setTimeout(() => setShowPreLaunchModal(true), 1500);
         }
       }
     } catch (error) {

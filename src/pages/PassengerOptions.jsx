@@ -1,78 +1,169 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import { 
-  X, User, MapPin, Calendar, CreditCard, Heart, 
-  Shield, HelpCircle, Bell, Settings, LogOut, ChevronRight
+  User, CreditCard, Heart, MapPin, Shield, Lock, Bell, 
+  Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
+  Clock, Star, History, UserX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 export default function PassengerOptions() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const userData = await base44.auth.me();
-      setUser(userData);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-        base44.auth.redirectToLogin();
-      } else {
-        toast.error('Erro ao carregar dados do usuário');
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        
+        setUser(userData);
+      } catch (e) {
+        if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
+          base44.auth.redirectToLogin();
+        } else {
+          toast.error('Erro ao carregar dados');
+        }
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    loadUser();
+  }, []);
 
   const menuSections = [
     {
-      title: 'Minha Conta',
+      title: '🚀 AÇÕES RÁPIDAS',
       items: [
-        { icon: User, label: 'Perfil', description: 'Editar informações pessoais', page: 'PassengerProfile' },
-        { icon: Bell, label: 'Notificações', description: 'Ver todas as notificações', page: 'PassengerNotifications' }
+        { 
+          icon: MapPin, 
+          label: 'Chamar Agora', 
+          description: 'Corrida imediata',
+          page: 'RequestRide'
+        },
+        { 
+          icon: Clock, 
+          label: 'Agendar Corrida', 
+          description: 'Até 30 dias',
+          page: 'ScheduleRide'
+        }
       ]
     },
     {
-      title: 'Minhas Corridas',
+      title: '📊 PRINCIPAL',
       items: [
-        { icon: MapPin, label: 'Locais Favoritos', description: 'Gerenciar endereços salvos', page: 'FavoritePlaces' },
-        { icon: Calendar, label: 'Agendar Corrida', description: 'Programar viagens futuras', page: 'ScheduleRide' },
-        { icon: Heart, label: 'Motoristas Favoritas', description: 'Suas motoristas preferidas', page: 'FavoriteDrivers' }
+        { 
+          icon: History, 
+          label: 'Histórico', 
+          description: 'Ver minhas corridas',
+          page: 'RideHistory'
+        }
       ]
     },
     {
-      title: 'Pagamentos',
+      title: '👤 MEU PERFIL',
       items: [
-        { icon: CreditCard, label: 'Cartões e Pix', description: 'Gerenciar formas de pagamento', page: 'CardsAndPix' }
+        { 
+          icon: User, 
+          label: 'Editar Perfil', 
+          description: 'Atualizar informações pessoais',
+          page: 'PassengerProfile'
+        }
       ]
     },
     {
-      title: 'Segurança e Privacidade',
+      title: '💳 PAGAMENTO',
       items: [
-        { icon: Shield, label: 'Segurança', description: 'Contatos de emergência e configurações', page: 'PassengerSafety' }
+        { 
+          icon: CreditCard, 
+          label: 'Cartões e Pix', 
+          description: 'Gerenciar formas de pagamento',
+          page: 'CardsAndPix'
+        }
       ]
     },
     {
-      title: 'Suporte',
+      title: '⭐ FAVORITOS',
       items: [
-        { icon: HelpCircle, label: 'Ajuda', description: 'Central de ajuda e suporte', page: 'PassengerHelp' },
-        { icon: Settings, label: 'Configurações', description: 'Preferências do aplicativo', page: 'Settings' }
+        { 
+          icon: Heart, 
+          label: 'Motoristas Favoritas', 
+          description: 'Minhas motoristas preferidas',
+          page: 'FavoriteDrivers'
+        },
+        { 
+          icon: MapPin, 
+          label: 'Locais Favoritos', 
+          description: 'Casa, trabalho e mais',
+          page: 'FavoritePlaces'
+        }
+      ]
+    },
+    {
+      title: '🆘 SEGURANÇA',
+      items: [
+        { 
+          icon: Shield, 
+          label: 'Emergência', 
+          description: 'Contatos e recursos de segurança',
+          page: 'PassengerSafety'
+        },
+        { 
+          icon: UserX, 
+          label: 'Bloqueadas', 
+          description: 'Motoristas bloqueadas',
+          page: 'BlockedUsers'
+        }
+      ]
+    },
+    {
+      title: '🔐 CONTA',
+      items: [
+        { 
+          icon: Lock, 
+          label: 'Alterar Senha', 
+          description: 'Atualizar senha de acesso',
+          page: 'PassengerSecurity'
+        }
+      ]
+    },
+    {
+      title: '🔔 NOTIFICAÇÕES',
+      items: [
+        { 
+          icon: Bell, 
+          label: 'Notificações', 
+          description: 'Gerenciar alertas',
+          page: 'PassengerNotifications'
+        }
+      ]
+    },
+    {
+      title: '⚙️ CONFIGURAÇÕES',
+      items: [
+        { 
+          icon: Settings, 
+          label: 'Configurações', 
+          description: 'Tema, idioma e privacidade',
+          page: 'Settings'
+        }
+      ]
+    },
+    {
+      title: '💬 SUPORTE',
+      items: [
+        { 
+          icon: HelpCircle, 
+          label: 'Central de Ajuda', 
+          description: 'FAQ e suporte',
+          page: 'PassengerHelp'
+        }
       ]
     }
   ];
 
-  if (loading) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
@@ -81,95 +172,104 @@ export default function PassengerOptions() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-[#F2F2F2]">Opções</h1>
+    <div className="fixed inset-0 bg-[#0D0D0D] flex flex-col">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#BF3B79] p-4 sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto flex items-center justify-end">
           <Link to={createPageUrl('PassengerHome')}>
-            <Button variant="ghost" size="icon" className="text-[#F2F2F2]">
-              <X className="w-6 h-6" />
+            <Button variant="ghost" size="sm" className="text-[#F2F2F2]">
+              ✕
             </Button>
           </Link>
         </div>
+      </div>
 
-        {/* User Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="p-6 bg-gradient-to-br from-[#BF3B79] to-[#F22998] border-none mb-6">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-4xl mx-auto px-4 py-6 pb-32">
+          {/* Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]"
+          >
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white">
-                {user?.photo_url ? (
+              <div className="w-20 h-20 min-w-[80px] rounded-full overflow-hidden border-4 border-[#F22998] flex-shrink-0">
+                {user.photo_url ? (
                   <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                    <User className="w-8 h-8 text-white" />
+                  <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                    <User className="w-10 h-10 text-white/80" />
                   </div>
                 )}
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">{user?.full_name || 'Usuária'}</h2>
-                <p className="text-white/80 text-sm">{user?.email}</p>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-[#F2F2F2]">{user.full_name}</h2>
+                <p className="text-[#F2F2F2]/60">{user.email}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Shield className="w-4 h-4 text-[#F22998]" />
+                  <span className="text-sm text-[#F22998]">Passageira VIP</span>
+                </div>
               </div>
             </div>
-          </Card>
-        </motion.div>
+          </motion.div>
 
-        {/* Menu Sections */}
-        <div className="space-y-6">
-          {menuSections.map((section, idx) => (
+          {/* Menu Sections */}
+          {menuSections.map((section, sectionIndex) => (
             <motion.div
               key={section.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
+              transition={{ delay: sectionIndex * 0.05 }}
+              className="mb-6"
             >
-              <h3 className="text-sm font-semibold text-[#F2F2F2]/50 uppercase tracking-wider mb-3 px-2">
+              <h3 className="text-xs font-bold text-[#BF3B79] mb-3 uppercase tracking-wider px-2">
                 {section.title}
               </h3>
-              <div className="space-y-2">
-                {section.items.map((item) => (
-                  <Link key={item.page} to={createPageUrl(item.page)}>
-                    <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 hover:border-[#F22998]/40 transition-all cursor-pointer rounded-2xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#F22998]/10 flex items-center justify-center">
-                          <item.icon className="w-5 h-5 text-[#F22998]" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-[#F2F2F2]">{item.label}</h4>
-                          <p className="text-sm text-[#F2F2F2]/60">{item.description}</p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30" />
+              <div className="bg-[#1A1A1A] border border-[#BF3B79] rounded-2xl overflow-hidden">
+                {section.items.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={createPageUrl(item.page)}
+                    className={`flex items-center justify-between p-4 bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-all group ${
+                      index !== section.items.length - 1 ? 'border-b border-[#1A1A1A]' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center group-hover:bg-[#F22998]/30 transition-colors">
+                        <item.icon className="w-6 h-6 text-[#F22998]" />
                       </div>
-                    </Card>
+                      <div>
+                        <p className="font-medium text-[#F2F2F2] text-left">{item.label}</p>
+                        <p className="text-sm text-[#CCCCCC] text-left">{item.description}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
                   </Link>
                 ))}
               </div>
             </motion.div>
           ))}
-        </div>
 
-        {/* Logout Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-8"
-        >
-          <Button
-            onClick={async () => {
-              const loginUrl = window.location.origin + createPageUrl('PassengerLogin');
-              await base44.auth.logout(loginUrl);
-            }}
-            variant="outline"
-            className="w-full border-red-400/30 text-red-400 hover:bg-red-500/10 py-6 rounded-2xl"
+          {/* Logout */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
           >
-            <LogOut className="w-5 h-5 mr-2" />
-            Sair da Conta
-          </Button>
-        </motion.div>
+            <Button
+              onClick={async () => {
+                const loginUrl = window.location.origin + createPageUrl('PassengerLogin');
+                await base44.auth.logout(loginUrl);
+              }}
+              variant="outline"
+              className="w-full py-6 rounded-2xl border-red-500/30 text-red-400 hover:bg-red-500/10 bg-[#2A2A2A]"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Sair da Conta
+            </Button>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

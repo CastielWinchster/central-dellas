@@ -21,22 +21,15 @@ export default function PassengerNotifications() {
   const loadData = async () => {
     try {
       const userData = await base44.auth.me();
-      if (!userData) {
-        base44.auth.redirectToLogin();
-        return;
-      }
       setUser(userData);
       
-      // Carregar notificações
       const userNotifications = await base44.entities.Notification.filter(
         { user_id: userData.id },
         '-created_date'
       );
-      
-      console.log('Notificações carregadas:', userNotifications);
       setNotifications(userNotifications);
     } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
+      console.error('Erro ao carregar:', error);
       if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
         base44.auth.redirectToLogin();
       } else {
