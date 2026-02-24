@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 export default function PassengerOptions() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -21,6 +22,7 @@ export default function PassengerOptions() {
         const userData = await base44.auth.me();
         
         setUser(userData);
+        loadUnreadNotifications(userData.id);
       } catch (e) {
         if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
           base44.auth.redirectToLogin();
@@ -31,6 +33,19 @@ export default function PassengerOptions() {
     };
     loadUser();
   }, []);
+
+  const loadUnreadNotifications = async (userId) => {
+    try {
+      const notifications = await base44.entities.Notification.filter({
+        user_id: userId,
+        is_read: false
+      });
+      
+      setUnreadCount(notifications.length);
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    }
+  };
 
   const menuSections = [
     {
@@ -236,8 +251,13 @@ export default function PassengerOptions() {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center group-hover:bg-[#F22998]/30 transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center group-hover:bg-[#F22998]/30 transition-colors relative">
                         <item.icon className="w-6 h-6 text-[#F22998]" />
+                        {item.page === 'PassengerNotifications' && unreadCount > 0 && (
+                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center">
+                            <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <p className="font-medium text-[#F2F2F2] text-left">{item.label}</p>
