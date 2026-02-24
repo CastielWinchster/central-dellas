@@ -130,7 +130,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "PassengerLogin",
+    mainPage: "PassengerHome",
     Pages: PAGES,
     Layout: __Layout,
 };
