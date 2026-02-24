@@ -20,6 +20,9 @@ const TEST_USERS = {
 };
 
 Deno.serve(async (req) => {
+  let action = 'unknown';
+  let context = {};
+  
   try {
     const base44 = createClientFromRequest(req);
     
@@ -27,6 +30,7 @@ Deno.serve(async (req) => {
     let currentUser;
     try {
       currentUser = await base44.auth.me();
+      context.currentUser = currentUser.email;
     } catch (error) {
       return Response.json({ error: 'Unauthorized: Login required' }, { status: 401 });
     }
@@ -39,21 +43,43 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    const { action } = await req.json();
+    const payload = await req.json();
+    action = payload.action;
+    context.action = action;
+    
+    console.log('=== DevSeed Handler ===', { action, payload });
 
     if (action === 'create_users') {
       return await createTestUsers(base44);
     } else if (action === 'create_conversation') {
-      return await createConversation(base44);
+      return await createConversation(base44, payload);
     } else if (action === 'get_status') {
       return await getStatus(base44);
     } else {
-      return Response.json({ error: 'Invalid action' }, { status: 400 });
+      return Response.json({ 
+        ok: false,
+        errorMessage: 'Invalid action',
+        context: { action }
+      }, { status: 200 });
     }
 
   } catch (error) {
-    console.error('Erro no devSeed:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('💥 ERRO FATAL no devSeed handler:', {
+      action,
+      context,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    return Response.json({ 
+      ok: false,
+      errorMessage: error.message,
+      errorStack: error.stack,
+      context: {
+        ...context,
+        stage: 'handler_root'
+      }
+    }, { status: 200 });
   }
 });
 
@@ -113,46 +139,62 @@ async function createTestUsers(base44) {
   return Response.json(results);
 }
 
-async function createConversation(base44) {
+async function createConversation(base44, payload) {
+  const context = {
+    stage: 'init',
+    userAEmail: payload.userAEmail || TEST_USERS.passenger.email,
+    userBEmail: payload.userBEmail || TEST_USERS.driver.email
+  };
+
   try {
-    console.log('=== INÍCIO createConversation ===');
+    console.log('=== INÍCIO createConversation ===', { payload, context });
     
-    // Buscar usuários de teste
-    const passengerUsers = await base44.asServiceRole.entities.User.filter({ 
-      email: TEST_USERS.passenger.email 
+    // Etapa 1: Buscar usuários
+    context.stage = 'fetch_users';
+    console.log('Etapa: Buscando usuários...', context);
+    
+    const userAResults = await base44.asServiceRole.entities.User.filter({ 
+      email: context.userAEmail 
     });
-    const driverUsers = await base44.asServiceRole.entities.User.filter({ 
-      email: TEST_USERS.driver.email 
+    const userBResults = await base44.asServiceRole.entities.User.filter({ 
+      email: context.userBEmail 
     });
 
-    console.log('Passageiro encontrado:', passengerUsers.length > 0, passengerUsers[0]?.id);
-    console.log('Motorista encontrado:', driverUsers.length > 0, driverUsers[0]?.id);
+    console.log('Usuários encontrados:', {
+      userA: { email: context.userAEmail, found: userAResults.length > 0, id: userAResults[0]?.id },
+      userB: { email: context.userBEmail, found: userBResults.length > 0, id: userBResults[0]?.id }
+    });
 
-    if (passengerUsers.length === 0 || driverUsers.length === 0) {
-      const error = {
-        error: 'Usuários de teste não encontrados. Registre-os primeiro.',
-        details: {
-          passengerEmail: TEST_USERS.passenger.email,
-          driverEmail: TEST_USERS.driver.email,
-          passengerExists: passengerUsers.length > 0,
-          driverExists: driverUsers.length > 0
+    if (userAResults.length === 0 || userBResults.length === 0) {
+      return Response.json({
+        ok: false,
+        errorMessage: 'Usuários não encontrados. Registre-os primeiro.',
+        context: {
+          ...context,
+          userAExists: userAResults.length > 0,
+          userBExists: userBResults.length > 0
         }
-      };
-      console.error('ERRO - Usuários não encontrados:', error);
-      return Response.json(error, { status: 400 });
+      }, { status: 200 });
     }
 
-    const passengerId = passengerUsers[0].id;
-    const driverId = driverUsers[0].id;
-    const passengerName = passengerUsers[0].full_name || passengerUsers[0].email;
-    const driverName = driverUsers[0].full_name || driverUsers[0].email;
+    const userAId = userAResults[0].id;
+    const userBId = userBResults[0].id;
+    const userAName = userAResults[0].full_name || userAResults[0].email;
+    const userBName = userBResults[0].full_name || userBResults[0].email;
 
-    console.log('IDs identificados:', { passengerId, driverId, passengerName, driverName });
+    context.userAId = userAId;
+    context.userBId = userBId;
+    context.userAName = userAName;
+    context.userBName = userBName;
 
-    // Criar Ride fake primeiro (obrigatório pela entity Conversation)
-    console.log('Criando Ride fake...');
+    console.log('IDs identificados:', context);
+
+    // Etapa 2: Criar Ride fake
+    context.stage = 'create_ride';
+    console.log('Etapa: Criando Ride fake...', context);
+    
     const ride = await base44.asServiceRole.entities.Ride.create({
-      passenger_id: passengerId,
+      passenger_id: userAId,
       pickup_lat: -20.7555,
       pickup_lng: -47.7884,
       pickup_text: 'Teste DevSeed',
@@ -164,12 +206,17 @@ async function createConversation(base44) {
       is_test: true,
       test_seed_key: 'devseed_chat_' + Date.now()
     });
-    console.log('Ride criada:', ride.id);
+    
+    context.rideId = ride.id;
+    console.log('Ride criada:', context.rideId);
 
-    // Verificar se já existe conversa entre os dois usuários
+    // Etapa 3: Verificar conversa existente
+    context.stage = 'check_conversation';
+    console.log('Etapa: Verificando conversa existente...', context);
+    
     const existingConversations = await base44.asServiceRole.entities.Conversation.filter({
-      passenger_id: passengerId,
-      driver_id: driverId,
+      passenger_id: userAId,
+      driver_id: userBId,
       status: 'active'
     });
 
@@ -178,74 +225,84 @@ async function createConversation(base44) {
 
     if (existingConversations.length > 0) {
       conversation = existingConversations[0];
-      console.log('Reutilizando conversa existente:', conversation.id);
+      console.log('Reutilizando conversa:', conversation.id);
     } else {
-      // Criar conversa
+      // Etapa 4: Criar conversa
+      context.stage = 'create_conversation';
       const conversationPayload = {
         ride_id: ride.id,
-        passenger_id: passengerId,
-        driver_id: driverId,
+        passenger_id: userAId,
+        driver_id: userBId,
         status: 'active'
       };
-      console.log('Payload Conversation:', conversationPayload);
+      console.log('Etapa: Criando conversa...', { payload: conversationPayload, context });
       
       conversation = await base44.asServiceRole.entities.Conversation.create(conversationPayload);
       conversationCreated = true;
       console.log('Conversa criada:', conversation.id);
     }
 
-    // SEMPRE criar nova mensagem "Oi"
+    context.conversationId = conversation.id;
+
+    // Etapa 5: Criar mensagem
+    context.stage = 'create_message';
     const messagePayload = {
       conversation_id: conversation.id,
       ride_id: ride.id,
-      sender_id: passengerId,
+      sender_id: userAId,
       type: 'text',
       text: 'Oi',
       status: 'visible',
       is_read: false
     };
-    console.log('Payload Message:', messagePayload);
+    console.log('Etapa: Criando mensagem...', { payload: messagePayload, context });
     
     const message = await base44.asServiceRole.entities.Message.create(messagePayload);
-    console.log('Mensagem criada:', message.id);
+    context.messageId = message.id;
+    console.log('Mensagem criada:', context.messageId);
 
-    // Criar notificação apenas para o receptor (motorista)
+    // Etapa 6: Criar notificação
+    context.stage = 'create_notification';
+    console.log('Etapa: Criando notificação...', context);
+    
     await base44.asServiceRole.entities.Notification.create({
-      user_id: driverId,
+      user_id: userBId,
       title: 'Nova mensagem',
-      message: `${passengerName} enviou: Oi`,
+      message: `${userAName} enviou: Oi`,
       type: 'ride',
       is_read: false
     });
-    console.log('Notificação criada para:', driverId);
+    console.log('Notificação criada para:', userBId);
 
     const result = {
       ok: true,
       conversationId: conversation.id,
       messageId: message.id,
-      senderId: passengerId,
-      receiverId: driverId,
-      senderName: passengerName,
-      receiverName: driverName,
+      senderId: userAId,
+      receiverId: userBId,
+      senderName: userAName,
+      receiverName: userBName,
       conversationCreated,
-      debug: {
-        passengerEmail: TEST_USERS.passenger.email,
-        driverEmail: TEST_USERS.driver.email,
-        rideId: ride.id
-      }
+      context
     };
 
-    console.log('=== SUCESSO ===', result);
-    return Response.json(result);
+    console.log('✅ SUCESSO ===', result);
+    return Response.json(result, { status: 200 });
 
   } catch (error) {
-    console.error('=== ERRO FATAL ===', error);
+    console.error('💥 ERRO em createConversation:', {
+      stage: context.stage,
+      context,
+      message: error.message,
+      stack: error.stack
+    });
+    
     return Response.json({ 
       ok: false,
-      error: error.message,
-      stack: error.stack,
-      details: 'Erro ao criar conversa ou mensagem'
-    }, { status: 500 });
+      errorMessage: error.message,
+      errorStack: error.stack,
+      context
+    }, { status: 200 });
   }
 }
 

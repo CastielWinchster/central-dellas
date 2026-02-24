@@ -103,14 +103,16 @@ export default function DevSeed() {
   const handleCreateConversation = async () => {
     setProcessing(true);
     
-    const payload = { action: 'create_conversation' };
+    const payload = { 
+      action: 'create_conversation',
+      userAEmail: 'luishcosta3@gmail.com',
+      userBEmail: 'rossideh77@gmail.com'
+    };
     const timestamp = new Date().toISOString();
     
     console.log('🚀 START createChat', {
       timestamp,
       payload,
-      myEmail: 'luishcosta3@gmail.com',
-      otherEmail: 'rossideh77@gmail.com',
       functionName: 'devSeed'
     });
     
@@ -136,15 +138,15 @@ export default function DevSeed() {
         timestamp: new Date().toISOString()
       }));
       
-      if (response.data?.ok) {
-        const { conversationId, messageId, senderId, receiverId, senderName, receiverName, debug } = response.data;
+      if (response.data?.ok === true) {
+        const { conversationId, messageId, senderId, receiverId, senderName, receiverName, context } = response.data;
         
         console.log('✅ SUCESSO!', {
           conversationId,
           messageId,
           sender: { id: senderId, name: senderName },
           receiver: { id: receiverId, name: receiverName },
-          debug
+          context
         });
         
         toast.success(`Chat criado! Mensagem "Oi" enviada de ${senderName} para ${receiverName}.`);
@@ -153,23 +155,24 @@ export default function DevSeed() {
         await loadStatus();
         
       } else if (response.data?.ok === false) {
-        const errorMsg = response.data.error || 'Erro desconhecido';
+        const { errorMessage, errorStack, context } = response.data;
+        
         console.error('❌ ERRO - ok:false', {
-          error: errorMsg,
-          details: response.data.details,
-          stack: response.data.stack
+          errorMessage,
+          errorStack,
+          context
         });
         
         setDebugInfo(prev => ({
           ...prev,
           lastError: {
-            message: errorMsg,
-            details: response.data.details,
-            stack: response.data.stack
+            message: errorMessage,
+            stack: errorStack,
+            context
           }
         }));
         
-        toast.error(`Erro: ${errorMsg}`);
+        toast.error(`Erro: ${errorMessage}`);
         
       } else {
         console.warn('⚠️ Resposta sem campo "ok":', response.data);
@@ -426,6 +429,18 @@ export default function DevSeed() {
                   {debugInfo.lastError ? JSON.stringify(debugInfo.lastError, null, 2) : 'null'}
                 </pre>
               </div>
+
+              {debugInfo.lastError && (
+                <div className="mt-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm font-semibold text-red-400 mb-2">Erro Detectado:</p>
+                  <p className="text-xs text-red-300 mb-1">Mensagem: {debugInfo.lastError.message}</p>
+                  {debugInfo.lastError.context && (
+                    <p className="text-xs text-red-300">
+                      Etapa: {debugInfo.lastError.context.stage || 'N/A'}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
 
