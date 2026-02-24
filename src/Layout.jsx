@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAuthUser } from '@/components/AuthGuard';
+import { useAuthUser } from '../components/AuthGuard';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
