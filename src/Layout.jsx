@@ -311,7 +311,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Chatbot Float */}
       <Suspense fallback={null}>
-        <ChatbotFloat />
+        {currentPageName !== 'Chat' && <ChatbotFloat />}
       </Suspense>
 
       {/* Bottom Navigation - Mobile */}

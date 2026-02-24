@@ -73,7 +73,7 @@ export default function Chat() {
       const userData = await base44.auth.me();
       setUser(userData);
 
-      const convos = await base44.entities.Conversation.filter({ id: conversationId });
+      const convos = await base44.entities.Conversation.filter({ id: conversationId }, undefined, undefined, undefined, undefined, { data_env: "dev" });
       if (convos.length === 0) {
         toast.error('Conversa não encontrada');
         navigate(createPageUrl('PassengerMessages'));
@@ -96,7 +96,7 @@ export default function Chat() {
         ? convo.driver_id 
         : convo.passenger_id;
       
-      const users = await base44.entities.User.filter({ id: otherUserId });
+      const users = await base44.entities.User.filter({ id: otherUserId }, undefined, undefined, undefined, undefined, { data_env: "dev" });
       setOtherUser(users[0]);
 
       await loadMessages();
@@ -113,7 +113,8 @@ export default function Chat() {
     try {
       const msgs = await base44.entities.Message.filter(
         { conversation_id: conversationId },
-        'created_date'
+        'created_date',
+        undefined, undefined, undefined, { data_env: "dev" }
       );
       
       setMessages(msgs);
@@ -124,7 +125,7 @@ export default function Chat() {
       );
       
       for (const msg of unreadMessages) {
-        await base44.entities.Message.update(msg.id, { is_read: true });
+        await base44.entities.Message.update(msg.id, { is_read: true }, { data_env: "dev" });
       }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
@@ -160,7 +161,7 @@ export default function Chat() {
         text: moderation.text,
         status: moderation.isOffensive ? 'removed' : 'visible',
         removed_reason: moderation.isOffensive ? 'offensive' : null
-      });
+      }, { data_env: "dev" });
 
       if (moderation.isOffensive) {
         toast.error('Sua mensagem contém conteúdo ofensivo e foi bloqueada');
@@ -191,7 +192,7 @@ export default function Chat() {
         type: 'image',
         file_url,
         status: 'visible'
-      });
+      }, { data_env: "dev" });
 
       await loadMessages();
       toast.success('Foto enviada');
@@ -250,9 +251,9 @@ export default function Chat() {
         sender_id: user.id,
         type: 'audio',
         file_url,
-        duration_sec: 60, // Estimativa
+        duration_sec: 0,
         status: 'visible'
-      });
+      }, { data_env: "dev" });
 
       await loadMessages();
       toast.success('Áudio enviado');
@@ -269,7 +270,7 @@ export default function Chat() {
       await base44.entities.Message.update(messageId, {
         status: 'removed',
         removed_reason: 'manual'
-      });
+      }, { data_env: "dev" });
       
       await loadMessages();
       toast.success('Mensagem denunciada e removida');
