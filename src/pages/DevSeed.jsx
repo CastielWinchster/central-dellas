@@ -402,6 +402,45 @@ export default function DevSeed() {
             </h3>
             
             <div className="space-y-3 text-xs">
+              {/* Status Header com Version e Step */}
+              {debugInfo.lastResponse && (
+                <div className="flex gap-2 mb-3">
+                  {debugInfo.lastResponse.version && (
+                    <div className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30">
+                      <span className="text-purple-300 font-mono text-[10px]">
+                        {debugInfo.lastResponse.version}
+                      </span>
+                    </div>
+                  )}
+                  {debugInfo.lastResponse.step && (
+                    <div className={`px-3 py-1 rounded-full border ${
+                      debugInfo.lastResponse.ok 
+                        ? 'bg-green-500/20 border-green-500/30' 
+                        : 'bg-red-500/20 border-red-500/30'
+                    }`}>
+                      <span className={`font-mono text-[10px] ${
+                        debugInfo.lastResponse.ok ? 'text-green-300' : 'text-red-300'
+                      }`}>
+                        step: {debugInfo.lastResponse.step}
+                      </span>
+                    </div>
+                  )}
+                  {debugInfo.lastResponse.ok !== undefined && (
+                    <div className={`px-3 py-1 rounded-full border ${
+                      debugInfo.lastResponse.ok 
+                        ? 'bg-green-500/20 border-green-500/30' 
+                        : 'bg-red-500/20 border-red-500/30'
+                    }`}>
+                      <span className={`font-bold text-[10px] ${
+                        debugInfo.lastResponse.ok ? 'text-green-300' : 'text-red-300'
+                      }`}>
+                        ok: {String(debugInfo.lastResponse.ok)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <p className="text-[#F2F2F2]/60 mb-1">Timestamp:</p>
                 <pre className="bg-[#0D0D0D] p-2 rounded text-green-400 overflow-x-auto">
@@ -417,28 +456,54 @@ export default function DevSeed() {
               </div>
 
               <div>
-                <p className="text-[#F2F2F2]/60 mb-1">Last Response:</p>
+                <p className="text-[#F2F2F2]/60 mb-1">Last Response (Full JSON):</p>
                 <pre className="bg-[#0D0D0D] p-2 rounded text-green-300 overflow-x-auto max-h-60">
                   {debugInfo.lastResponse ? JSON.stringify(debugInfo.lastResponse, null, 2) : 'null'}
                 </pre>
               </div>
 
-              <div>
-                <p className="text-[#F2F2F2]/60 mb-1">Last Error:</p>
-                <pre className="bg-[#0D0D0D] p-2 rounded text-red-300 overflow-x-auto max-h-60">
-                  {debugInfo.lastError ? JSON.stringify(debugInfo.lastError, null, 2) : 'null'}
-                </pre>
-              </div>
-
-              {debugInfo.lastError && (
-                <div className="mt-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                  <p className="text-sm font-semibold text-red-400 mb-2">Erro Detectado:</p>
-                  <p className="text-xs text-red-300 mb-1">Mensagem: {debugInfo.lastError.message}</p>
-                  {debugInfo.lastError.context && (
-                    <p className="text-xs text-red-300">
-                      Etapa: {debugInfo.lastError.context.stage || 'N/A'}
+              {debugInfo.lastResponse?.ok === false && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm font-semibold text-red-400 mb-2">❌ Erro Detectado</p>
+                  <div className="space-y-1 text-xs">
+                    <p className="text-red-300">
+                      <strong>Version:</strong> {debugInfo.lastResponse.version || 'N/A'}
                     </p>
-                  )}
+                    <p className="text-red-300">
+                      <strong>Step:</strong> {debugInfo.lastResponse.step || 'N/A'}
+                    </p>
+                    <p className="text-red-300">
+                      <strong>Message:</strong> {debugInfo.lastResponse.message || 'N/A'}
+                    </p>
+                    {debugInfo.lastResponse.context && (
+                      <div className="mt-2 p-2 rounded bg-[#0D0D0D]">
+                        <p className="text-red-200 mb-1"><strong>Context:</strong></p>
+                        <pre className="text-[10px] text-red-200 overflow-x-auto">
+                          {JSON.stringify(debugInfo.lastResponse.context, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {debugInfo.lastResponse?.ok === true && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+                  <p className="text-sm font-semibold text-green-400 mb-2">✅ Sucesso</p>
+                  <div className="space-y-1 text-xs">
+                    <p className="text-green-300">
+                      <strong>Conversation ID:</strong> {debugInfo.lastResponse.conversationId || 'N/A'}
+                    </p>
+                    <p className="text-green-300">
+                      <strong>Message ID:</strong> {debugInfo.lastResponse.messageId || 'N/A'}
+                    </p>
+                    <p className="text-green-300">
+                      <strong>Sender:</strong> {debugInfo.lastResponse.senderName || 'N/A'} ({debugInfo.lastResponse.senderId})
+                    </p>
+                    <p className="text-green-300">
+                      <strong>Receiver:</strong> {debugInfo.lastResponse.receiverName || 'N/A'} ({debugInfo.lastResponse.receiverId})
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
