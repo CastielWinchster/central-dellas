@@ -149,7 +149,7 @@ export default function NotificationBell({ userId }) {
 
         {notifications.length > 0 && (
           <div className="p-3 border-t border-[#F22998]/20">
-            <Link to={createPageUrl('Notifications')}>
+            <Link to={createPageUrl('PassengerNotifications')}>
               <Button
                 variant="ghost"
                 className="w-full text-[#F22998] hover:bg-[#F22998]/10"
