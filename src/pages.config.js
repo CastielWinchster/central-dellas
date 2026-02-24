@@ -80,6 +80,7 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
+import PassengerOptions from './pages/PassengerOptions';
 import __Layout from './Layout.jsx';
 
 
@@ -117,6 +118,7 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
+    "PassengerOptions": PassengerOptions,
 }
 
 export const pagesConfig = {
