@@ -26,29 +26,10 @@ export default function PassengerHome() {
     }
   }, []);
 
-  const handleSaveCoupon = async () => {
-    try {
-      const userData = await base44.auth.me();
-      
-      // Criar notificação persistente
-      await base44.entities.Notification.create({
-        user_id: userData.id,
-        title: '🎉 Cupom de Boas-Vindas',
-        message: 'Seu cupom PRIMEIRA VELOZ está ativo! Use na sua primeira corrida e ganhe 50% de desconto.',
-        type: 'coupon',
-        is_persistent: true,
-        is_read: false
-      });
-      
-      localStorage.setItem('hasSeenPreLaunchModal', 'true');
-      setShowPreLaunchModal(false);
-      toast.success('Cupom PRIMEIRA VELOZ salvo! Verifique suas notificações.');
-    } catch (error) {
-      console.error('Erro ao salvar cupom:', error);
-      localStorage.setItem('hasSeenPreLaunchModal', 'true');
-      setShowPreLaunchModal(false);
-      toast.success('Cupom PRIMEIRA VELOZ salvo!');
-    }
+  const handleSaveCoupon = () => {
+    localStorage.setItem('hasSeenPreLaunchModal', 'true');
+    setShowPreLaunchModal(false);
+    toast.success('Cupom PRIMEIRA VELOZ salvo! Use na sua primeira corrida.');
   };
 
   return (
