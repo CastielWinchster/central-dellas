@@ -1,31 +1,72 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { MessageCircle, ChevronRight, Code } from 'lucide-react';
+import { MessageCircle, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
 import moment from 'moment';
 import { Button } from '@/components/ui/button';
 
-const DEV_ALLOWED_EMAILS = ['luishcosta3@gmail.com'];
-const DEV_GIRLFRIEND_EMAIL = 'rossideh77@gmail.com';
+const DEV_ALLOWED_EMAILS = ['luishcosta3@gmail.com', 'rossideh77@gmail.com'];
 
 export default function PassengerMessages() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creatingDevChat, setCreatingDevChat] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
+  const ensureDevConversation = async (userData) => {
+    try {
+      // Determinar qual é o outro usuário
+      const otherEmail = userData.email === 'luishcosta3@gmail.com' 
+        ? 'rossideh77@gmail.com' 
+        : 'luishcosta3@gmail.com';
+      
+      // Buscar a outra usuária por email
+      const otherUsers = await base44.entities.User.filter({ 
+        email: otherEmail 
+      }, null, null, null, null, { data_env: "dev" });
+      
+      if (otherUsers.length === 0) return;
+      
+      const otherId = otherUsers[0].id;
+      
+      // Buscar conversa existente
+      const existingConvos = await base44.entities.Conversation.filter({
+        $or: [
+          { passenger_id: userData.id, driver_id: otherId },
+          { passenger_id: otherId, driver_id: userData.id }
+        ]
+      }, null, null, null, null, { data_env: "dev" });
+      
+      if (existingConvos.length === 0) {
+        // Criar nova conversa test
+        await base44.entities.Conversation.create({
+          passenger_id: userData.id,
+          driver_id: otherId,
+          status: 'active',
+          kind: 'test'
+        }, { data_env: "dev" });
+      }
+    } catch (error) {
+      console.error('Erro ao criar conversa dev:', error);
+    }
+  };
+
   const loadData = async () => {
     try {
       const userData = await base44.auth.me();
       setUser(userData);
+
+      // Se for dev, garantir que a conversa existe
+      if (DEV_ALLOWED_EMAILS.includes(userData.email)) {
+        await ensureDevConversation(userData);
+      }
 
       // Buscar conversas onde usuário é participante
       const allConvos = await base44.entities.Conversation.filter({
@@ -33,7 +74,7 @@ export default function PassengerMessages() {
           { passenger_id: userData.id },
           { driver_id: userData.id }
         ]
-      }, '-created_date');
+      }, '-created_date', null, null, null, { data_env: "dev" });
 
       // Buscar última mensagem e contagem de não lidas para cada conversa
       const convosWithData = await Promise.all(
@@ -41,14 +82,15 @@ export default function PassengerMessages() {
           const messages = await base44.entities.Message.filter(
             { conversation_id: convo.id },
             '-created_date',
-            1
+            1,
+            null, null, { data_env: "dev" }
           );
 
           const unreadMessages = await base44.entities.Message.filter({
             conversation_id: convo.id,
             sender_id: { $ne: userData.id },
             is_read: false
-          });
+          }, null, null, null, null, { data_env: "dev" });
 
           // Buscar dados do outro participante
           const otherUserId = convo.passenger_id === userData.id 
@@ -57,7 +99,7 @@ export default function PassengerMessages() {
           
           let otherUser = null;
           try {
-            const users = await base44.entities.User.filter({ id: otherUserId });
+            const users = await base44.entities.User.filter({ id: otherUserId }, null, null, null, null, { data_env: "dev" });
             otherUser = users[0];
           } catch (error) {
             console.error('Erro ao buscar usuário:', error);
@@ -94,72 +136,6 @@ export default function PassengerMessages() {
     return message.text || '';
   };
 
-  const handleCreateDevChat = async () => {
-    setCreatingDevChat(true);
-    try {
-      const me = await base44.auth.me();
-      
-      // Buscar a outra usuária por email
-      const otherUsers = await base44.entities.User.filter({ 
-        email: DEV_GIRLFRIEND_EMAIL 
-      });
-      
-      if (otherUsers.length === 0) {
-        toast.error('Usuária não encontrada');
-        return;
-      }
-      
-      const otherId = otherUsers[0].id;
-      const otherName = otherUsers[0].full_name || otherUsers[0].email;
-      
-      // Buscar conversa existente
-      const existingConvos = await base44.entities.Conversation.filter({
-        $or: [
-          { passenger_id: me.id, driver_id: otherId },
-          { passenger_id: otherId, driver_id: me.id }
-        ]
-      });
-      
-      let conversation;
-      
-      if (existingConvos.length > 0) {
-        // Reutilizar conversa existente
-        conversation = existingConvos[0];
-        console.log('♻️ Reutilizando conversa:', conversation.id);
-      } else {
-        // Criar nova conversa (ride_id não é mais obrigatório)
-        conversation = await base44.entities.Conversation.create({
-          passenger_id: me.id,
-          driver_id: otherId,
-          status: 'active',
-          kind: 'test'
-        });
-        console.log('✅ Conversa criada:', conversation.id);
-      }
-      
-      // Criar mensagem "Oi"
-      await base44.entities.Message.create({
-        conversation_id: conversation.id,
-        sender_id: me.id,
-        type: 'text',
-        text: 'Oi',
-        status: 'visible',
-        is_read: false
-      });
-      
-      toast.success(`Chat iniciado com ${otherName}!`);
-      
-      // Navegar para o chat
-      navigate(createPageUrl(`Chat?conversation=${conversation.id}`));
-      
-    } catch (error) {
-      console.error('Erro ao criar chat dev:', error);
-      toast.error(`Erro: ${error.message}`);
-    } finally {
-      setCreatingDevChat(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
@@ -168,24 +144,11 @@ export default function PassengerMessages() {
     );
   }
 
-  const isDevUser = user && DEV_ALLOWED_EMAILS.includes(user.email);
-
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Mensagens</h1>
-          
-          {isDevUser && (
-            <Button
-              onClick={handleCreateDevChat}
-              disabled={creatingDevChat}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
-            >
-              <Code className="w-4 h-4" />
-              {creatingDevChat ? 'Criando...' : 'DEV: Chat com Rossi'}
-            </Button>
-          )}
         </div>
 
         {conversations.length === 0 ? (
