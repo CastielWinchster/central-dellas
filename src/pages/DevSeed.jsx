@@ -19,6 +19,14 @@ export default function DevSeed() {
   const [status, setStatus] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [authorized, setAuthorized] = useState(false);
+  
+  // Debug state
+  const [debugInfo, setDebugInfo] = useState({
+    lastRequestPayload: null,
+    lastResponse: null,
+    lastError: null,
+    timestamp: null
+  });
 
   useEffect(() => {
     checkAuthorization();
@@ -94,54 +102,101 @@ export default function DevSeed() {
 
   const handleCreateConversation = async () => {
     setProcessing(true);
-    console.log('=== INICIANDO CRIAÇÃO DE CHAT ===');
+    
+    const payload = { action: 'create_conversation' };
+    const timestamp = new Date().toISOString();
+    
+    console.log('🚀 START createChat', {
+      timestamp,
+      payload,
+      myEmail: 'luishcosta3@gmail.com',
+      otherEmail: 'rossideh77@gmail.com',
+      functionName: 'devSeed'
+    });
+    
+    setDebugInfo({
+      lastRequestPayload: payload,
+      lastResponse: null,
+      lastError: null,
+      timestamp
+    });
     
     try {
-      console.log('Invocando função devSeed...');
-      const response = await base44.functions.invoke('devSeed', { 
-        action: 'create_conversation' 
-      });
+      console.log('📡 Invocando base44.functions.invoke("devSeed", payload)...');
       
-      console.log('Resposta completa:', response);
-      console.log('Response.data:', response.data);
+      const response = await base44.functions.invoke('devSeed', payload);
       
-      if (response.data.ok) {
+      console.log('📦 RESULT createChat - Resposta completa:', response);
+      console.log('📦 response.data:', response.data);
+      console.log('📦 response.status:', response.status);
+      
+      setDebugInfo(prev => ({
+        ...prev,
+        lastResponse: response.data,
+        timestamp: new Date().toISOString()
+      }));
+      
+      if (response.data?.ok) {
         const { conversationId, messageId, senderId, receiverId, senderName, receiverName, debug } = response.data;
         
-        console.log('✅ SUCESSO!');
-        console.log('Conversation ID:', conversationId);
-        console.log('Message ID:', messageId);
-        console.log('Sender:', senderId, senderName);
-        console.log('Receiver:', receiverId, receiverName);
-        console.log('Debug:', debug);
+        console.log('✅ SUCESSO!', {
+          conversationId,
+          messageId,
+          sender: { id: senderId, name: senderName },
+          receiver: { id: receiverId, name: receiverName },
+          debug
+        });
         
         toast.success(`Chat criado! Mensagem "Oi" enviada de ${senderName} para ${receiverName}.`);
         
-        // Aguardar 1 segundo para garantir propagação dos dados
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
         await loadStatus();
-      } else {
-        console.error('❌ ERRO na resposta:', response.data);
-        toast.error(response.data.error || 'Erro desconhecido ao criar chat');
         
-        // Mostrar detalhes do erro na UI
-        if (response.data.details) {
-          console.error('Detalhes:', response.data.details);
-        }
-        if (response.data.stack) {
-          console.error('Stack:', response.data.stack);
-        }
+      } else if (response.data?.ok === false) {
+        const errorMsg = response.data.error || 'Erro desconhecido';
+        console.error('❌ ERRO - ok:false', {
+          error: errorMsg,
+          details: response.data.details,
+          stack: response.data.stack
+        });
+        
+        setDebugInfo(prev => ({
+          ...prev,
+          lastError: {
+            message: errorMsg,
+            details: response.data.details,
+            stack: response.data.stack
+          }
+        }));
+        
+        toast.error(`Erro: ${errorMsg}`);
+        
+      } else {
+        console.warn('⚠️ Resposta sem campo "ok":', response.data);
+        toast.warning('Resposta inesperada do servidor');
       }
       
     } catch (error) {
-      console.error('❌ EXCEÇÃO capturada:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      toast.error('Erro ao criar chat: ' + error.message);
+      console.error('💥 ERROR createChat - EXCEÇÃO capturada:', {
+        message: error.message,
+        stack: error.stack,
+        error
+      });
+      
+      setDebugInfo(prev => ({
+        ...prev,
+        lastError: {
+          message: error.message,
+          stack: error.stack,
+          fullError: error.toString()
+        }
+      }));
+      
+      toast.error(`Erro ao criar chat: ${error.message}`);
+      
     } finally {
       setProcessing(false);
-      console.log('=== FIM DA CRIAÇÃO ===');
+      console.log('🏁 FIM createChat');
     }
   };
 
@@ -332,6 +387,44 @@ export default function DevSeed() {
                     </>
                   )}
                 </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Debug Panel */}
+          <Card className="p-6 bg-[#1A1A1A] border-yellow-500/30">
+            <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Painel de Debug
+            </h3>
+            
+            <div className="space-y-3 text-xs">
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Timestamp:</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-green-400 overflow-x-auto">
+                  {debugInfo.timestamp || 'Nenhuma ação ainda'}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Last Request Payload:</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-blue-300 overflow-x-auto">
+                  {debugInfo.lastRequestPayload ? JSON.stringify(debugInfo.lastRequestPayload, null, 2) : 'null'}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Last Response:</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-green-300 overflow-x-auto max-h-60">
+                  {debugInfo.lastResponse ? JSON.stringify(debugInfo.lastResponse, null, 2) : 'null'}
+                </pre>
+              </div>
+
+              <div>
+                <p className="text-[#F2F2F2]/60 mb-1">Last Error:</p>
+                <pre className="bg-[#0D0D0D] p-2 rounded text-red-300 overflow-x-auto max-h-60">
+                  {debugInfo.lastError ? JSON.stringify(debugInfo.lastError, null, 2) : 'null'}
+                </pre>
               </div>
             </div>
           </Card>
