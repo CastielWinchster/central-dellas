@@ -82,6 +82,7 @@ import PassengerOptions from './pages/PassengerOptions';
 import PassengerHome from './pages/PassengerHome';
 import PassengerNotifications from './pages/PassengerNotifications';
 import Chat from './pages/Chat';
+import DevSeed from './pages/DevSeed';
 import __Layout from './Layout.jsx';
 
 
@@ -121,6 +122,7 @@ export const PAGES = {
     "PassengerHome": PassengerHome,
     "PassengerNotifications": PassengerNotifications,
     "Chat": Chat,
+    "DevSeed": DevSeed,
 }
 
 export const pagesConfig = {
