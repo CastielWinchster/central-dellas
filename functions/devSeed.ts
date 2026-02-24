@@ -115,6 +115,8 @@ async function createTestUsers(base44) {
 
 async function createConversation(base44) {
   try {
+    console.log('=== INÍCIO createConversation ===');
+    
     // Buscar usuários de teste
     const passengerUsers = await base44.asServiceRole.entities.User.filter({ 
       email: TEST_USERS.passenger.email 
@@ -123,21 +125,52 @@ async function createConversation(base44) {
       email: TEST_USERS.driver.email 
     });
 
+    console.log('Passageiro encontrado:', passengerUsers.length > 0, passengerUsers[0]?.id);
+    console.log('Motorista encontrado:', driverUsers.length > 0, driverUsers[0]?.id);
+
     if (passengerUsers.length === 0 || driverUsers.length === 0) {
-      return Response.json({ 
+      const error = {
         error: 'Usuários de teste não encontrados. Registre-os primeiro.',
-        passengerExists: passengerUsers.length > 0,
-        driverExists: driverUsers.length > 0
-      }, { status: 400 });
+        details: {
+          passengerEmail: TEST_USERS.passenger.email,
+          driverEmail: TEST_USERS.driver.email,
+          passengerExists: passengerUsers.length > 0,
+          driverExists: driverUsers.length > 0
+        }
+      };
+      console.error('ERRO - Usuários não encontrados:', error);
+      return Response.json(error, { status: 400 });
     }
 
     const passengerId = passengerUsers[0].id;
     const driverId = driverUsers[0].id;
+    const passengerName = passengerUsers[0].full_name || passengerUsers[0].email;
+    const driverName = driverUsers[0].full_name || driverUsers[0].email;
+
+    console.log('IDs identificados:', { passengerId, driverId, passengerName, driverName });
+
+    // Criar Ride fake primeiro (obrigatório pela entity Conversation)
+    console.log('Criando Ride fake...');
+    const ride = await base44.asServiceRole.entities.Ride.create({
+      passenger_id: passengerId,
+      pickup_lat: -20.7555,
+      pickup_lng: -47.7884,
+      pickup_text: 'Teste DevSeed',
+      dropoff_lat: -20.7245,
+      dropoff_lng: -47.8050,
+      dropoff_text: 'Teste DevSeed',
+      status: 'accepted',
+      estimated_price: 0,
+      is_test: true,
+      test_seed_key: 'devseed_chat_' + Date.now()
+    });
+    console.log('Ride criada:', ride.id);
 
     // Verificar se já existe conversa entre os dois usuários
     const existingConversations = await base44.asServiceRole.entities.Conversation.filter({
       passenger_id: passengerId,
-      driver_id: driverId
+      driver_id: driverId,
+      status: 'active'
     });
 
     let conversation;
@@ -145,79 +178,74 @@ async function createConversation(base44) {
 
     if (existingConversations.length > 0) {
       conversation = existingConversations[0];
+      console.log('Reutilizando conversa existente:', conversation.id);
     } else {
-      // Criar conversa sem corrida vinculada
-      conversation = await base44.asServiceRole.entities.Conversation.create({
+      // Criar conversa
+      const conversationPayload = {
+        ride_id: ride.id,
         passenger_id: passengerId,
         driver_id: driverId,
         status: 'active'
-      });
+      };
+      console.log('Payload Conversation:', conversationPayload);
+      
+      conversation = await base44.asServiceRole.entities.Conversation.create(conversationPayload);
       conversationCreated = true;
+      console.log('Conversa criada:', conversation.id);
     }
 
-    // Verificar se já existem mensagens
-    const existingMessages = await base44.asServiceRole.entities.Message.filter({
-      conversation_id: conversation.id
+    // SEMPRE criar nova mensagem "Oi"
+    const messagePayload = {
+      conversation_id: conversation.id,
+      ride_id: ride.id,
+      sender_id: passengerId,
+      type: 'text',
+      text: 'Oi',
+      status: 'visible',
+      is_read: false
+    };
+    console.log('Payload Message:', messagePayload);
+    
+    const message = await base44.asServiceRole.entities.Message.create(messagePayload);
+    console.log('Mensagem criada:', message.id);
+
+    // Criar notificação apenas para o receptor (motorista)
+    await base44.asServiceRole.entities.Notification.create({
+      user_id: driverId,
+      title: 'Nova mensagem',
+      message: `${passengerName} enviou: Oi`,
+      type: 'ride',
+      is_read: false
     });
+    console.log('Notificação criada para:', driverId);
 
-    let messagesCreated = false;
-
-    if (existingMessages.length === 0) {
-      // Criar mensagens iniciais
-      await base44.asServiceRole.entities.Message.create({
-        conversation_id: conversation.id,
-        sender_id: 'system',
-        type: 'system',
-        text: 'Chat de teste criado. Conversem à vontade!',
-        status: 'visible'
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      await base44.asServiceRole.entities.Message.create({
-        conversation_id: conversation.id,
-        sender_id: driverId,
-        type: 'text',
-        text: 'Olá! Como vai? 👋',
-        status: 'visible'
-      });
-
-      messagesCreated = true;
-
-      // Criar notificações para ambos os usuários
-      await base44.asServiceRole.entities.Notification.create({
-        user_id: passengerId,
-        title: 'Nova conversa disponível',
-        message: 'Você tem uma nova conversa de teste no chat!',
-        type: 'system',
-        is_read: false
-      });
-
-      await base44.asServiceRole.entities.Notification.create({
-        user_id: driverId,
-        title: 'Nova conversa disponível',
-        message: 'Você tem uma nova conversa de teste no chat!',
-        type: 'system',
-        is_read: false
-      });
-    }
-
-    return Response.json({
-      success: true,
-      conversation: {
-        id: conversation.id,
-        created: conversationCreated,
-        status: conversation.status
-      },
-      messages: {
-        created: messagesCreated,
-        count: existingMessages.length || 2
+    const result = {
+      ok: true,
+      conversationId: conversation.id,
+      messageId: message.id,
+      senderId: passengerId,
+      receiverId: driverId,
+      senderName: passengerName,
+      receiverName: driverName,
+      conversationCreated,
+      debug: {
+        passengerEmail: TEST_USERS.passenger.email,
+        driverEmail: TEST_USERS.driver.email,
+        rideId: ride.id
       }
-    });
+    };
+
+    console.log('=== SUCESSO ===', result);
+    return Response.json(result);
 
   } catch (error) {
-    console.error('Erro ao criar conversa:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('=== ERRO FATAL ===', error);
+    return Response.json({ 
+      ok: false,
+      error: error.message,
+      stack: error.stack,
+      details: 'Erro ao criar conversa ou mensagem'
+    }, { status: 500 });
   }
 }
 

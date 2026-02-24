@@ -94,23 +94,54 @@ export default function DevSeed() {
 
   const handleCreateConversation = async () => {
     setProcessing(true);
+    console.log('=== INICIANDO CRIAÇÃO DE CHAT ===');
+    
     try {
+      console.log('Invocando função devSeed...');
       const response = await base44.functions.invoke('devSeed', { 
         action: 'create_conversation' 
       });
       
-      if (response.data.error) {
-        toast.error(response.data.error);
+      console.log('Resposta completa:', response);
+      console.log('Response.data:', response.data);
+      
+      if (response.data.ok) {
+        const { conversationId, messageId, senderId, receiverId, senderName, receiverName, debug } = response.data;
+        
+        console.log('✅ SUCESSO!');
+        console.log('Conversation ID:', conversationId);
+        console.log('Message ID:', messageId);
+        console.log('Sender:', senderId, senderName);
+        console.log('Receiver:', receiverId, receiverName);
+        console.log('Debug:', debug);
+        
+        toast.success(`Chat criado! Mensagem "Oi" enviada de ${senderName} para ${receiverName}.`);
+        
+        // Aguardar 1 segundo para garantir propagação dos dados
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        await loadStatus();
       } else {
-        toast.success('Chat criado com sucesso! Verifique a aba Mensagens.');
+        console.error('❌ ERRO na resposta:', response.data);
+        toast.error(response.data.error || 'Erro desconhecido ao criar chat');
+        
+        // Mostrar detalhes do erro na UI
+        if (response.data.details) {
+          console.error('Detalhes:', response.data.details);
+        }
+        if (response.data.stack) {
+          console.error('Stack:', response.data.stack);
+        }
       }
       
-      await loadStatus();
     } catch (error) {
-      console.error('Erro:', error);
+      console.error('❌ EXCEÇÃO capturada:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       toast.error('Erro ao criar chat: ' + error.message);
     } finally {
       setProcessing(false);
+      console.log('=== FIM DA CRIAÇÃO ===');
     }
   };
 
@@ -282,7 +313,7 @@ export default function DevSeed() {
                   2. Criar Chat entre Usuários
                 </h3>
                 <p className="text-sm text-[#F2F2F2]/60 mb-4">
-                  Cria uma conversa de teste entre os dois usuários. O chat aparecerá na aba Mensagens com notificação.
+                  Cria/reutiliza conversa entre as contas e SEMPRE envia mensagem "Oi". Veja logs no console (F12).
                 </p>
                 <Button
                   onClick={handleCreateConversation}
