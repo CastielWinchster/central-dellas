@@ -4,7 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
   Home, Car, MapPin, MessageCircle, User, Menu, X, 
-  LogOut, Settings, Download as DownloadIcon
+  LogOut, Settings, Download as DownloadIcon, Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
