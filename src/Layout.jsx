@@ -8,13 +8,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAuthUser } from './hooks/useAuthUser';
+import { useAuthUser } from '@/components/AuthGuard';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
 
 // Rotas públicas que não exigem autenticação
-const PUBLIC_ROUTES = ['PassengerHome', 'Login', 'Signup', 'Download'];
+const PUBLIC_ROUTES = ['PassengerHome', 'CustomLogin', 'CustomSignup', 'Download'];
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -54,7 +54,7 @@ function LayoutContent({ children, currentPageName }) {
   // Redirect para login se não estiver autenticado e não estiver em rota pública
   useEffect(() => {
     if (!loading && !user && !PUBLIC_ROUTES.includes(currentPageName)) {
-      navigate(createPageUrl('Login'));
+      navigate(createPageUrl('CustomLogin'));
     }
   }, [loading, user, currentPageName, navigate]);
 
@@ -216,12 +216,12 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               ) : (
                 <div className="hidden md:flex gap-2">
-                  <Link to={createPageUrl('Login')}>
+                  <Link to={createPageUrl('CustomLogin')}>
                     <Button className="btn-gradient px-6 py-2 rounded-full text-white font-medium">
                       Entrar
                     </Button>
                   </Link>
-                  <Link to={createPageUrl('Signup')}>
+                  <Link to={createPageUrl('CustomSignup')}>
                     <Button variant="outline" className="border-[#F22998]/30 text-[#F22998] px-6 py-2 rounded-full font-medium">
                       Cadastrar
                     </Button>
@@ -291,7 +291,7 @@ function LayoutContent({ children, currentPageName }) {
                 <button
                   onClick={async () => {
                     await base44.auth.signOut();
-                    window.location.href = createPageUrl('Login');
+                    window.location.href = createPageUrl('CustomLogin');
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >

@@ -83,6 +83,8 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
+import CustomLogin from './pages/CustomLogin';
+import CustomSignup from './pages/CustomSignup';
 import __Layout from './Layout.jsx';
 
 
@@ -123,6 +125,8 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
+    "CustomLogin": CustomLogin,
+    "CustomSignup": CustomSignup,
 }
 
 export const pagesConfig = {
