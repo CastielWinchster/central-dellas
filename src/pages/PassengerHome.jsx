@@ -5,44 +5,83 @@ import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
   MapPin, Navigation, Car, Shield, Users, Star, 
-  ChevronRight, Clock, Sparkles, Heart
+  ChevronRight, Clock, Sparkles, Heart, AlertTriangle,
+  Eye, Phone, Package, Calendar, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthUser } from '@/components/AuthProvider';
+import { toast } from 'sonner';
 
 export default function PassengerHome() {
   const navigate = useNavigate();
   const { user } = useAuthUser();
 
-  const features = [
-    {
-      icon: Shield,
-      title: 'Segurança',
-      description: 'Mulheres para mulheres. Viaje com tranquilidade.',
-      gradient: 'from-[#BF3B79] to-[#F22998]'
-    },
-    {
-      icon: Users,
-      title: 'Carona Segura',
-      description: 'Compartilhe sua corrida com outras passageiras.',
-      gradient: 'from-[#F22998] to-[#8C0D60]'
-    },
-    {
-      icon: Star,
-      title: 'Motoristas Top',
-      description: 'Apenas motoristas verificadas e bem avaliadas.',
-      gradient: 'from-[#8C0D60] to-[#BF3B79]'
-    }
-  ];
+  const [showPreLaunchModal, setShowPreLaunchModal] = useState(false);
 
-  const quickActions = [
-    { icon: MapPin, label: 'Para Casa', sublabel: 'Adicionar endereço' },
-    { icon: Navigation, label: 'Para o Trabalho', sublabel: 'Adicionar endereço' },
-    { icon: Clock, label: 'Agendar Corrida', sublabel: 'Programar horário' },
-  ];
+  useEffect(() => {
+    // Verificar se é primeira visita
+    const hasSeenModal = localStorage.getItem('hasSeenPreLaunchModal');
+    if (!hasSeenModal) {
+      setTimeout(() => setShowPreLaunchModal(true), 1500);
+    }
+  }, []);
+
+  const handleSaveCoupon = () => {
+    localStorage.setItem('hasSeenPreLaunchModal', 'true');
+    setShowPreLaunchModal(false);
+    toast.success('Cupom PRIMEIRA VELOZ salvo! Use na sua primeira corrida.');
+  };
 
   return (
     <div className="min-h-screen pb-24 md:pb-10">
+      {/* Modal Pré-Lançamento */}
+      {showPreLaunchModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#F22998]/30 overflow-hidden"
+          >
+            <button
+              onClick={() => {
+                localStorage.setItem('hasSeenPreLaunchModal', 'true');
+                setShowPreLaunchModal(false);
+              }}
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#F22998]/10 hover:bg-[#F22998]/20 flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4 text-[#F22998]" />
+            </button>
+
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+
+              <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2">
+                Obrigada por apoiar nosso lançamento!
+              </h2>
+
+              <div className="my-6 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/30">
+                <p className="text-sm text-[#F2F2F2]/60 mb-2">Cupom de Desconto</p>
+                <p className="text-3xl font-bold text-[#F22998] tracking-wide">PRIMEIRA VELOZ</p>
+                <p className="text-lg text-[#F2F2F2] mt-2">50% OFF na primeira corrida</p>
+              </div>
+
+              <p className="text-[#F2F2F2]/60 text-sm mb-6 italic">
+                De mulher para mulher, sua segurança é nossa prioridade.
+              </p>
+
+              <Button
+                onClick={handleSaveCoupon}
+                className="w-full btn-gradient py-6 rounded-2xl text-lg font-semibold"
+              >
+                <Check className="w-5 h-5 mr-2" />
+                Salvar Cupom
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#8C0D60]/30 via-[#0D0D0D] to-[#0D0D0D]" />
@@ -178,39 +217,165 @@ export default function PassengerHome() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
+      {/* De mulher para mulher */}
+      <section className="max-w-7xl mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
-          <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">Por que escolher a CentralDellas?</h2>
-          <p className="text-[#F2F2F2]/60 max-w-lg mx-auto">
-            Criamos um ambiente seguro para que mulheres possam se deslocarem pela cidade.
+          <h2 className="text-3xl md:text-4xl font-bold text-[#F2F2F2] mb-3">De mulher para mulher</h2>
+          <p className="text-[#F2F2F2]/60 text-lg">
+            Segurança, confiança e cuidado em cada trajeto.
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
+          {[
+            {
+              icon: Shield,
+              title: 'Segurança Real',
+              description: 'Motoristas femininas e verificação rigorosa.'
+            },
+            {
+              icon: Eye,
+              title: 'Monitoramento em Tempo Real',
+              description: 'Compartilhamento da corrida com contatos de confiança.'
+            },
+            {
+              icon: AlertTriangle,
+              title: 'Botão SOS',
+              description: 'Acionamento imediato da central de segurança.'
+            }
+          ].map((feature, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.15 }}
-              whileHover={{ y: -5 }}
-              className="relative group"
+              transition={{ delay: index * 0.1 }}
+              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#F22998]/10 hover:border-[#F22998]/20 transition-all"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#BF3B79]/10 to-[#F22998]/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative p-6 rounded-3xl bg-[#F2F2F2]/5 border border-[#F22998]/10 hover:border-[#F22998]/30 transition-all">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4`}>
-                  <feature.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-[#F2F2F2] mb-2">{feature.title}</h3>
-                <p className="text-[#F2F2F2]/60">{feature.description}</p>
+              <div className="w-12 h-12 rounded-xl bg-[#F22998]/10 flex items-center justify-center mb-4">
+                <feature.icon className="w-6 h-6 text-[#F22998]" />
               </div>
+              <h3 className="text-lg font-semibold text-[#F2F2F2] mb-2">{feature.title}</h3>
+              <p className="text-[#F2F2F2]/60 text-sm leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Segurança no App */}
+      <section className="max-w-7xl mx-auto px-4 py-16">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold text-[#F2F2F2] mb-6">Segurança no App</h2>
+            <div className="space-y-4">
+              {[
+                {
+                  icon: AlertTriangle,
+                  title: 'Botão de Pânico',
+                  text: 'Acionamento direto com a central de segurança em situações de emergência.'
+                },
+                {
+                  icon: Phone,
+                  title: 'Contato de Confiança',
+                  text: 'Compartilhe sua corrida em tempo real via WhatsApp com quem você confia.'
+                },
+                {
+                  icon: Eye,
+                  title: 'Monitoramento Constante',
+                  text: 'Todas as corridas são rastreadas e acompanhadas do início ao fim.'
+                },
+                {
+                  icon: Shield,
+                  title: 'Central de Suporte',
+                  text: 'Equipe disponível 24/7 para qualquer necessidade durante sua viagem.'
+                }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-[#F22998]/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-5 h-5 text-[#F22998]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[#F2F2F2] mb-1">{item.title}</h3>
+                    <p className="text-[#F2F2F2]/60 text-sm">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="relative"
+          >
+            <div className="aspect-square rounded-3xl bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border border-[#F22998]/20 flex items-center justify-center">
+              <div className="text-center p-8">
+                <Shield className="w-24 h-24 text-[#F22998] mx-auto mb-4" />
+                <p className="text-[#F2F2F2]/60">Sua segurança é nossa prioridade</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Como Funciona */}
+      <section className="max-w-7xl mx-auto px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-[#F2F2F2] mb-3">Como Funciona</h2>
+          <p className="text-[#F2F2F2]/60">Soluções completas de mobilidade e entregas</p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              icon: Car,
+              title: 'Corridas Urbanas',
+              description: 'Transporte seguro pela cidade com motoristas verificadas.'
+            },
+            {
+              icon: Package,
+              title: 'Entregas Rápidas',
+              description: 'Pequenas encomendas entregues com agilidade e cuidado.'
+            },
+            {
+              icon: Calendar,
+              title: 'Planos Mensais',
+              description: 'Assinaturas fixas com economia e praticidade.'
+            },
+            {
+              icon: Sparkles,
+              title: 'Touca Higiênica',
+              description: 'Produto opcional disponível para sua comodidade.'
+            }
+          ].map((service, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#F22998]/10"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mb-4">
+                <service.icon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-[#F2F2F2] mb-2">{service.title}</h3>
+              <p className="text-[#F2F2F2]/60 text-sm">{service.description}</p>
             </motion.div>
           ))}
         </div>
