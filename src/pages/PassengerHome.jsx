@@ -44,9 +44,10 @@ export default function PassengerHome() {
   return (
     <div className="min-h-screen pb-24 md:pb-10">
       {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
-        {/* Animated Gradient Background */}
-        <div className="absolute inset-0 animated-gradient" />
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#8C0D60]/30 via-[#0D0D0D] to-[#0D0D0D]" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#F22998]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#BF3B79]/10 rounded-full blur-3xl" />
         
         <style>{`
           @keyframes gradientMove {
@@ -55,21 +56,13 @@ export default function PassengerHome() {
             100% { background-position: 0% 50%; }
           }
           
-          .animated-gradient {
-            background: linear-gradient(135deg, #8C0D60 0%, #BF3B79 25%, #F22998 50%, #8C0D60 75%, #0D0D0D 100%);
+          .animated-gradient-text {
+            background: linear-gradient(135deg, #BF3B79 0%, #F22998 25%, #8C0D60 50%, #BF3B79 75%, #F22998 100%);
             background-size: 300% 300%;
-            animation: gradientMove 25s ease infinite;
-          }
-          
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+            animation: gradientMove 8s ease infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
           }
           
           @keyframes floatSubtle {
@@ -77,18 +70,14 @@ export default function PassengerHome() {
             50% { transform: translateY(-2px); }
           }
           
-          .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-          }
-          
           .float-subtle {
             animation: floatSubtle 3s ease-in-out infinite;
           }
           
           .logo-glass {
-            background: rgba(13, 13, 13, 0.3);
+            background: rgba(13, 13, 13, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(242, 41, 152, 0.1);
+            border: 1px solid rgba(242, 41, 152, 0.05);
           }
         `}</style>
         
@@ -114,7 +103,7 @@ export default function PassengerHome() {
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
                 <span className="text-[#F2F2F2]">Sua mobilidade</span>
                 <br />
-                <span className="bg-gradient-to-r from-[#BF3B79] via-[#F22998] to-[#8C0D60] bg-clip-text text-transparent">
+                <span className="animated-gradient-text">
                   segura e elegante
                 </span>
               </h1>
@@ -155,14 +144,14 @@ export default function PassengerHome() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="relative hidden md:flex flex-col items-center justify-center gap-6 py-12 fade-in-up"
+              className="relative hidden md:flex flex-col items-center justify-center gap-4 py-8"
             >
               {/* Logo Central Dellas */}
-              <div className="logo-glass rounded-3xl p-8 float-subtle">
+              <div className="logo-glass rounded-3xl p-6 float-subtle">
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a971de28c_centraltranspa.png"
                   alt="Central Dellas"
-                  className="w-80 h-auto object-contain"
+                  className="w-56 h-auto object-contain"
                 />
               </div>
 
@@ -171,17 +160,17 @@ export default function PassengerHome() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="text-sm text-[#F2F2F2]/60 font-light tracking-wide"
+                className="text-xs text-[#F2F2F2]/50 font-light tracking-wide"
               >
                 Em parceria com
               </motion.p>
 
               {/* Logo Rotta Roza */}
-              <div className="logo-glass rounded-3xl p-6 float-subtle" style={{ animationDelay: '1s' }}>
+              <div className="logo-glass rounded-3xl p-4 float-subtle" style={{ animationDelay: '1s' }}>
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/1d47fa63e_Rota.png"
                   alt="Rotta Roza"
-                  className="w-48 h-auto object-contain"
+                  className="w-36 h-auto object-contain"
                 />
               </div>
             </motion.div>
