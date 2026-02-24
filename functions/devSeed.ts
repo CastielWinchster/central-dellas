@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
 
     if (action === 'create_users') {
       return await createTestUsers(base44);
-    } else if (action === 'create_ride_conversation') {
-      return await createRideAndConversation(base44);
+    } else if (action === 'create_conversation') {
+      return await createConversation(base44);
     } else if (action === 'get_status') {
       return await getStatus(base44);
     } else {
@@ -113,7 +113,7 @@ async function createTestUsers(base44) {
   return Response.json(results);
 }
 
-async function createRideAndConversation(base44) {
+async function createConversation(base44) {
   try {
     // Buscar usuários de teste
     const passengerUsers = await base44.asServiceRole.entities.User.filter({ 
@@ -125,7 +125,7 @@ async function createRideAndConversation(base44) {
 
     if (passengerUsers.length === 0 || driverUsers.length === 0) {
       return Response.json({ 
-        error: 'Usuários de teste não encontrados. Crie-os primeiro ou registre-os manualmente.',
+        error: 'Usuários de teste não encontrados. Registre-os primeiro.',
         passengerExists: passengerUsers.length > 0,
         driverExists: driverUsers.length > 0
       }, { status: 400 });
@@ -134,42 +134,10 @@ async function createRideAndConversation(base44) {
     const passengerId = passengerUsers[0].id;
     const driverId = driverUsers[0].id;
 
-    // Verificar se já existe corrida de teste
-    const existingRides = await base44.asServiceRole.entities.Ride.filter({
-      passenger_id: passengerId,
-      assigned_driver_id: driverId,
-      test_seed_key: 'seed_chat_v1'
-    });
-
-    let ride;
-    let rideCreated = false;
-
-    if (existingRides.length > 0) {
-      ride = existingRides[0];
-    } else {
-      // Criar corrida fake
-      ride = await base44.asServiceRole.entities.Ride.create({
-        passenger_id: passengerId,
-        assigned_driver_id: driverId,
-        pickup_lat: -20.7555,
-        pickup_lng: -47.7884,
-        pickup_text: 'Praça da Matriz, Orlândia, SP',
-        dropoff_lat: -20.7245,
-        dropoff_lng: -47.8050,
-        dropoff_text: 'Terminal Rodoviário, Orlândia, SP',
-        status: 'accepted',
-        estimated_price: 15.50,
-        estimated_duration: 12,
-        ride_type: 'standard',
-        is_test: true,
-        test_seed_key: 'seed_chat_v1'
-      });
-      rideCreated = true;
-    }
-
-    // Verificar se já existe conversa
+    // Verificar se já existe conversa entre os dois usuários
     const existingConversations = await base44.asServiceRole.entities.Conversation.filter({
-      ride_id: ride.id
+      passenger_id: passengerId,
+      driver_id: driverId
     });
 
     let conversation;
@@ -178,9 +146,8 @@ async function createRideAndConversation(base44) {
     if (existingConversations.length > 0) {
       conversation = existingConversations[0];
     } else {
-      // Criar conversa
+      // Criar conversa sem corrida vinculada
       conversation = await base44.asServiceRole.entities.Conversation.create({
-        ride_id: ride.id,
         passenger_id: passengerId,
         driver_id: driverId,
         status: 'active'
@@ -199,46 +166,44 @@ async function createRideAndConversation(base44) {
       // Criar mensagens iniciais
       await base44.asServiceRole.entities.Message.create({
         conversation_id: conversation.id,
-        ride_id: ride.id,
         sender_id: 'system',
         type: 'system',
-        text: 'Corrida de teste criada. Chat liberado para testes.',
+        text: 'Chat de teste criado. Conversem à vontade!',
         status: 'visible'
       });
 
-      // Aguardar 1 segundo para garantir ordem
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       await base44.asServiceRole.entities.Message.create({
         conversation_id: conversation.id,
-        ride_id: ride.id,
         sender_id: driverId,
         type: 'text',
-        text: 'Olá! Estou a caminho 🙂',
-        status: 'visible'
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      await base44.asServiceRole.entities.Message.create({
-        conversation_id: conversation.id,
-        ride_id: ride.id,
-        sender_id: passengerId,
-        type: 'text',
-        text: 'Perfeito, obrigada! 💗',
+        text: 'Olá! Como vai? 👋',
         status: 'visible'
       });
 
       messagesCreated = true;
+
+      // Criar notificações para ambos os usuários
+      await base44.asServiceRole.entities.Notification.create({
+        user_id: passengerId,
+        title: 'Nova conversa disponível',
+        message: 'Você tem uma nova conversa de teste no chat!',
+        type: 'system',
+        is_read: false
+      });
+
+      await base44.asServiceRole.entities.Notification.create({
+        user_id: driverId,
+        title: 'Nova conversa disponível',
+        message: 'Você tem uma nova conversa de teste no chat!',
+        type: 'system',
+        is_read: false
+      });
     }
 
     return Response.json({
       success: true,
-      ride: {
-        id: ride.id,
-        created: rideCreated,
-        status: ride.status
-      },
       conversation: {
         id: conversation.id,
         created: conversationCreated,
@@ -246,16 +211,12 @@ async function createRideAndConversation(base44) {
       },
       messages: {
         created: messagesCreated,
-        count: existingMessages.length || 3
-      },
-      chatUrls: {
-        passenger: `/Chat?conversation=${conversation.id}`,
-        driver: `/Chat?conversation=${conversation.id}`
+        count: existingMessages.length || 2
       }
     });
 
   } catch (error) {
-    console.error('Erro ao criar ride/conversation:', error);
+    console.error('Erro ao criar conversa:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
@@ -274,27 +235,17 @@ async function getStatus(base44) {
         passenger: passengerUsers.length > 0 ? passengerUsers[0].id : null,
         driver: driverUsers.length > 0 ? driverUsers[0].id : null
       },
-      ride: null,
       conversation: null
     };
 
     if (status.users.passenger && status.users.driver) {
-      const rides = await base44.asServiceRole.entities.Ride.filter({
+      const conversations = await base44.asServiceRole.entities.Conversation.filter({
         passenger_id: status.users.passenger,
-        assigned_driver_id: status.users.driver,
-        test_seed_key: 'seed_chat_v1'
+        driver_id: status.users.driver
       });
 
-      if (rides.length > 0) {
-        status.ride = rides[0].id;
-
-        const conversations = await base44.asServiceRole.entities.Conversation.filter({
-          ride_id: rides[0].id
-        });
-
-        if (conversations.length > 0) {
-          status.conversation = conversations[0].id;
-        }
+      if (conversations.length > 0) {
+        status.conversation = conversations[0].id;
       }
     }
 

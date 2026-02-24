@@ -92,23 +92,23 @@ export default function DevSeed() {
     }
   };
 
-  const handleCreateRideConversation = async () => {
+  const handleCreateConversation = async () => {
     setProcessing(true);
     try {
       const response = await base44.functions.invoke('devSeed', { 
-        action: 'create_ride_conversation' 
+        action: 'create_conversation' 
       });
       
       if (response.data.error) {
         toast.error(response.data.error);
       } else {
-        toast.success('Corrida e conversa criadas/verificadas com sucesso!');
+        toast.success('Chat criado com sucesso! Verifique a aba Mensagens.');
       }
       
       await loadStatus();
     } catch (error) {
       console.error('Erro:', error);
-      toast.error('Erro ao criar corrida/conversa: ' + error.message);
+      toast.error('Erro ao criar chat: ' + error.message);
     } finally {
       setProcessing(false);
     }
@@ -220,31 +220,16 @@ export default function DevSeed() {
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-[#0D0D0D]">
-                <span className="text-[#F2F2F2]/70">Corrida de Teste</span>
-                {status.ride ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-xs text-green-400">Criada</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-400" />
-                    <span className="text-xs text-red-400">Não criada</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-lg bg-[#0D0D0D]">
-                <span className="text-[#F2F2F2]/70">Conversa de Chat</span>
+                <span className="text-[#F2F2F2]/70">Chat entre Usuários</span>
                 {status.conversation ? (
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-xs text-green-400">Criada</span>
+                    <span className="text-xs text-green-400">Criado</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-red-400" />
-                    <span className="text-xs text-red-400">Não criada</span>
+                    <span className="text-xs text-red-400">Não criado</span>
                   </div>
                 )}
               </div>
@@ -294,13 +279,13 @@ export default function DevSeed() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-[#F2F2F2] mb-2">
-                  2. Criar Corrida + Conversa
+                  2. Criar Chat entre Usuários
                 </h3>
                 <p className="text-sm text-[#F2F2F2]/60 mb-4">
-                  Cria uma corrida fake vinculando passageira e motorista, depois cria a conversa e mensagens iniciais.
+                  Cria uma conversa de teste entre os dois usuários. O chat aparecerá na aba Mensagens com notificação.
                 </p>
                 <Button
-                  onClick={handleCreateRideConversation}
+                  onClick={handleCreateConversation}
                   disabled={processing || !status?.users.passenger || !status?.users.driver}
                   className="btn-gradient"
                 >
@@ -311,8 +296,8 @@ export default function DevSeed() {
                     </>
                   ) : (
                     <>
-                      <Car className="w-4 h-4 mr-2" />
-                      Criar Corrida + Chat
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Criar Chat
                     </>
                   )}
                 </Button>
@@ -324,37 +309,25 @@ export default function DevSeed() {
             <Card className="p-6 bg-[#1A1A1A] border-green-500/30">
               <h3 className="text-lg font-semibold text-green-400 mb-4 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5" />
-                Chat Pronto para Testes
+                Chat Criado com Sucesso!
               </h3>
               
               <div className="space-y-3">
-                <a
-                  href={createPageUrl(`Chat?conversation=${status.conversation}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button variant="outline" className="w-full justify-between border-[#F22998]/30 hover:bg-[#F22998]/10">
-                    <span>Abrir Chat (Nova Aba)</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </a>
-
                 <div className="p-4 rounded-lg bg-[#0D0D0D]">
                   <p className="text-sm text-[#F2F2F2]/60 mb-2">
-                    Para testar o chat entre passageira e motorista:
+                    Como acessar o chat:
                   </p>
                   <ol className="text-sm text-[#F2F2F2]/80 space-y-2 list-decimal list-inside">
-                    <li>Abra uma aba anônima e faça login como passageira</li>
-                    <li>Abra outra aba anônima e faça login como motorista</li>
-                    <li>Acesse "Mensagens" em cada uma e clique na conversa</li>
-                    <li>Teste o envio de mensagens, fotos e áudios</li>
+                    <li>Faça login com uma das contas abaixo</li>
+                    <li>Vá até a aba "Mensagens" no menu</li>
+                    <li>A conversa estará disponível com notificação</li>
+                    <li>Teste mensagens de texto, fotos e áudios</li>
                   </ol>
                 </div>
 
                 <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
                   <p className="text-xs text-blue-200">
-                    <strong>Credenciais:</strong><br />
+                    <strong>Contas de Teste:</strong><br />
                     Passageiro: luishcosta3@gmail.com<br />
                     Motorista: rossideh77@gmail.com<br />
                     Senha: (definida por cada usuário)
