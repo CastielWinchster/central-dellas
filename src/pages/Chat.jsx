@@ -153,15 +153,24 @@ export default function Chat() {
     try {
       const moderation = moderateText(newMessage);
       
-      await base44.entities.Message.create({
+      const messageData = {
         conversation_id: conversationId,
-        ride_id: conversation.ride_id,
         sender_id: user.id,
         type: 'text',
         text: moderation.text,
         status: moderation.isOffensive ? 'removed' : 'visible',
-        removed_reason: moderation.isOffensive ? 'offensive' : null
-      }, { data_env: "dev" });
+        is_read: false
+      };
+      
+      if (conversation.ride_id) {
+        messageData.ride_id = conversation.ride_id;
+      }
+      
+      if (moderation.isOffensive) {
+        messageData.removed_reason = 'offensive';
+      }
+
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
       if (moderation.isOffensive) {
         toast.error('Sua mensagem contém conteúdo ofensivo e foi bloqueada');
@@ -185,14 +194,20 @@ export default function Chat() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      await base44.entities.Message.create({
+      const messageData = {
         conversation_id: conversationId,
-        ride_id: conversation.ride_id,
         sender_id: user.id,
         type: 'image',
         file_url,
-        status: 'visible'
-      }, { data_env: "dev" });
+        status: 'visible',
+        is_read: false
+      };
+      
+      if (conversation.ride_id) {
+        messageData.ride_id = conversation.ride_id;
+      }
+
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
       await loadMessages();
       toast.success('Foto enviada');
@@ -245,15 +260,21 @@ export default function Chat() {
       const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      await base44.entities.Message.create({
+      const messageData = {
         conversation_id: conversationId,
-        ride_id: conversation.ride_id,
         sender_id: user.id,
         type: 'audio',
         file_url,
         duration_sec: 0,
-        status: 'visible'
-      }, { data_env: "dev" });
+        status: 'visible',
+        is_read: false
+      };
+      
+      if (conversation.ride_id) {
+        messageData.ride_id = conversation.ride_id;
+      }
+
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
       await loadMessages();
       toast.success('Áudio enviado');
@@ -446,15 +467,22 @@ export default function Chat() {
               </button>
             )}
 
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Digite sua mensagem..."
-              disabled={sending || isRecording}
-              className="flex-1 px-4 py-3 rounded-2xl bg-[#1A1A1A] border border-[#F22998]/20 text-[#F2F2F2] placeholder-[#F2F2F2]/40 focus:outline-none focus:border-[#F22998]/40"
-            />
+            {isRecording ? (
+              <div className="flex-1 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-red-500 text-sm">Gravando áudio...</span>
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                placeholder="Digite sua mensagem..."
+                disabled={sending}
+                className="flex-1 px-4 py-3 rounded-2xl bg-[#1A1A1A] border border-[#F22998]/20 text-[#F2F2F2] placeholder-[#F2F2F2]/40 focus:outline-none focus:border-[#F22998]/40"
+              />
+            )}
 
             <button
               onClick={handleSendMessage}
