@@ -9,7 +9,7 @@ import {
   Eye, Phone, Package, Calendar, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuthUser } from '@/components/AuthProvider';
+import { useAuthUser } from '../components/AuthGuard';
 import { toast } from 'sonner';
 
 export default function PassengerHome() {
