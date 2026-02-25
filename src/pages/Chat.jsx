@@ -111,15 +111,11 @@ export default function Chat() {
 
   const loadMessages = async () => {
     try {
-      console.log('📥 [LOAD MESSAGES] Carregando mensagens...', { conversationId });
       const msgs = await base44.entities.Message.filter(
         { conversation_id: conversationId },
         'created_date',
         undefined, undefined, undefined, { data_env: "dev" }
       );
-      
-      console.log('✅ Mensagens carregadas:', msgs.length, 'mensagens');
-      console.log('📋 Lista:', msgs.map(m => ({ id: m.id, type: m.type, text: m.text?.substring(0, 20) })));
       
       setMessages(msgs);
 
@@ -128,15 +124,11 @@ export default function Chat() {
         m => !m.is_read && m.sender_id !== user?.id
       );
       
-      if (unreadMessages.length > 0) {
-        console.log('👁️ Marcando', unreadMessages.length, 'mensagens como lidas');
-        for (const msg of unreadMessages) {
-          await base44.entities.Message.update(msg.id, { is_read: true }, { data_env: "dev" });
-        }
+      for (const msg of unreadMessages) {
+        await base44.entities.Message.update(msg.id, { is_read: true }, { data_env: "dev" });
       }
     } catch (error) {
-      console.error('❌ [LOAD MESSAGES] Erro:', error);
-      console.error('Stack:', error.stack);
+      console.error('Erro ao carregar mensagens:', error);
     }
   };
 
@@ -155,34 +147,11 @@ export default function Chat() {
   };
 
   const handleSendMessage = async () => {
-    console.log('🚀 [SEND TEXT] Iniciando envio...');
-    console.log('📝 Input:', { text: newMessage, conversationId, userId: user?.id });
-
-    if (!newMessage.trim()) {
-      console.log('⚠️ Mensagem vazia, cancelando');
-      return;
-    }
-
-    if (sending) {
-      console.log('⚠️ Já está enviando, cancelando');
-      return;
-    }
-
-    if (conversation?.status === 'archived') {
-      console.log('⚠️ Conversa arquivada, cancelando');
-      return;
-    }
-
-    if (!conversationId || !user?.id) {
-      console.error('❌ Faltam dados essenciais:', { conversationId, userId: user?.id });
-      toast.error('Erro: dados da conversa não carregados');
-      return;
-    }
+    if (!newMessage.trim() || sending || conversation?.status === 'archived') return;
 
     setSending(true);
     try {
       const moderation = moderateText(newMessage);
-      console.log('🔍 Moderação:', moderation);
       
       const messageData = {
         conversation_id: conversationId,
@@ -201,56 +170,35 @@ export default function Chat() {
         messageData.removed_reason = 'offensive';
       }
 
-      console.log('📤 Payload para criar mensagem:', messageData);
-      const created = await base44.entities.Message.create(messageData, { data_env: "dev" });
-      console.log('✅ Mensagem criada:', created);
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
       if (moderation.isOffensive) {
         toast.error('Sua mensagem contém conteúdo ofensivo e foi bloqueada');
-      } else {
-        toast.success('Mensagem enviada!');
       }
 
       setNewMessage('');
-      console.log('🔄 Recarregando mensagens...');
       await loadMessages();
-      scrollToBottom();
     } catch (error) {
-      console.error('❌ [SEND TEXT] Erro completo:', error);
-      console.error('Stack:', error.stack);
-      toast.error(`Erro ao enviar: ${error.message}`);
+      console.error('Erro ao enviar mensagem:', error);
+      toast.error('Erro ao enviar mensagem');
     } finally {
       setSending(false);
-      console.log('🏁 [SEND TEXT] Finalizado');
     }
   };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
-    console.log('🖼️ [SEND IMAGE] Iniciando upload...', { fileName: file?.name, fileSize: file?.size });
-
-    if (!file) {
-      console.log('⚠️ Nenhum arquivo selecionado');
-      return;
-    }
-
-    if (conversation?.status === 'archived') {
-      console.log('⚠️ Conversa arquivada, cancelando');
-      toast.error('Não é possível enviar imagens em conversa arquivada');
-      return;
-    }
+    if (!file || conversation?.status === 'archived') return;
 
     setSending(true);
     try {
-      console.log('📤 Fazendo upload da imagem...');
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      console.log('✅ Upload completo:', uploadResult);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
       const messageData = {
         conversation_id: conversationId,
         sender_id: user.id,
         type: 'image',
-        file_url: uploadResult.file_url,
+        file_url,
         status: 'visible',
         is_read: false
       };
@@ -259,96 +207,64 @@ export default function Chat() {
         messageData.ride_id = conversation.ride_id;
       }
 
-      console.log('📤 Criando mensagem de imagem:', messageData);
-      const created = await base44.entities.Message.create(messageData, { data_env: "dev" });
-      console.log('✅ Mensagem de imagem criada:', created);
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
-      console.log('🔄 Recarregando mensagens...');
       await loadMessages();
-      scrollToBottom();
-      toast.success('Foto enviada!');
+      toast.success('Foto enviada');
     } catch (error) {
-      console.error('❌ [SEND IMAGE] Erro completo:', error);
-      console.error('Stack:', error.stack);
-      toast.error(`Erro ao enviar foto: ${error.message}`);
+      console.error('Erro ao enviar foto:', error);
+      toast.error('Erro ao enviar foto');
     } finally {
       setSending(false);
-      console.log('🏁 [SEND IMAGE] Finalizado');
     }
   };
 
   const handleStartRecording = async () => {
-    console.log('🎤 [RECORD AUDIO] Iniciando gravação...');
-
-    if (conversation?.status === 'archived') {
-      console.log('⚠️ Conversa arquivada, cancelando');
-      toast.error('Não é possível gravar áudio em conversa arquivada');
-      return;
-    }
+    if (conversation?.status === 'archived') return;
 
     try {
-      console.log('🎙️ Solicitando acesso ao microfone...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('✅ Acesso ao microfone concedido');
-
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        console.log('📊 Chunk de áudio recebido:', event.data.size, 'bytes');
         audioChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        console.log('⏹️ Gravação parada, processando...');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log('🎵 Blob de áudio criado:', audioBlob.size, 'bytes');
         await handleSendAudio(audioBlob);
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      console.log('🔴 Gravação iniciada!');
-      toast.success('Gravando áudio...');
     } catch (error) {
-      console.error('❌ [RECORD AUDIO] Erro:', error);
-      console.error('Stack:', error.stack);
-      toast.error(`Erro ao acessar microfone: ${error.message}`);
+      console.error('Erro ao gravar áudio:', error);
+      toast.error('Erro ao acessar microfone');
     }
   };
 
   const handleStopRecording = () => {
-    console.log('⏹️ [STOP RECORDING] Parando gravação...');
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       setIsRecording(false);
-      console.log('✅ Gravação parada');
     }
   };
 
   const handleSendAudio = async (audioBlob) => {
-    console.log('🎵 [SEND AUDIO] Iniciando envio de áudio...', { size: audioBlob.size });
-
-    if (conversation?.status === 'archived') {
-      console.log('⚠️ Conversa arquivada, cancelando');
-      return;
-    }
+    if (conversation?.status === 'archived') return;
 
     setSending(true);
     try {
-      console.log('📦 Criando arquivo de áudio...');
       const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
-      console.log('📤 Fazendo upload do áudio...');
-      
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      console.log('✅ Upload de áudio completo:', uploadResult);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
       const messageData = {
         conversation_id: conversationId,
         sender_id: user.id,
         type: 'audio',
-        file_url: uploadResult.file_url,
+        file_url,
         duration_sec: 0,
         status: 'visible',
         is_read: false
@@ -358,21 +274,15 @@ export default function Chat() {
         messageData.ride_id = conversation.ride_id;
       }
 
-      console.log('📤 Criando mensagem de áudio:', messageData);
-      const created = await base44.entities.Message.create(messageData, { data_env: "dev" });
-      console.log('✅ Mensagem de áudio criada:', created);
+      await base44.entities.Message.create(messageData, { data_env: "dev" });
 
-      console.log('🔄 Recarregando mensagens...');
       await loadMessages();
-      scrollToBottom();
-      toast.success('Áudio enviado!');
+      toast.success('Áudio enviado');
     } catch (error) {
-      console.error('❌ [SEND AUDIO] Erro completo:', error);
-      console.error('Stack:', error.stack);
-      toast.error(`Erro ao enviar áudio: ${error.message}`);
+      console.error('Erro ao enviar áudio:', error);
+      toast.error('Erro ao enviar áudio');
     } finally {
       setSending(false);
-      console.log('🏁 [SEND AUDIO] Finalizado');
     }
   };
 
@@ -458,11 +368,6 @@ export default function Chat() {
         className="flex-1 overflow-y-auto px-4 py-6 space-y-4"
         style={{ '--shift': scrollShift }}
       >
-        {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-[#F2F2F2]/40 text-sm">Nenhuma mensagem ainda</p>
-          </div>
-        )}
         {messages.map((msg) => {
           const isMine = msg.sender_id === user?.id;
           const isRemoved = msg.status === 'removed';
