@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Send, Image as ImageIcon, Mic, StopCircle,
-  MoreVertical, AlertCircle, Loader2, ChevronDown, X, Play, Pause
+  MoreVertical, AlertCircle, Loader2, ChevronDown, X, Play, Pause, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ export default function Chat() {
     lastError: null,
     myUserId: '',
     conversationId: '',
+    sessionId: '',
     lastMessageTs: null,
     pollEnabled: false
   });
@@ -43,6 +44,11 @@ export default function Chat() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [lastMessageTs, setLastMessageTs] = useState(null);
   const [pollEnabled, setPollEnabled] = useState(false);
+  
+  // Timer
+  const [sessionId, setSessionId] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(null);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -51,6 +57,7 @@ export default function Chat() {
   const recordingTimerRef = useRef(null);
   const pollTimerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const sessionTimerRef = useRef(null);
 
   const [playingAudio, setPlayingAudio] = useState(null);
   const audioRefs = useRef({});
@@ -85,9 +92,51 @@ export default function Chat() {
       lastError: error,
       myUserId: user?.id || '',
       conversationId: conversationId || '',
+      sessionId: sessionId || '',
       lastMessageTs,
       pollEnabled
     }));
+  };
+
+  // Timer do chat
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expires = new Date(expiresAt).getTime();
+      const remaining = Math.max(0, expires - now);
+      
+      setTimeRemaining(remaining);
+
+      if (remaining === 0) {
+        handleSessionExpired();
+      }
+    };
+
+    updateTimer();
+    sessionTimerRef.current = setInterval(updateTimer, 1000);
+
+    return () => {
+      if (sessionTimerRef.current) {
+        clearInterval(sessionTimerRef.current);
+      }
+    };
+  }, [expiresAt]);
+
+  const formatTime = (ms) => {
+    if (!ms) return '00:00';
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSessionExpired = async () => {
+    toast.info('Chat reiniciado! Nova sessão iniciada.');
+    setMessages([]);
+    setLastMessageTs(null);
+    await startSession();
   };
 
   // Carregar dados iniciais
@@ -103,18 +152,13 @@ export default function Chat() {
       const me = await base44.auth.me();
       setUser(me);
 
-      // Tentar client-side primeiro
-      let conv = null;
-      try {
-        const convs = await base44.entities.Conversation.filter(
-          { id: conversationId },
-          undefined, undefined, undefined, undefined,
-          { data_env: "dev" }
-        );
-        conv = convs?.[0];
-      } catch (err) {
-        console.log('Client read blocked, using backend');
-      }
+      // Buscar conversa
+      const convs = await base44.entities.Conversation.filter(
+        { id: conversationId },
+        undefined, undefined, undefined, undefined,
+        { data_env: "dev" }
+      );
+      const conv = convs?.[0];
 
       if (!conv) {
         toast.error('Conversa não encontrada');
@@ -133,8 +177,8 @@ export default function Chat() {
       );
       setOtherUser(users?.[0]);
 
-      // Carregar mensagens
-      await loadMessages();
+      // Iniciar sessão
+      await startSession();
 
       updateDebug('loadInitialData', { conversationId }, { conv, me }, null);
     } catch (error) {
@@ -146,31 +190,53 @@ export default function Chat() {
     }
   };
 
+  const startSession = async () => {
+    try {
+      updateDebug('startSession', { conversationId }, null, null);
+
+      const res = await base44.functions.invoke('chat_startSession', { conversationId });
+
+      if (!res.data.ok) {
+        console.error('Session start failed:', res.data);
+        toast.error(res.data.message || 'Erro ao iniciar sessão');
+        updateDebug('startSession', { conversationId }, res.data, res.data.message);
+        return;
+      }
+
+      setSessionId(res.data.sessionId);
+      setExpiresAt(res.data.expiresAt);
+
+      if (res.data.isNewSession) {
+        console.log('Nova sessão criada:', res.data.sessionId);
+      }
+
+      // Carregar mensagens
+      await loadMessages();
+
+      updateDebug('startSession', { conversationId }, res.data, null);
+    } catch (error) {
+      console.error('Error starting session:', error);
+      toast.error('Erro ao iniciar sessão do chat');
+      updateDebug('startSession', { conversationId }, null, error.message);
+    }
+  };
+
   const loadMessages = async () => {
     try {
       updateDebug('loadMessages', { conversationId }, null, null);
 
-      // Tentar client-side primeiro
-      let msgs = null;
-      try {
-        msgs = await base44.entities.Message.filter(
-          { conversation_id: conversationId },
-          'created_date',
-          undefined, undefined, undefined,
-          { data_env: "dev" }
-        );
-      } catch (err) {
-        console.log('Client read blocked, using backend');
-        // Fallback para backend
-        const res = await base44.functions.invoke('chat_listMessages', {
-          conversationId
-        });
-        msgs = res.data.messages;
+      const res = await base44.functions.invoke('chat_listMessages', { conversationId });
+
+      if (!res.data.ok) {
+        console.error('List messages failed:', res.data);
+        updateDebug('loadMessages', { conversationId }, res.data, res.data.message);
+        return;
       }
 
-      setMessages(msgs || []);
+      const msgs = res.data.messages || [];
+      setMessages(msgs);
       
-      if (msgs && msgs.length > 0) {
+      if (msgs.length > 0) {
         const lastMsg = msgs[msgs.length - 1];
         setLastMessageTs(lastMsg.created_date);
       }
@@ -178,11 +244,12 @@ export default function Chat() {
       // Marcar como lidas
       await markAsRead();
 
-      updateDebug('loadMessages', { conversationId }, { count: msgs?.length }, null);
+      updateDebug('loadMessages', { conversationId }, { count: msgs.length }, null);
       
       setTimeout(() => scrollToBottom(true), 100);
     } catch (error) {
       console.error('Error loading messages:', error);
+      toast.error('Erro ao carregar mensagens');
       updateDebug('loadMessages', { conversationId }, null, error.message);
     }
   };
@@ -197,7 +264,7 @@ export default function Chat() {
 
   // Polling para "realtime"
   useEffect(() => {
-    if (!conversationId || !user) return;
+    if (!conversationId || !user || !sessionId) return;
 
     setPollEnabled(true);
     
@@ -230,7 +297,7 @@ export default function Chat() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       setPollEnabled(false);
     };
-  }, [conversationId, user, lastMessageTs]);
+  }, [conversationId, user, sessionId, lastMessageTs]);
 
   const fetchNewMessages = async () => {
     if (!lastMessageTs) return;
@@ -240,6 +307,8 @@ export default function Chat() {
         conversationId,
         afterTs: lastMessageTs
       });
+
+      if (!res.data.ok) return;
 
       const newMsgs = res.data.messages || [];
       
@@ -253,10 +322,8 @@ export default function Chat() {
         const lastMsg = newMsgs[newMsgs.length - 1];
         setLastMessageTs(lastMsg.created_date);
 
-        // Auto-scroll se estiver perto do fim
         setTimeout(() => scrollToBottom(false), 50);
 
-        // Marcar como lidas
         await markAsRead();
       }
     } catch (error) {
@@ -278,6 +345,7 @@ export default function Chat() {
     const tempMessage = {
       id: tempId,
       conversation_id: conversationId,
+      session_id: sessionId,
       sender_id: user.id,
       type: 'text',
       text,
@@ -286,45 +354,23 @@ export default function Chat() {
       is_read: false
     };
 
-    // Optimistic UI
     setMessages(prev => [...prev, tempMessage]);
     setTimeout(() => scrollToBottom(true), 50);
 
     try {
       updateDebug('sendText', { text }, null, null);
 
-      // Tentar client-side primeiro
-      let message = null;
-      try {
-        const messageData = {
-          conversation_id: conversationId,
-          sender_id: user.id,
-          type: 'text',
-          text,
-          status: 'visible',
-          is_read: false
-        };
-        
-        if (conversation.ride_id) {
-          messageData.ride_id = conversation.ride_id;
-        }
+      const res = await base44.functions.invoke('chat_sendMessage', {
+        conversationId,
+        type: 'text',
+        text
+      });
 
-        message = await base44.entities.Message.create(
-          messageData,
-          { data_env: "dev" }
-        );
-      } catch (err) {
-        console.log('Client create blocked, using backend');
-        // Fallback para backend
-        const res = await base44.functions.invoke('chat_sendMessage', {
-          conversationId,
-          type: 'text',
-          text
-        });
-        message = res.data.message;
+      if (!res.data.ok) {
+        throw new Error(res.data.message || 'Erro ao enviar');
       }
 
-      // Substituir temp pela mensagem real
+      const message = res.data.message;
       setMessages(prev => prev.map(m => m.id === tempId ? message : m));
       setLastMessageTs(message.created_date);
 
@@ -334,7 +380,6 @@ export default function Chat() {
       console.error('Error sending text:', error);
       toast.error('Erro ao enviar mensagem');
       
-      // Marcar como failed
       setMessages(prev => prev.map(m => 
         m.id === tempId ? { ...m, status: 'failed' } : m
       ));
@@ -356,6 +401,7 @@ export default function Chat() {
     const tempMessage = {
       id: tempId,
       conversation_id: conversationId,
+      session_id: sessionId,
       sender_id: user.id,
       type: 'image',
       file_url: URL.createObjectURL(file),
@@ -364,47 +410,25 @@ export default function Chat() {
       is_read: false
     };
 
-    // Optimistic UI
     setMessages(prev => [...prev, tempMessage]);
     setTimeout(() => scrollToBottom(true), 50);
 
     try {
       updateDebug('sendImage', { fileName: file.name }, null, null);
 
-      // Upload
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Enviar mensagem
-      let message = null;
-      try {
-        const messageData = {
-          conversation_id: conversationId,
-          sender_id: user.id,
-          type: 'image',
-          file_url,
-          status: 'visible',
-          is_read: false
-        };
-        
-        if (conversation.ride_id) {
-          messageData.ride_id = conversation.ride_id;
-        }
+      const res = await base44.functions.invoke('chat_sendMessage', {
+        conversationId,
+        type: 'image',
+        fileUrl: file_url
+      });
 
-        message = await base44.entities.Message.create(
-          messageData,
-          { data_env: "dev" }
-        );
-      } catch (err) {
-        console.log('Client create blocked, using backend');
-        const res = await base44.functions.invoke('chat_sendMessage', {
-          conversationId,
-          type: 'image',
-          fileUrl: file_url
-        });
-        message = res.data.message;
+      if (!res.data.ok) {
+        throw new Error(res.data.message || 'Erro ao enviar');
       }
 
-      // Substituir temp pela mensagem real
+      const message = res.data.message;
       setMessages(prev => prev.map(m => m.id === tempId ? message : m));
       setLastMessageTs(message.created_date);
 
@@ -443,7 +467,6 @@ export default function Chat() {
       setIsRecording(true);
       setRecordingDuration(0);
 
-      // Timer de duração
       recordingTimerRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1);
       }, 1000);
@@ -477,6 +500,7 @@ export default function Chat() {
     const tempMessage = {
       id: tempId,
       conversation_id: conversationId,
+      session_id: sessionId,
       sender_id: user.id,
       type: 'audio',
       file_url: URL.createObjectURL(audioBlob),
@@ -492,42 +516,21 @@ export default function Chat() {
     try {
       updateDebug('sendAudio', { duration }, null, null);
 
-      // Upload
       const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Enviar mensagem
-      let message = null;
-      try {
-        const messageData = {
-          conversation_id: conversationId,
-          sender_id: user.id,
-          type: 'audio',
-          file_url,
-          duration_sec: duration,
-          status: 'visible',
-          is_read: false
-        };
-        
-        if (conversation.ride_id) {
-          messageData.ride_id = conversation.ride_id;
-        }
+      const res = await base44.functions.invoke('chat_sendMessage', {
+        conversationId,
+        type: 'audio',
+        fileUrl: file_url,
+        durationSec: duration
+      });
 
-        message = await base44.entities.Message.create(
-          messageData,
-          { data_env: "dev" }
-        );
-      } catch (err) {
-        console.log('Client create blocked, using backend');
-        const res = await base44.functions.invoke('chat_sendMessage', {
-          conversationId,
-          type: 'audio',
-          fileUrl: file_url,
-          durationSec: duration
-        });
-        message = res.data.message;
+      if (!res.data.ok) {
+        throw new Error(res.data.message || 'Erro ao enviar');
       }
 
+      const message = res.data.message;
       setMessages(prev => prev.map(m => m.id === tempId ? message : m));
       setLastMessageTs(message.created_date);
 
@@ -557,14 +560,13 @@ export default function Chat() {
       audio.pause();
       setPlayingAudio(null);
     } else {
-      // Pausar qualquer outro áudio tocando
       Object.values(audioRefs.current).forEach(a => a.pause());
       audio.play();
       setPlayingAudio(messageId);
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatAudioTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -601,11 +603,12 @@ export default function Chat() {
               </div>
             )}
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-[#F2F2F2] font-semibold">{otherUser?.full_name || 'Usuário'}</h2>
-            <p className="text-[#F2F2F2]/50 text-xs">
-              {pollEnabled ? 'Online' : 'Offline'}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-[#F2F2F2]/50">
+              <Clock className="w-3 h-3" />
+              <span>{formatTime(timeRemaining)}</span>
+            </div>
           </div>
         </div>
 
@@ -628,7 +631,7 @@ export default function Chat() {
             exit={{ height: 0, opacity: 0 }}
             className="bg-[#1A1A1A] border-b border-[#F22998]/20 overflow-hidden"
           >
-            <div className="p-4 text-xs text-[#F2F2F2]/70 space-y-2">
+            <div className="p-4 text-xs text-[#F2F2F2]/70 space-y-2 max-h-96 overflow-auto">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[#F22998] font-bold">DEBUG PANEL</span>
                 <button onClick={() => setShowDebug(false)}>
@@ -637,6 +640,7 @@ export default function Chat() {
               </div>
               <div><strong>User ID:</strong> {debugInfo.myUserId}</div>
               <div><strong>Conversation ID:</strong> {debugInfo.conversationId}</div>
+              <div><strong>Session ID:</strong> {debugInfo.sessionId}</div>
               <div><strong>Last Message TS:</strong> {debugInfo.lastMessageTs || 'none'}</div>
               <div><strong>Poll Enabled:</strong> {debugInfo.pollEnabled ? '✅' : '❌'}</div>
               <div><strong>Last Action:</strong> {debugInfo.lastAction || 'none'}</div>
@@ -707,7 +711,8 @@ export default function Chat() {
                       <img 
                         src={msg.file_url} 
                         alt="Imagem" 
-                        className="rounded-lg max-w-full"
+                        className="rounded-lg max-w-full cursor-pointer hover:opacity-90"
+                        onClick={() => window.open(msg.file_url, '_blank')}
                       />
                     )}
                     
@@ -723,7 +728,7 @@ export default function Chat() {
                             <Play className="w-4 h-4 ml-0.5" />
                           )}
                         </button>
-                        <span className="text-sm">{formatTime(msg.duration_sec || 0)}</span>
+                        <span className="text-sm">{formatAudioTime(msg.duration_sec || 0)}</span>
                         <audio
                           ref={(el) => {
                             if (el) audioRefs.current[msg.id] = el;
@@ -821,7 +826,7 @@ export default function Chat() {
           {isRecording ? (
             <div className="flex-1 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-red-500 text-sm">Gravando: {formatTime(recordingDuration)}</span>
+              <span className="text-red-500 text-sm">Gravando: {formatAudioTime(recordingDuration)}</span>
             </div>
           ) : (
             <input

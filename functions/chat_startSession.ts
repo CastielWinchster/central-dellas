@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const SESSION_DURATION_MS = 24 * 60 * 1000; // 24 minutos (parametrizável)
+
 Deno.serve(async (req) => {
   const step = { current: 'init' };
   
@@ -11,7 +13,7 @@ Deno.serve(async (req) => {
     
     if (!user) {
       return Response.json({ 
-        ok: false,
+        ok: false, 
         step: step.current,
         message: 'Não autenticado',
         context: null
@@ -19,7 +21,7 @@ Deno.serve(async (req) => {
     }
 
     step.current = 'parse_input';
-    const { conversationId, type, text, fileUrl, durationSec } = await req.json();
+    const { conversationId } = await req.json();
 
     if (!conversationId) {
       return Response.json({ 
@@ -58,58 +60,52 @@ Deno.serve(async (req) => {
         ok: false,
         step: step.current,
         message: 'Você não é participante desta conversa',
-        context: { userId: user.id }
+        context: { userId: user.id, conversation }
       }, { status: 200 });
     }
 
-    step.current = 'ensure_session';
-    // Garantir sessão ativa
-    const sessionResponse = await fetch(new URL('/functions/chat_startSession', req.url).href, {
-      method: 'POST',
-      headers: req.headers,
-      body: JSON.stringify({ conversationId })
-    });
-    const sessionData = await sessionResponse.json();
+    step.current = 'check_session';
+    const now = new Date();
+    const expiresAt = conversation.active_session_expires_at 
+      ? new Date(conversation.active_session_expires_at) 
+      : null;
 
-    if (!sessionData.ok) {
+    const needsNewSession = !expiresAt || now >= expiresAt;
+
+    if (needsNewSession) {
+      step.current = 'create_session';
+      const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const startedAt = now.toISOString();
+      const newExpiresAt = new Date(now.getTime() + SESSION_DURATION_MS).toISOString();
+
+      await base44.asServiceRole.entities.Conversation.update(
+        conversationId,
+        {
+          active_session_id: sessionId,
+          active_session_started_at: startedAt,
+          active_session_expires_at: newExpiresAt
+        },
+        { data_env: "dev" }
+      );
+
       return Response.json({ 
-        ok: false,
-        step: step.current,
-        message: 'Erro ao garantir sessão ativa',
-        context: sessionData
-      }, { status: 200 });
+        ok: true,
+        sessionId,
+        startedAt,
+        expiresAt: newExpiresAt,
+        isNewSession: true
+      });
     }
-
-    step.current = 'create_message';
-    const messageData = {
-      conversation_id: conversationId,
-      session_id: sessionData.sessionId,
-      sender_id: user.id,
-      type: type || 'text',
-      status: 'visible',
-      is_read: false
-    };
-
-    if (conversation.ride_id) {
-      messageData.ride_id = conversation.ride_id;
-    }
-
-    if (text) messageData.text = text;
-    if (fileUrl) messageData.file_url = fileUrl;
-    if (durationSec !== undefined) messageData.duration_sec = durationSec;
-
-    const message = await base44.asServiceRole.entities.Message.create(
-      messageData,
-      { data_env: "dev" }
-    );
 
     return Response.json({ 
       ok: true,
-      message,
-      sessionId: sessionData.sessionId
+      sessionId: conversation.active_session_id,
+      startedAt: conversation.active_session_started_at,
+      expiresAt: conversation.active_session_expires_at,
+      isNewSession: false
     });
   } catch (error) {
-    console.error('Error in chat_sendMessage:', error);
+    console.error('Error in chat_startSession:', error);
     return Response.json({ 
       ok: false,
       step: step.current,

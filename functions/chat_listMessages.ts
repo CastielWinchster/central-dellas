@@ -1,17 +1,36 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+  const step = { current: 'init' };
+  
   try {
     const base44 = createClientFromRequest(req);
+    
+    step.current = 'auth';
     const user = await base44.auth.me();
     
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ 
+        ok: false,
+        step: step.current,
+        message: 'Não autenticado',
+        context: null
+      }, { status: 200 });
     }
 
+    step.current = 'parse_input';
     const { conversationId, afterTs } = await req.json();
 
-    // Validar participante da conversa
+    if (!conversationId) {
+      return Response.json({ 
+        ok: false,
+        step: step.current,
+        message: 'conversationId é obrigatório',
+        context: { conversationId }
+      }, { status: 200 });
+    }
+
+    step.current = 'fetch_conversation';
     const conversations = await base44.asServiceRole.entities.Conversation.filter(
       { id: conversationId },
       undefined, undefined, undefined, undefined,
@@ -19,22 +38,55 @@ Deno.serve(async (req) => {
     );
 
     if (!conversations || conversations.length === 0) {
-      return Response.json({ error: 'Conversation not found' }, { status: 404 });
+      return Response.json({ 
+        ok: false,
+        step: step.current,
+        message: 'Conversa não encontrada',
+        context: { conversationId }
+      }, { status: 200 });
     }
 
     const conversation = conversations[0];
     
-    // Verificar se usuário é participante
+    step.current = 'validate_participant';
     const isParticipant = 
       conversation.passenger_id === user.id || 
       conversation.driver_id === user.id;
 
     if (!isParticipant) {
-      return Response.json({ error: 'Not a participant' }, { status: 403 });
+      return Response.json({ 
+        ok: false,
+        step: step.current,
+        message: 'Você não é participante desta conversa',
+        context: { userId: user.id }
+      }, { status: 200 });
     }
 
-    // Buscar mensagens
-    let filter = { conversation_id: conversationId };
+    step.current = 'ensure_session';
+    // Garantir sessão ativa
+    const sessionResponse = await fetch(new URL('/functions/chat_startSession', req.url).href, {
+      method: 'POST',
+      headers: req.headers,
+      body: JSON.stringify({ conversationId })
+    });
+    const sessionData = await sessionResponse.json();
+
+    if (!sessionData.ok) {
+      return Response.json({ 
+        ok: false,
+        step: step.current,
+        message: 'Erro ao garantir sessão ativa',
+        context: sessionData
+      }, { status: 200 });
+    }
+
+    step.current = 'fetch_messages';
+    // Buscar apenas mensagens da sessão atual
+    let filter = { 
+      conversation_id: conversationId,
+      session_id: sessionData.sessionId,
+      status: 'visible'
+    };
     
     if (afterTs) {
       filter.created_date = { $gt: afterTs };
@@ -47,12 +99,19 @@ Deno.serve(async (req) => {
       { data_env: "dev" }
     );
 
-    return Response.json({ ok: true, messages: messages || [] });
-  } catch (error) {
-    console.error('Error listing messages:', error);
     return Response.json({ 
-      error: error.message,
-      stack: error.stack 
-    }, { status: 500 });
+      ok: true,
+      messages: messages || [],
+      sessionId: sessionData.sessionId,
+      expiresAt: sessionData.expiresAt
+    });
+  } catch (error) {
+    console.error('Error in chat_listMessages:', error);
+    return Response.json({ 
+      ok: false,
+      step: step.current,
+      message: error.message,
+      context: { stack: error.stack }
+    }, { status: 200 });
   }
 });
