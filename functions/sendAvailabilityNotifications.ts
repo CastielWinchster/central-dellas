@@ -1,0 +1,89 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+Deno.serve(async (req) => {
+    try {
+        const base44 = createClientFromRequest(req);
+        
+        // Buscar todos os usuários com notificações ativadas
+        const allSettings = await base44.asServiceRole.entities.NotificationSettings.list();
+        
+        // Buscar motoristas disponíveis
+        const availableDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
+            is_available: true
+        });
+        
+        const carDrivers = availableDrivers.filter(d => d.vehicle_type === 'car');
+        const motorcycleDrivers = availableDrivers.filter(d => d.vehicle_type === 'motorcycle');
+        
+        const now = new Date();
+        let notificationsSent = 0;
+        
+        for (const settings of allSettings) {
+            // Notificação de Carro
+            if (settings.notify_car_availability && carDrivers.length > 0) {
+                const lastSent = settings.last_car_availability_notification_sent 
+                    ? new Date(settings.last_car_availability_notification_sent)
+                    : null;
+                
+                const hoursSinceLastNotification = lastSent 
+                    ? (now - lastSent) / (1000 * 60 * 60)
+                    : settings.availability_notification_frequency + 1;
+                
+                if (hoursSinceLastNotification >= settings.availability_notification_frequency) {
+                    await base44.asServiceRole.entities.Notification.create({
+                        user_id: settings.user_id,
+                        title: "Peça seu carro agora! 🚗💖✨",
+                        message: "Sua viagem com total segurança e entre mulheres.",
+                        type: "system",
+                        is_read: false,
+                        is_persistent: true
+                    });
+                    
+                    await base44.asServiceRole.entities.NotificationSettings.update(settings.id, {
+                        last_car_availability_notification_sent: now.toISOString()
+                    });
+                    
+                    notificationsSent++;
+                }
+            }
+            
+            // Notificação de Moto (Rotta Roza)
+            if (settings.notify_motorcycle_availability && motorcycleDrivers.length > 0) {
+                const lastSent = settings.last_motorcycle_availability_notification_sent 
+                    ? new Date(settings.last_motorcycle_availability_notification_sent)
+                    : null;
+                
+                const hoursSinceLastNotification = lastSent 
+                    ? (now - lastSent) / (1000 * 60 * 60)
+                    : settings.availability_notification_frequency + 1;
+                
+                if (hoursSinceLastNotification >= settings.availability_notification_frequency) {
+                    await base44.asServiceRole.entities.Notification.create({
+                        user_id: settings.user_id,
+                        title: "ROTTA ROZA 🏍",
+                        message: "De mulher para mulher sua segurança é nossa!",
+                        type: "system",
+                        is_read: false,
+                        is_persistent: true
+                    });
+                    
+                    await base44.asServiceRole.entities.NotificationSettings.update(settings.id, {
+                        last_motorcycle_availability_notification_sent: now.toISOString()
+                    });
+                    
+                    notificationsSent++;
+                }
+            }
+        }
+        
+        return Response.json({ 
+            success: true, 
+            notificationsSent,
+            carDriversAvailable: carDrivers.length,
+            motorcycleDriversAvailable: motorcycleDrivers.length
+        });
+    } catch (error) {
+        console.error('Erro ao enviar notificações:', error);
+        return Response.json({ error: error.message }, { status: 500 });
+    }
+});
