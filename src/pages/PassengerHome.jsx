@@ -44,7 +44,7 @@ export default function PassengerHome() {
         const newNotification = await base44.entities.Notification.create({
           user_id: userData.id,
           title: 'Obrigada por apoiar nosso lançamento!',
-          message: 'Cupom PRIMEIRA VELOZ: 50% OFF na primeira corrida. De mulher para mulher, sua segurança é nossa prioridade.',
+          message: 'Cupom PRIMEIRA VELOZ: 50% OFF na primeira corrida. De mulher para todos. <br> De mulher para mulher, sua segurança é nossa prioridade.',
           type: 'coupon',
           is_persistent: true,
           is_read: false
