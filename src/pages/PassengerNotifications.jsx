@@ -82,7 +82,7 @@ export default function PassengerNotifications() {
       await base44.entities.Notification.create({
         user_id: user.id,
         title: "ROTTA ROZA 🌸",
-        message: "De mulher para mulher sua segurança é nossa!\nPeça sua mototáxi agora!",
+        message: "De mulher para mulher sua segurança é nossa prioridade!\nPeça sua mototáxi agora!",
         type: "system",
         is_read: false,
         is_persistent: true
