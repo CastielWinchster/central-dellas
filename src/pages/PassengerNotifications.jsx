@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import moment from 'moment';
+import NotificationSettingsPanel from '../components/NotificationSettingsPanel';
 
 export default function PassengerNotifications() {
   const [user, setUser] = useState(null);
@@ -63,6 +64,39 @@ export default function PassengerNotifications() {
     }
   };
 
+  const handleTestNotifications = async () => {
+    try {
+      toast.loading('Enviando notificações de teste...');
+      
+      // Notificação de Carro
+      await base44.entities.Notification.create({
+        user_id: user.id,
+        title: "Peça seu carro agora! 🚗💖✨",
+        message: "Sua viagem com total segurança e entre mulheres.",
+        type: "system",
+        is_read: false,
+        is_persistent: true
+      });
+      
+      // Notificação de Moto (Rotta Roza)
+      await base44.entities.Notification.create({
+        user_id: user.id,
+        title: "ROTTA ROZA 🏍",
+        message: "De mulher para mulher sua segurança é nossa!",
+        type: "system",
+        is_read: false,
+        is_persistent: true
+      });
+      
+      toast.dismiss();
+      toast.success('Notificações de teste enviadas!');
+      await loadData();
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Erro ao enviar notificações de teste');
+    }
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'coupon':
@@ -102,14 +136,29 @@ export default function PassengerNotifications() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link to={createPageUrl('PassengerOptions')}>
-            <Button variant="ghost" size="icon" className="text-[#F2F2F2]">
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold text-[#F2F2F2]">Notificações</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl('PassengerOptions')}>
+              <Button variant="ghost" size="icon" className="text-[#F2F2F2]">
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold text-[#F2F2F2]">Notificações</h1>
+          </div>
+          <Button 
+            onClick={handleTestNotifications}
+            className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
+            size="sm"
+          >
+            Testar
+          </Button>
         </div>
+
+        {user && (
+          <div className="mb-6">
+            <NotificationSettingsPanel userId={user.id} />
+          </div>
+        )}
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
