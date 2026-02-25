@@ -51,7 +51,6 @@ import AdminPanel from './pages/AdminPanel';
 import AvailableRides from './pages/AvailableRides';
 import BlockedUsers from './pages/BlockedUsers';
 import CardsAndPix from './pages/CardsAndPix';
-import Chat from './pages/Chat';
 import CustomLogin from './pages/CustomLogin';
 import CustomSignup from './pages/CustomSignup';
 import Download from './pages/Download';
@@ -84,6 +83,7 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
@@ -92,7 +92,6 @@ export const PAGES = {
     "AvailableRides": AvailableRides,
     "BlockedUsers": BlockedUsers,
     "CardsAndPix": CardsAndPix,
-    "Chat": Chat,
     "CustomLogin": CustomLogin,
     "CustomSignup": CustomSignup,
     "Download": Download,
@@ -125,6 +124,7 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {
