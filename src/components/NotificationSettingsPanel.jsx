@@ -112,7 +112,10 @@ export default function NotificationSettingsPanel({ userId }) {
                             <div>
                                 <h3 className="font-medium text-[#F2F2F2]">Rotta Roza (Motos)</h3>
                                 <p className="text-xs text-[#F2F2F2]/60">
-                                    "De mulher para mulher sua segurança é nossa! 🏍"
+                                    De mulher para mulher sua segurança é nossa!
+                                </p>
+                                <p className="text-xs text-[#F22998] font-semibold mt-0.5">
+                                    Peça sua mototáxi agora!
                                 </p>
                             </div>
                         </div>

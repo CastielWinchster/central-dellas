@@ -68,7 +68,7 @@ export default function PassengerNotifications() {
     try {
       toast.loading('Enviando notificações de teste...');
       
-      // Notificação de Carro
+      // Criar notificação de Carro
       await base44.entities.Notification.create({
         user_id: user.id,
         title: "Peça seu carro agora! 🚗💖✨",
@@ -78,23 +78,30 @@ export default function PassengerNotifications() {
         is_persistent: true
       });
       
-      // Notificação de Moto (Rotta Roza)
+      // Criar notificação de Moto (Rotta Roza)
       await base44.entities.Notification.create({
         user_id: user.id,
         title: "ROTTA ROZA 🌸",
-        message: "De mulher para mulher sua segurança é nossa!",
-        message: "Peça sua mototáxi agora!",
+        message: "De mulher para mulher sua segurança é nossa!\n**Peça sua mototáxi agora!**",
         type: "system",
         is_read: false,
         is_persistent: true
       });
       
+      // Chamar função backend para enviar notificações push
+      await base44.functions.invoke('sendNotification', {
+        user_id: user.id,
+        title: "Central Dellas",
+        message: "Você recebeu novas notificações!"
+      });
+      
       toast.dismiss();
-      toast.success('Notificações de teste enviadas!');
+      toast.success('Notificações enviadas para seu dispositivo!');
       await loadData();
     } catch (error) {
+      console.error('Erro ao enviar notificações:', error);
       toast.dismiss();
-      toast.error('Erro ao enviar notificações de teste');
+      toast.error('Erro ao enviar notificações');
     }
   };
 

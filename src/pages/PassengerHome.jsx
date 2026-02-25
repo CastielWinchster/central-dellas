@@ -28,6 +28,9 @@ export default function PassengerHome() {
       const userData = await base44.auth.me();
       if (!userData) return;
 
+      // Verificar no localStorage se já mostrou o modal (para mobile)
+      const hasSeenCoupon = localStorage.getItem(`coupon_seen_${userData.id}`);
+      
       // Buscar notificação de cupom existente
       const notifications = await base44.entities.Notification.filter({
         user_id: userData.id,
@@ -36,9 +39,11 @@ export default function PassengerHome() {
       });
 
       if (notifications.length > 0) {
-        // Já existe notificação, apenas mostrar modal
         setCouponNotificationId(notifications[0].id);
-        setShowPreLaunchModal(true);
+        // Mostrar modal apenas se não viu ainda
+        if (!hasSeenCoupon) {
+          setShowPreLaunchModal(true);
+        }
       } else {
         // Criar nova notificação
         const newNotification = await base44.entities.Notification.create({
@@ -57,7 +62,16 @@ export default function PassengerHome() {
     }
   };
 
-  const handleSaveCoupon = () => {
+  const handleSaveCoupon = async () => {
+    try {
+      const userData = await base44.auth.me();
+      if (userData) {
+        // Marcar que já viu o cupom
+        localStorage.setItem(`coupon_seen_${userData.id}`, 'true');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar preferência:', error);
+    }
     setShowPreLaunchModal(false);
     toast.success('Cupom PRIMEIRA VELOZ salvo! Confira na aba de Notificações.');
   };
