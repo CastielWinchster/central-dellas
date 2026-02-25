@@ -82,26 +82,19 @@ export default function PassengerNotifications() {
       await base44.entities.Notification.create({
         user_id: user.id,
         title: "ROTTA ROZA 🌸",
-        message: "De mulher para mulher sua segurança é nossa!\n**Peça sua mototáxi agora!**",
+        message: "De mulher para mulher sua segurança é nossa!\nPeça sua mototáxi agora!",
         type: "system",
         is_read: false,
         is_persistent: true
       });
       
-      // Chamar função backend para enviar notificações push
-      await base44.functions.invoke('sendNotification', {
-        user_id: user.id,
-        title: "Central Dellas",
-        message: "Você recebeu novas notificações!"
-      });
-      
       toast.dismiss();
-      toast.success('Notificações enviadas para seu dispositivo!');
+      toast.success('Notificações de teste criadas!');
       await loadData();
     } catch (error) {
       console.error('Erro ao enviar notificações:', error);
       toast.dismiss();
-      toast.error('Erro ao enviar notificações');
+      toast.error('Erro ao criar notificações');
     }
   };
 
