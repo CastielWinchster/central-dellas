@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import NotificationSettingsPanel from '../components/NotificationSettingsPanel';
 
 export default function PassengerOptions() {
   const navigate = useNavigate();
@@ -152,7 +153,8 @@ export default function PassengerOptions() {
           description: 'Gerenciar alertas',
           page: 'PassengerNotifications'
         }
-      ]
+      ],
+      showPanel: true
     },
     {
       title: '⚙️ CONFIGURAÇÕES',
@@ -241,6 +243,13 @@ export default function PassengerOptions() {
               <h3 className="text-xs font-bold text-[#BF3B79] mb-3 uppercase tracking-wider px-2">
                 {section.title}
               </h3>
+              
+              {section.showPanel && user && (
+                <div className="mb-4">
+                  <NotificationSettingsPanel userId={user.id} />
+                </div>
+              )}
+              
               <div className="bg-[#1A1A1A] border border-[#BF3B79] rounded-2xl overflow-hidden">
                 {section.items.map((item, index) => (
                   <Link
