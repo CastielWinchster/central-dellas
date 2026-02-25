@@ -81,8 +81,9 @@ export default function PassengerNotifications() {
       // Notificação de Moto (Rotta Roza)
       await base44.entities.Notification.create({
         user_id: user.id,
-        title: "ROTTA ROZA 🏍",
+        title: "ROTTA ROZA 🌸",
         message: "De mulher para mulher sua segurança é nossa!",
+        message: "Peça sua mototáxi agora!",
         type: "system",
         is_read: false,
         is_persistent: true
