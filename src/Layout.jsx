@@ -32,7 +32,6 @@ function LayoutContent({ children, currentPageName }) {
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [
     { name: 'Home', icon: Home, page: 'PassengerHome' },
-    { name: 'Mensagens', icon: MessageCircle, page: 'PassengerMessages' },
     { 
       name: 'Opções', 
       icon: Settings, 
@@ -44,12 +43,11 @@ function LayoutContent({ children, currentPageName }) {
   const driverLinks = [
     { name: 'Home', icon: Home, page: 'DriverDashboard' },
     { name: 'Corridas', icon: MapPin, page: 'AvailableRides' },
-    { name: 'Mensagens', icon: MessageCircle, page: 'Messages' },
     { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
     { name: 'Opções', icon: Settings, page: 'DriverOptions' }
   ];
 
-  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Messages', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
+  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
   // Redirect para login se não estiver autenticado e não estiver em rota pública
   useEffect(() => {
@@ -311,7 +309,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Chatbot Float */}
       <Suspense fallback={null}>
-        {currentPageName !== 'Chat' && <ChatbotFloat />}
+        <ChatbotFloat />
       </Suspense>
 
       {/* Bottom Navigation - Mobile */}
@@ -322,7 +320,7 @@ function LayoutContent({ children, currentPageName }) {
               className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#F22998]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
             >
               <div className="flex items-center justify-around py-3 px-2">
-                {(isDriverPage ? driverLinks.slice(0, 4) : passengerLinks.slice(0, 4)).map((link, index) => (
+                {(isDriverPage ? driverLinks : passengerLinks).map((link, index) => (
                 <Link
                   key={link.page}
                   to={createPageUrl(link.page)}

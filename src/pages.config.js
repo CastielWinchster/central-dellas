@@ -62,7 +62,6 @@ import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
 import FavoriteDrivers from './pages/FavoriteDrivers';
 import FavoritePlaces from './pages/FavoritePlaces';
-import Messages from './pages/Messages';
 import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
 import PassengerChat from './pages/PassengerChat';
@@ -70,7 +69,6 @@ import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHelp from './pages/PassengerHelp';
 import PassengerHome from './pages/PassengerHome';
 import PassengerLogin from './pages/PassengerLogin';
-import PassengerMessages from './pages/PassengerMessages';
 import PassengerNotifications from './pages/PassengerNotifications';
 import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
@@ -83,7 +81,6 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
@@ -103,7 +100,6 @@ export const PAGES = {
     "Earnings": Earnings,
     "FavoriteDrivers": FavoriteDrivers,
     "FavoritePlaces": FavoritePlaces,
-    "Messages": Messages,
     "MyReviews": MyReviews,
     "Notifications": Notifications,
     "PassengerChat": PassengerChat,
@@ -111,7 +107,6 @@ export const PAGES = {
     "PassengerHelp": PassengerHelp,
     "PassengerHome": PassengerHome,
     "PassengerLogin": PassengerLogin,
-    "PassengerMessages": PassengerMessages,
     "PassengerNotifications": PassengerNotifications,
     "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,
@@ -124,7 +119,6 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "Chat": Chat,
 }
 
 export const pagesConfig = {
