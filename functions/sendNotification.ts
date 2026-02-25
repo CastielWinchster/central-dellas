@@ -3,6 +3,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const caller = await base44.auth.me();
+    
+    if (!caller) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Apenas admins podem enviar notificações
+    if (caller.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
+    }
+
     const { user_id, title, message, type, related_id, icon, action_url, send_email, send_sms } = await req.json();
 
     if (!user_id || !title || !message || !type) {

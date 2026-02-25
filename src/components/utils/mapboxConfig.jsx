@@ -1,7 +1,7 @@
 // Configuração centralizada do Mapbox
 export const MAPBOX_CONFIG = {
-  // Token de acesso
-  ACCESS_TOKEN: 'pk.eyJ1IjoibHVpc2JyYWNhbGUiLCJhIjoiY21sd21xdHZvMGdxazNlcHp5Y204cGxyMSJ9.MZltiRZAp6dsx-HZkawDBA',
+  // Token de acesso (carregado via backend)
+  ACCESS_TOKEN: null, // Será carregado dinamicamente
   
   // Estilo personalizado 3D
   MAP_STYLE: 'mapbox://styles/luisbracale/cmlzdk84n003e01s29qedaex4',
@@ -56,4 +56,16 @@ export function validateMapboxConfig() {
   });
   
   return true;
+}
+
+// Carregar token do Mapbox via backend
+export async function loadMapboxToken(base44Client) {
+  try {
+    const response = await base44Client.functions.invoke('getMapboxToken');
+    MAPBOX_CONFIG.ACCESS_TOKEN = response.data.token;
+    return MAPBOX_CONFIG.ACCESS_TOKEN;
+  } catch (error) {
+    console.error('Erro ao carregar token do Mapbox:', error);
+    throw error;
+  }
 }

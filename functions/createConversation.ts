@@ -3,6 +3,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { ride_id } = await req.json();
 
     if (!ride_id) {
@@ -16,6 +22,15 @@ Deno.serve(async (req) => {
     }
 
     const ride = rides[0];
+    
+    // Verificar se usuário é participante da corrida
+    const isParticipant = 
+      ride.passenger_id === user.id || 
+      ride.assigned_driver_id === user.id;
+
+    if (!isParticipant) {
+      return Response.json({ error: 'Not a participant' }, { status: 403 });
+    }
 
     // Verificar se já existe conversa para esta corrida
     const existingConversations = await base44.asServiceRole.entities.Conversation.filter({ 

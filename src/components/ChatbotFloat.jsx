@@ -370,43 +370,14 @@ export default function ChatbotFloat() {
 
   const analyzeDocumentWithVision = async (fileUrl) => {
     try {
-      const imageResponse = await fetch(fileUrl);
-      const imageBlob = await imageResponse.blob();
-      const base64Image = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result.split(',')[1]);
-        };
-        reader.readAsDataURL(imageBlob);
-      });
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const visionResponse = await fetch(
-        'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAPH-bGo4FnzaXeA3onA1CtG_poSs01QH8',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [{
-              image: { content: base64Image },
-              features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
-            }]
-          }),
-          signal: controller.signal
-        }
-      );
-
-      clearTimeout(timeoutId);
-      const data = await visionResponse.json();
-
-      if (data.responses?.[0]?.textAnnotations) {
-        return { text: data.responses[0].textAnnotations[0].description };
+      const response = await base44.functions.invoke('analyzeDocument', { fileUrl });
+      
+      if (response.data.success) {
+        return { text: response.data.text };
       }
       return { text: null };
     } catch (error) {
-      console.error('Erro Vision API:', error);
+      console.error('Erro ao analisar documento:', error);
       return { text: null };
     }
   };
