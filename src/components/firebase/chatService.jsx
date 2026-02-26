@@ -84,6 +84,9 @@ export async function sendText(conversationId, sessionId, senderId, receiverId, 
     createdAt: serverTimestamp(),
     status: 'visible'
   });
+
+  // Notificar destinatário
+  await notifyReceiver(receiverId, conversationId, senderId, 'Nova mensagem', text);
 }
 
 /**
@@ -109,6 +112,9 @@ export async function sendImage(conversationId, sessionId, senderId, receiverId,
     createdAt: serverTimestamp(),
     status: 'visible'
   });
+
+  // Notificar destinatário
+  await notifyReceiver(receiverId, conversationId, senderId, 'Nova mensagem', '📷 Imagem');
 }
 
 /**
@@ -135,6 +141,9 @@ export async function sendAudio(conversationId, sessionId, senderId, receiverId,
     createdAt: serverTimestamp(),
     status: 'visible'
   });
+
+  // Notificar destinatário
+  await notifyReceiver(receiverId, conversationId, senderId, 'Nova mensagem', '🎤 Áudio');
 }
 
 /**
@@ -146,4 +155,27 @@ export function getSessionTimeRemaining(expiresAt) {
   const now = new Date();
   const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
   return remaining;
+}
+
+/**
+ * Notifica o destinatário via backend
+ * @param {string} receiverId - ID do destinatário
+ * @param {string} conversationId - ID da conversa
+ * @param {string} senderId - ID do remetente
+ * @param {string} title - Título
+ * @param {string} body - Corpo
+ */
+async function notifyReceiver(receiverId, conversationId, senderId, title, body) {
+  try {
+    const { base44 } = await import('@/api/base44Client');
+    await base44.functions.invoke('notifyUser', {
+      toUserId: receiverId,
+      type: 'chat',
+      title,
+      body,
+      data: { conversationId, senderId }
+    });
+  } catch (error) {
+    console.error('Erro ao notificar destinatário:', error);
+  }
 }

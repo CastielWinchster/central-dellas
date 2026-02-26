@@ -14,11 +14,11 @@ export function checkSupport() {
 }
 
 /**
- * Solicita permissão e obtém token FCM
+ * Solicita permissão, obtém token FCM e salva no Firestore
  * @param {string} userId - ID do usuário Base44
  * @returns {Promise<string|null>} Token ou null se falhar
  */
-export async function requestPermissionAndGetToken(userId) {
+export async function requestPermissionAndSaveToken(userId) {
   if (!checkSupport()) {
     console.warn('Push notifications não suportadas neste navegador');
     return null;
@@ -61,21 +61,20 @@ export async function requestPermissionAndGetToken(userId) {
  * @param {string} token - Token FCM
  */
 async function saveToken(userId, token) {
-  const devicesRef = collection(db, 'user_devices');
+  const db = (await import('./firebaseConfig')).db;
+  const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
   
-  // Verificar se já existe
-  const q = query(devicesRef, where('userId', '==', userId), where('token', '==', token));
-  const snapshot = await getDocs(q);
+  const deviceRef = doc(db, 'user_devices', `${userId}_web`);
   
-  if (snapshot.empty) {
-    await addDoc(devicesRef, {
-      userId,
-      token,
-      platform: 'web',
-      createdAt: serverTimestamp(),
-      lastSeenAt: serverTimestamp()
-    });
-  }
+  await setDoc(deviceRef, {
+    userId,
+    token,
+    platform: 'web',
+    createdAt: serverTimestamp(),
+    lastSeenAt: serverTimestamp()
+  }, { merge: true });
+  
+  console.log('Token salvo no Firestore:', userId);
 }
 
 /**
