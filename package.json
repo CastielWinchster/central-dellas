@@ -82,7 +82,8 @@
     "leaflet-routing-machine": "^3.2.12",
     "leaflet-control-geocoder": "^2.4.0",
     "mapbox-gl": "^3.1.0",
-    "react-map-gl": "^7.1.7"
+    "react-map-gl": "^7.1.7",
+    "firebase": "^10.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
