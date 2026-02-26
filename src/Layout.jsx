@@ -12,6 +12,7 @@ import { useAuthUser } from '../components/AuthGuard';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
+const ChatFloatingButton = lazy(() => import('./components/chat/ChatFloatingButton'));
 
 // Rotas públicas que não exigem autenticação
 const PUBLIC_ROUTES = ['PassengerHome', 'CustomLogin', 'CustomSignup', 'Download'];
@@ -306,6 +307,11 @@ function LayoutContent({ children, currentPageName }) {
       <main className="pt-20 min-h-screen">
         {children}
       </main>
+
+      {/* Chat Float Button */}
+      <Suspense fallback={null}>
+        <ChatFloatingButton />
+      </Suspense>
 
       {/* Chatbot Float */}
       <Suspense fallback={null}>

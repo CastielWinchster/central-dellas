@@ -82,6 +82,7 @@ import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
 import PushTestPage from './pages/PushTestPage';
+import RideChat from './pages/RideChat';
 import __Layout from './Layout.jsx';
 
 
@@ -121,6 +122,7 @@ export const PAGES = {
     "Settings": Settings,
     "TrackRide": TrackRide,
     "PushTestPage": PushTestPage,
+    "RideChat": RideChat,
 }
 
 export const pagesConfig = {
