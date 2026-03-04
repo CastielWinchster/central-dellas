@@ -295,38 +295,6 @@ export default function Settings() {
             </Button>
           </div>
         </Card>
-
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">📄 LEGAL</h3>
-          
-          <div className="space-y-3">
-            <button
-              onClick={() => toast.info('Abrindo termos de uso...')}
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-[#F22998]" />
-                <span className="text-[#F2F2F2]">Termos de Uso</span>
-              </div>
-            </button>
-            
-            <button
-              onClick={() => toast.info('Abrindo política de privacidade...')}
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Lock className="w-5 h-5 text-[#F22998]" />
-                <span className="text-[#F2F2F2]">Política de Privacidade</span>
-              </div>
-            </button>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-[#F22998]/10">
-            <p className="text-xs text-[#F2F2F2]/40 text-center">
-              Central Dellas v1.0.0
-            </p>
-          </div>
-        </Card>
       </div>
     </div>
   );
