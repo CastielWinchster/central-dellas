@@ -75,14 +75,14 @@ import PassengerProfile from './pages/PassengerProfile';
 import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
 import Profile from './pages/Profile';
+import PushTestPage from './pages/PushTestPage';
 import RequestRide from './pages/RequestRide';
 import Reviews from './pages/Reviews';
+import RideChat from './pages/RideChat';
 import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import PushTestPage from './pages/PushTestPage';
-import RideChat from './pages/RideChat';
 import __Layout from './Layout.jsx';
 
 
@@ -115,14 +115,14 @@ export const PAGES = {
     "PassengerSafety": PassengerSafety,
     "PassengerSecurity": PassengerSecurity,
     "Profile": Profile,
+    "PushTestPage": PushTestPage,
     "RequestRide": RequestRide,
     "Reviews": Reviews,
+    "RideChat": RideChat,
     "RideHistory": RideHistory,
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "PushTestPage": PushTestPage,
-    "RideChat": RideChat,
 }
 
 export const pagesConfig = {

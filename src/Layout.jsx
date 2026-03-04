@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuthUser } from '../components/AuthGuard';
+import { requestPermissionAndSaveToken, onMessageListener } from './components/firebase/pushService';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
