@@ -14,7 +14,11 @@ import { createPageUrl } from '../utils';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
-  const [preferences, setPreferences] = useState(null);
+  const [preferences, setPreferences] = useState({
+    share_location_during_rides_only: true,
+    save_location_history: true,
+    hide_photo_from_drivers: false
+  });
   const [preferencesId, setPreferencesId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [locationPermission, setLocationPermission] = useState('unknown');
