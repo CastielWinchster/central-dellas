@@ -78,18 +78,6 @@ export default function PassengerOptions() {
       ]
     },
     {
-      title: '👤 MEU PERFIL',
-      items: [
-        { 
-          icon: User, 
-          label: 'Editar Perfil', 
-          description: 'Atualizar informações pessoais',
-          page: 'PassengerProfile'
-        }
-      ]
-    },
-
-    {
       title: '⭐ FAVORITOS',
       items: [
         { 
