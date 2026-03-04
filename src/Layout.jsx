@@ -53,11 +53,27 @@ function LayoutContent({ children, currentPageName }) {
   // Listener para mensagens em foreground
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = onMessageListener((payload) => {
+    const unsubscribe = onMessageListener(async (payload) => {
       const title = payload.notification?.title || 'Central Dellas';
       const body = payload.notification?.body || '';
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/icon-192.png' });
+      const data = payload.data || {};
+
+      // Salvar no inbox (NotificationBell irá atualizar via subscribe)
+      try {
+        await base44.asServiceRole.entities.Notification.create({
+          user_id: user.id,
+          title,
+          message: body,
+          type: data.type || 'system',
+          is_read: false,
+          is_persistent: true,
+          related_link: data.link || null
+        });
+      } catch (e) {
+        // Fallback: mostrar notificação nativa se não conseguir salvar
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/icon-192.png' });
+        }
       }
     });
     return () => typeof unsubscribe === 'function' && unsubscribe();
