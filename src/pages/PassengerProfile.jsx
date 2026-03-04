@@ -414,36 +414,7 @@ export default function PassengerProfile() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#F2F2F2]">Preferências de Viagem</h3>
-            <Button
-              onClick={openEditPreferences}
-              size="sm"
-              variant="ghost"
-              className="text-[#F22998] hover:bg-[#F22998]/10"
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {[
-              { key: 'travel_with_pet', label: 'Viajo com pet' },
-              { key: 'accessibility_needs', label: 'Necessito acessibilidade' },
-              { key: 'prefer_silence', label: 'Prefiro silêncio' },
-              { key: 'prefer_ac', label: 'Prefiro ar condicionado' },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-                <span className="text-[#F2F2F2]">{label}</span>
-                <Switch
-                  checked={preferences[key]}
-                  onCheckedChange={(checked) => handlePreferenceToggle(key, checked)}
-                />
-              </div>
-            ))}
-          </div>
-        </Card>
+
       </div>
 
       {/* Modal de Edição de Informações */}
