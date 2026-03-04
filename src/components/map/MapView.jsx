@@ -118,6 +118,8 @@ export default function MapView({
   const [followMode, setFollowMode] = useState(true);
   const [driversWithHeading, setDriversWithHeading] = useState([]);
   
+  const [mapLoaded, setMapLoaded] = useState(false);
+
   const mapRef = useRef();
   const watchIdRef = useRef(null);
   const lastUserPosRef = useRef(null);
