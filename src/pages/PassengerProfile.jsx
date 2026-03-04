@@ -249,6 +249,35 @@ export default function PassengerProfile() {
     }
   };
 
+  const handlePreferenceToggle = async (key, value) => {
+    const updated = { ...preferences, [key]: value };
+    setPreferences(updated);
+    
+    try {
+      const prefData = {
+        travel_with_pet: updated.travel_with_pet,
+        accessibility_needs: updated.accessibility_needs,
+        prefer_silence: updated.prefer_silence,
+        prefer_ac: updated.prefer_ac
+      };
+      
+      if (preferencesId) {
+        await base44.entities.UserPreferences.update(preferencesId, prefData);
+      } else {
+        const created = await base44.entities.UserPreferences.create({
+          ...prefData,
+          user_id: user.id
+        });
+        setPreferencesId(created.id);
+      }
+      toast.success('✓ Preferência salva');
+    } catch (error) {
+      console.error(error);
+      setPreferences(prev => ({ ...prev, [key]: !value }));
+      toast.error('Erro ao salvar');
+    }
+  };
+
   const savePreferences = async () => {
     setSaving(true);
     
@@ -404,33 +433,20 @@ export default function PassengerProfile() {
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <span className="text-[#F2F2F2]">Viajo com pet</span>
-              <div className={`w-10 h-6 rounded-full ${preferences.travel_with_pet ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.travel_with_pet ? 'justify-end' : 'justify-start'} px-1`}>
-                <div className="w-4 h-4 bg-white rounded-full" />
+            {[
+              { key: 'travel_with_pet', label: 'Viajo com pet' },
+              { key: 'accessibility_needs', label: 'Necessito acessibilidade' },
+              { key: 'prefer_silence', label: 'Prefiro silêncio' },
+              { key: 'prefer_ac', label: 'Prefiro ar condicionado' },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
+                <span className="text-[#F2F2F2]">{label}</span>
+                <Switch
+                  checked={preferences[key]}
+                  onCheckedChange={(checked) => handlePreferenceToggle(key, checked)}
+                />
               </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <span className="text-[#F2F2F2]">Necessito acessibilidade</span>
-              <div className={`w-10 h-6 rounded-full ${preferences.accessibility_needs ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.accessibility_needs ? 'justify-end' : 'justify-start'} px-1`}>
-                <div className="w-4 h-4 bg-white rounded-full" />
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <span className="text-[#F2F2F2]">Prefiro silêncio</span>
-              <div className={`w-10 h-6 rounded-full ${preferences.prefer_silence ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.prefer_silence ? 'justify-end' : 'justify-start'} px-1`}>
-                <div className="w-4 h-4 bg-white rounded-full" />
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <span className="text-[#F2F2F2]">Prefiro ar condicionado</span>
-              <div className={`w-10 h-6 rounded-full ${preferences.prefer_ac ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/20'} flex items-center ${preferences.prefer_ac ? 'justify-end' : 'justify-start'} px-1`}>
-                <div className="w-4 h-4 bg-white rounded-full" />
-              </div>
-            </div>
+            ))}
           </div>
         </Card>
       </div>
