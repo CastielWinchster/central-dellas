@@ -36,7 +36,7 @@ export default function Settings() {
       
       const prefs = await base44.entities.UserPreferences.filter({ user_id: userData.id });
       if (prefs && prefs.length > 0) {
-        setPreferences(prefs[0]);
+        setPreferences(prev => ({ ...prev, ...prefs[0] }));
         setPreferencesId(prefs[0].id);
       }
     } catch (error) {
