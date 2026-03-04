@@ -436,6 +436,7 @@ export default function MapView({
         onMove={evt => setViewState(evt.viewState)}
         onDragStart={handleMoveStart}
         onClick={handleMapClick}
+        onLoad={() => setMapLoaded(true)}
         mapStyle={MAPBOX_CONFIG.MAP_STYLE}
         mapboxAccessToken={MAPBOX_CONFIG.ACCESS_TOKEN}
         style={{ width: '100%', height: '100%' }}
