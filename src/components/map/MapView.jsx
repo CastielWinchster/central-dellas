@@ -1,18 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl } from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
-import { Car, MapPin, Target, Navigation } from 'lucide-react';
+import { Car, MapPin, Target, Navigation, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { MAPBOX_CONFIG, validateMapboxConfig } from '@/components/utils/mapboxConfig';
+import { MAPBOX_CONFIG, loadMapboxToken } from '@/components/utils/mapboxConfig';
 import { reverseGeocode } from '@/components/utils/geocoding';
+import { base44 } from '@/api/base44Client';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-// Validar config na inicialização
-try {
-  validateMapboxConfig();
-} catch (error) {
-  console.error(error);
-}
 
 // Calcular heading (direção) entre dois pontos
 function calculateHeading(fromLat, fromLng, toLat, toLng) {
