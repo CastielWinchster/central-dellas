@@ -31,6 +31,38 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [user]);
 
+  // Solicitar permissão de push notification após login
+  useEffect(() => {
+    if (!user) return;
+    const alreadyAsked = localStorage.getItem('push_permission_asked');
+    if (alreadyAsked) return;
+
+    // Aguarda 3s para não incomodar imediatamente
+    const timer = setTimeout(async () => {
+      try {
+        await requestPermissionAndSaveToken(user.id);
+        localStorage.setItem('push_permission_asked', 'true');
+      } catch (e) {
+        console.error('Erro ao registrar push:', e);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [user?.id]);
+
+  // Listener para mensagens em foreground
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onMessageListener((payload) => {
+      const title = payload.notification?.title || 'Central Dellas';
+      const body = payload.notification?.body || '';
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icon-192.png' });
+      }
+    });
+    return () => typeof unsubscribe === 'function' && unsubscribe();
+  }, [user?.id]);
+
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [
     { name: 'Home', icon: Home, page: 'PassengerHome' },
