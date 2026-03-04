@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
-  User, CreditCard, Heart, MapPin, Shield, Lock, Bell, 
+  User, Heart, MapPin, Shield, Lock, Bell, 
   Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
   Clock, Star, History, UserX
 } from 'lucide-react';
