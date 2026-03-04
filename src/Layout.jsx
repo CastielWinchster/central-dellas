@@ -253,6 +253,7 @@ function LayoutContent({ children, currentPageName }) {
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
+                  <NotificationBell userId={user.id} />
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
