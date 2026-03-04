@@ -118,8 +118,6 @@ export default function MapView({
   const [followMode, setFollowMode] = useState(true);
   const [driversWithHeading, setDriversWithHeading] = useState([]);
   
-  const [mapLoaded, setMapLoaded] = useState(false);
-
   const mapRef = useRef();
   const watchIdRef = useRef(null);
   const lastUserPosRef = useRef(null);
@@ -436,7 +434,6 @@ export default function MapView({
         onMove={evt => setViewState(evt.viewState)}
         onDragStart={handleMoveStart}
         onClick={handleMapClick}
-        onLoad={() => setMapLoaded(true)}
         mapStyle={MAPBOX_CONFIG.MAP_STYLE}
         mapboxAccessToken={MAPBOX_CONFIG.ACCESS_TOKEN}
         style={{ width: '100%', height: '100%' }}
@@ -475,53 +472,50 @@ export default function MapView({
           </Source>
         )}
 
-        {/* Só renderiza markers após o mapa estar carregado */}
-        {mapLoaded && <>
-          {/* User location */}
-          {userLocation && (
-            <Marker longitude={userLocation[0]} latitude={userLocation[1]} anchor="center">
-              <UserMarker heading={userHeading} />
-            </Marker>
-          )}
+        {/* User location */}
+        {userLocation && (
+          <Marker longitude={userLocation[0]} latitude={userLocation[1]} anchor="center">
+            <UserMarker heading={userHeading} />
+          </Marker>
+        )}
 
-          {/* Pickup */}
-          {pickupLocation && (
-            <Marker
-              longitude={pickupLocation.lng}
-              latitude={pickupLocation.lat}
-              anchor="bottom"
-              draggable={pickupDraggable}
-              onDragEnd={(e) => onMarkerDragEnd(e, 'pickup')}
-            >
-              <PickupMarker />
-            </Marker>
-          )}
+        {/* Pickup */}
+        {pickupLocation && (
+          <Marker
+            longitude={pickupLocation.lng}
+            latitude={pickupLocation.lat}
+            anchor="bottom"
+            draggable={pickupDraggable}
+            onDragEnd={(e) => onMarkerDragEnd(e, 'pickup')}
+          >
+            <PickupMarker />
+          </Marker>
+        )}
 
-          {/* Destination */}
-          {destinationLocation && (
-            <Marker
-              longitude={destinationLocation.lng}
-              latitude={destinationLocation.lat}
-              anchor="bottom"
-              draggable={destinationDraggable}
-              onDragEnd={(e) => onMarkerDragEnd(e, 'destination')}
-            >
-              <DestinationMarker />
-            </Marker>
-          )}
+        {/* Destination */}
+        {destinationLocation && (
+          <Marker
+            longitude={destinationLocation.lng}
+            latitude={destinationLocation.lat}
+            anchor="bottom"
+            draggable={destinationDraggable}
+            onDragEnd={(e) => onMarkerDragEnd(e, 'destination')}
+          >
+            <DestinationMarker />
+          </Marker>
+        )}
 
-          {/* Motoristas com heading */}
-          {driversWithHeading.map((driver) => (
-            <Marker
-              key={driver.id}
-              longitude={driver.lng}
-              latitude={driver.lat}
-              anchor="center"
-            >
-              <CarMarker tags={driver.tags || []} heading={driver.heading || 0} />
-            </Marker>
-          ))}
-        </>}
+        {/* Motoristas com heading */}
+        {driversWithHeading.map((driver) => (
+          <Marker
+            key={driver.id}
+            longitude={driver.lng}
+            latitude={driver.lat}
+            anchor="center"
+          >
+            <CarMarker tags={driver.tags || []} heading={driver.heading || 0} />
+          </Marker>
+        ))}
       </Map>
     </div>
   );
