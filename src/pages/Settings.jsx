@@ -186,34 +186,6 @@ export default function Settings() {
         </Card>
 
         <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">♿ ACESSIBILIDADE</h3>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <div className="flex items-center gap-3">
-                <Type className="w-5 h-5 text-[#F22998]" />
-                <p className="text-[#F2F2F2] font-medium">Fonte maior</p>
-              </div>
-              <Switch
-                checked={preferences?.larger_font || false}
-                onCheckedChange={(v) => handlePreferenceToggle('larger_font', v)}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
-              <div className="flex items-center gap-3">
-                <Contrast className="w-5 h-5 text-[#F22998]" />
-                <p className="text-[#F2F2F2] font-medium">Alto contraste</p>
-              </div>
-              <Switch
-                checked={preferences?.high_contrast || false}
-                onCheckedChange={(v) => handlePreferenceToggle('high_contrast', v)}
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
           <h3 className="text-sm font-bold text-[#BF3B79] mb-4 uppercase">✅ PERMISSÕES</h3>
           
           <div className="space-y-4">
