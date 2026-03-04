@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { useAuthUser } from '@/components/AuthProvider';
+import { useAuthUser } from '@/components/AuthGuard';
 
 export default function PassengerProfile() {
   const { user, refreshUser } = useAuthUser();
