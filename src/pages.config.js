@@ -50,7 +50,6 @@
 import AdminPanel from './pages/AdminPanel';
 import AvailableRides from './pages/AvailableRides';
 import BlockedUsers from './pages/BlockedUsers';
-import CardsAndPix from './pages/CardsAndPix';
 import CustomLogin from './pages/CustomLogin';
 import CustomSignup from './pages/CustomSignup';
 import Download from './pages/Download';
@@ -90,7 +89,6 @@ export const PAGES = {
     "AdminPanel": AdminPanel,
     "AvailableRides": AvailableRides,
     "BlockedUsers": BlockedUsers,
-    "CardsAndPix": CardsAndPix,
     "CustomLogin": CustomLogin,
     "CustomSignup": CustomSignup,
     "Download": Download,

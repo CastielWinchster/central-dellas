@@ -88,17 +88,7 @@ export default function PassengerOptions() {
         }
       ]
     },
-    {
-      title: '💳 PAGAMENTO',
-      items: [
-        { 
-          icon: CreditCard, 
-          label: 'Cartões e Pix', 
-          description: 'Gerenciar formas de pagamento',
-          page: 'CardsAndPix'
-        }
-      ]
-    },
+
     {
       title: '⭐ FAVORITOS',
       items: [
