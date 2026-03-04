@@ -157,9 +157,8 @@ export default function PassengerProfile() {
       }
       
       await base44.auth.updateMe({ photo_url: file_url });
-      await refreshUser();
-      
       setFormState(prev => ({ ...prev, photo_url: file_url }));
+      await refreshUser();
       toast.success('Foto atualizada!');
     } catch (error) {
       console.error('Erro upload:', error);
@@ -232,13 +231,14 @@ export default function PassengerProfile() {
         console.log('✅ Perfil criado com ID:', created.id);
       }
       
-      await base44.auth.updateMe({
-        full_name: editForm.full_name.trim(),
-        photo_url: editForm.photo_url
-      });
+      const updateMeData = {};
+      if (editForm.photo_url) updateMeData.photo_url = editForm.photo_url;
+      if (Object.keys(updateMeData).length > 0) {
+        await base44.auth.updateMe(updateMeData);
+      }
       
-      await refreshUser();
       setFormState({ ...editForm });
+      await refreshUser();
       toast.success('✓ Informações salvas!');
       closeEdit();
     } catch (error) {
