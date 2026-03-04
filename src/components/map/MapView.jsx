@@ -97,6 +97,18 @@ export default function MapView({
   onMapClick = null,
   onDestinationSelected = null
 }) {
+  const [tokenLoaded, setTokenLoaded] = useState(!!MAPBOX_CONFIG.ACCESS_TOKEN);
+
+  useEffect(() => {
+    if (MAPBOX_CONFIG.ACCESS_TOKEN) {
+      setTokenLoaded(true);
+      return;
+    }
+    loadMapboxToken(base44).then(() => setTokenLoaded(true)).catch(e => {
+      console.error('Erro ao carregar token Mapbox:', e);
+    });
+  }, []);
+
   const [viewState, setViewState] = useState({
     longitude: center[0],
     latitude: center[1],
