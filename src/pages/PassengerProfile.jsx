@@ -157,8 +157,9 @@ export default function PassengerProfile() {
       }
       
       await base44.auth.updateMe({ photo_url: file_url });
-      setFormState(prev => ({ ...prev, photo_url: file_url }));
+      // Atualiza o estado local DEPOIS do refreshUser para não ser sobrescrito
       await refreshUser();
+      setFormState(prev => ({ ...prev, photo_url: file_url }));
       toast.success('Foto atualizada!');
     } catch (error) {
       console.error('Erro upload:', error);
