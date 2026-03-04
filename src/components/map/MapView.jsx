@@ -390,6 +390,17 @@ export default function MapView({
     }
   }, [onPickupDragEnd, onDestinationDragEnd]);
 
+  if (!tokenLoaded) {
+    return (
+      <div className={`relative rounded-2xl overflow-hidden h-[360px] w-full flex items-center justify-center bg-[#1a1a1a] ${className}`}>
+        <div className="flex flex-col items-center gap-3 text-[#F22998]">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="text-sm opacity-70">Carregando mapa...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative rounded-2xl overflow-hidden h-[360px] w-full ${className}`}>
       <style>{`
