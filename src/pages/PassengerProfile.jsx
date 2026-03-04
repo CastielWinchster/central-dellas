@@ -232,14 +232,8 @@ export default function PassengerProfile() {
         console.log('✅ Perfil criado com ID:', created.id);
       }
       
-      const updateMeData = {};
-      if (editForm.photo_url) updateMeData.photo_url = editForm.photo_url;
-      if (Object.keys(updateMeData).length > 0) {
-        await base44.auth.updateMe(updateMeData);
-      }
-      
-      setFormState({ ...editForm });
       await refreshUser();
+      setFormState({ ...editForm });
       toast.success('✓ Informações salvas!');
       closeEdit();
     } catch (error) {
