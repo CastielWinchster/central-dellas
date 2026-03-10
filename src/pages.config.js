@@ -73,7 +73,6 @@ import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
 import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
-import Profile from './pages/Profile';
 import PushTestPage from './pages/PushTestPage';
 import RequestRide from './pages/RequestRide';
 import Reviews from './pages/Reviews';
@@ -112,7 +111,6 @@ export const PAGES = {
     "PassengerProfile": PassengerProfile,
     "PassengerSafety": PassengerSafety,
     "PassengerSecurity": PassengerSecurity,
-    "Profile": Profile,
     "PushTestPage": PushTestPage,
     "RequestRide": RequestRide,
     "Reviews": Reviews,
