@@ -104,6 +104,44 @@ export default function DriverDocuments() {
     }
   };
 
+  // Map Firestore status → badge status
+  const cardStatus = (s) => {
+    if (s === 'under_review') return 'reviewing';
+    if (s === 'approved') return 'approved';
+    if (s === 'rejected') return 'rejected';
+    return 'pending';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-10 h-10 text-[#F22998] animate-spin mx-auto" />
+          <p className="text-[#F2F2F2]/60 text-sm">Carregando seus documentos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-6">
+        <div className="text-center space-y-4 max-w-sm">
+          <XCircle className="w-12 h-12 text-red-400 mx-auto" />
+          <p className="text-[#F2F2F2] font-semibold">Erro ao carregar</p>
+          <p className="text-[#F2F2F2]/50 text-sm">{loadError}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="mt-2"
+            style={{ background: 'linear-gradient(135deg, #BF3B79 0%, #F22998 100%)' }}
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24">
       <div className="max-w-2xl mx-auto px-4 py-6">
