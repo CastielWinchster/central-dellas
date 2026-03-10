@@ -14,10 +14,13 @@ import { uploadDocFile, saveDriverDocuments, getDriverDocuments } from '../compo
 
 export default function DriverDocuments() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [declared, setDeclared] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [uploadingFields, setUploadingFields] = useState({});
+  const [docStatus, setDocStatus] = useState('pending'); // overall Firestore status
 
   // Form state per section
   const [cnh, setCnh] = useState({});
@@ -27,6 +30,8 @@ export default function DriverDocuments() {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
+      setLoadError(null);
       try {
         const u = await base44.auth.me();
         setUser(u);
@@ -36,10 +41,13 @@ export default function DriverDocuments() {
           if (existing.rg) setRg(existing.rg);
           if (existing.vehicle) setVehicle(existing.vehicle);
           if (existing.insurance) setInsurance(existing.insurance);
-          if (existing.status === 'under_review') setSubmitted(true);
+          if (existing.status) setDocStatus(existing.status);
+          if (['under_review', 'approved', 'rejected'].includes(existing.status)) setSubmitted(true);
         }
       } catch (e) {
-        // silently fail – user may not be logged in
+        setLoadError('Não foi possível carregar seus documentos. Verifique sua conexão e tente novamente.');
+      } finally {
+        setLoading(false);
       }
     };
     load();
