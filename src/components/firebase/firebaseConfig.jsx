@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
@@ -11,8 +11,8 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Inicializar Firebase
-export const app = initializeApp(firebaseConfig);
+// Inicializar Firebase apenas uma vez (evita "Firebase App named '[DEFAULT]' already exists")
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Firestore
 export const db = getFirestore(app);
