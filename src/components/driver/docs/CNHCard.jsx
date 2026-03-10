@@ -5,8 +5,10 @@ import DocStatusBadge from './DocStatusBadge';
 import DocUploadField from './DocUploadField';
 import DocTextField from './DocTextField';
 
-export default function CNHCard({ status = 'pending' }) {
+export default function CNHCard({ status = 'pending', data = {}, onChange, uploadingFields = {} }) {
   const [open, setOpen] = useState(false);
+
+  const set = (key, val) => onChange?.({ ...data, [key]: val });
 
   return (
     <div className="rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]/30 overflow-hidden">
@@ -38,12 +40,22 @@ export default function CNHCard({ status = 'pending' }) {
           >
             <div className="px-5 pb-5 border-t border-[#F22998]/10 pt-4 grid gap-4">
               <div className="grid grid-cols-2 gap-4">
-                <DocUploadField label="Frente da CNH" />
-                <DocUploadField label="Verso da CNH" />
+                <DocUploadField
+                  label="Frente da CNH"
+                  value={data.frontPhoto}
+                  uploading={uploadingFields['cnh/front']}
+                  onChange={file => set('frontFile', file)}
+                />
+                <DocUploadField
+                  label="Verso da CNH"
+                  value={data.backPhoto}
+                  uploading={uploadingFields['cnh/back']}
+                  onChange={file => set('backFile', file)}
+                />
               </div>
-              <DocTextField label="Número da CNH" placeholder="Ex: 00123456789" />
-              <DocTextField label="Categoria" placeholder="Ex: B, AB, E..." />
-              <DocTextField label="Data de validade" placeholder="DD/MM/AAAA" type="date" />
+              <DocTextField label="Número da CNH" placeholder="Ex: 00123456789" value={data.number} onChange={v => set('number', v)} />
+              <DocTextField label="Categoria" placeholder="Ex: B, AB, E..." value={data.category} onChange={v => set('category', v)} />
+              <DocTextField label="Data de validade" placeholder="DD/MM/AAAA" type="date" value={data.expiresAt} onChange={v => set('expiresAt', v)} />
             </div>
           </motion.div>
         )}

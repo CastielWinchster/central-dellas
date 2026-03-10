@@ -5,8 +5,10 @@ import DocStatusBadge from './DocStatusBadge';
 import DocUploadField from './DocUploadField';
 import DocTextField from './DocTextField';
 
-export default function SeguroCard({ status = 'pending' }) {
+export default function SeguroCard({ status = 'pending', data = {}, onChange, uploadingFields = {} }) {
   const [open, setOpen] = useState(false);
+
+  const set = (key, val) => onChange?.({ ...data, [key]: val });
 
   return (
     <div className="rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]/30 overflow-hidden">
@@ -37,10 +39,15 @@ export default function SeguroCard({ status = 'pending' }) {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 border-t border-[#F22998]/10 pt-4 grid gap-4">
-              <DocUploadField label="Upload da apólice" />
-              <DocTextField label="Seguradora" placeholder="Ex: Porto Seguro" />
-              <DocTextField label="Número da apólice" placeholder="Ex: 123456789" />
-              <DocTextField label="Data de validade" placeholder="DD/MM/AAAA" type="date" />
+              <DocUploadField
+                label="Upload da apólice"
+                value={data.photo}
+                uploading={uploadingFields['vehicle/insurance']}
+                onChange={file => set('photoFile', file)}
+              />
+              <DocTextField label="Seguradora" placeholder="Ex: Porto Seguro" value={data.insurer} onChange={v => set('insurer', v)} />
+              <DocTextField label="Número da apólice" placeholder="Ex: 123456789" value={data.policyNumber} onChange={v => set('policyNumber', v)} />
+              <DocTextField label="Data de validade" placeholder="DD/MM/AAAA" type="date" value={data.expiresAt} onChange={v => set('expiresAt', v)} />
             </div>
           </motion.div>
         )}

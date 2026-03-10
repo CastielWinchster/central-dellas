@@ -5,8 +5,10 @@ import DocStatusBadge from './DocStatusBadge';
 import DocUploadField from './DocUploadField';
 import DocTextField from './DocTextField';
 
-export default function RGCard({ status = 'pending' }) {
+export default function RGCard({ status = 'pending', data = {}, onChange, uploadingFields = {} }) {
   const [open, setOpen] = useState(false);
+
+  const set = (key, val) => onChange?.({ ...data, [key]: val });
 
   return (
     <div className="rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]/30 overflow-hidden">
@@ -38,11 +40,21 @@ export default function RGCard({ status = 'pending' }) {
           >
             <div className="px-5 pb-5 border-t border-[#F22998]/10 pt-4 grid gap-4">
               <div className="grid grid-cols-2 gap-4">
-                <DocUploadField label="Frente do RG" />
-                <DocUploadField label="Verso do RG" />
+                <DocUploadField
+                  label="Frente do RG"
+                  value={data.frontPhoto}
+                  uploading={uploadingFields['rg/front']}
+                  onChange={file => set('frontFile', file)}
+                />
+                <DocUploadField
+                  label="Verso do RG"
+                  value={data.backPhoto}
+                  uploading={uploadingFields['rg/back']}
+                  onChange={file => set('backFile', file)}
+                />
               </div>
-              <DocTextField label="Número do RG" placeholder="Ex: 12.345.678-9" />
-              <DocTextField label="Órgão emissor" placeholder="Ex: SSP/SP" />
+              <DocTextField label="Número do RG" placeholder="Ex: 12.345.678-9" value={data.number} onChange={v => set('number', v)} />
+              <DocTextField label="Órgão emissor" placeholder="Ex: SSP/SP" value={data.issuer} onChange={v => set('issuer', v)} />
             </div>
           </motion.div>
         )}
