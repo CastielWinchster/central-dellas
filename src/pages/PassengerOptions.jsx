@@ -6,7 +6,7 @@ import { createPageUrl } from '../utils';
 import { 
   User, Heart, MapPin, Shield, Lock, Bell, 
   Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
-  Clock, Star, History, UserX
+  Clock, Star, History, UserX, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
