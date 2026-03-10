@@ -156,7 +156,7 @@ export default function PassengerOptions() {
         { 
           icon: Settings, 
           label: 'Configurações', 
-          description: 'Tema, idioma e privacidade',
+          description: 'Tema e privacidade',
           page: 'Settings'
         }
       ]
