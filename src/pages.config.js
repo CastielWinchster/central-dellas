@@ -54,6 +54,7 @@ import CustomLogin from './pages/CustomLogin';
 import CustomSignup from './pages/CustomSignup';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
+import DriverDocuments from './pages/DriverDocuments';
 import DriverLogin from './pages/DriverLogin';
 import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
@@ -81,7 +82,6 @@ import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
 import Settings from './pages/Settings';
 import TrackRide from './pages/TrackRide';
-import DriverDocuments from './pages/DriverDocuments';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +93,7 @@ export const PAGES = {
     "CustomSignup": CustomSignup,
     "Download": Download,
     "DriverDashboard": DriverDashboard,
+    "DriverDocuments": DriverDocuments,
     "DriverLogin": DriverLogin,
     "DriverOptions": DriverOptions,
     "DriverProfile": DriverProfile,
@@ -120,7 +121,6 @@ export const PAGES = {
     "ScheduleRide": ScheduleRide,
     "Settings": Settings,
     "TrackRide": TrackRide,
-    "DriverDocuments": DriverDocuments,
 }
 
 export const pagesConfig = {
