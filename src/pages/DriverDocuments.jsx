@@ -10,6 +10,8 @@ import CRLVCard from '../components/driver/docs/CRLVCard';
 import SeguroCard from '../components/driver/docs/SeguroCard';
 
 export default function DriverDocuments() {
+  const [declared, setDeclared] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24">
       <div className="max-w-2xl mx-auto px-4 py-6">
