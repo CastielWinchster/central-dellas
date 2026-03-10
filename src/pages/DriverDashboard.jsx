@@ -567,22 +567,6 @@ export default function DriverDashboard() {
               </Card>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="p-6 rounded-3xl bg-gradient-to-br from-[#BF3B79]/10 to-[#F22998]/10 border-[#F22998]/20">
-                <div className="flex items-center gap-3 mb-4">
-                  <TrendingUp className="w-6 h-6 text-[#F22998]" />
-                  <h3 className="text-lg font-semibold text-[#F2F2F2]">Dica do Dia</h3>
-                </div>
-                <p className="text-[#F2F2F2]/70">
-                  A região da Av. Paulista está com alta demanda agora! Considere se deslocar para aumentar suas chances de corridas.
-                </p>
-              </Card>
-            </motion.div>
-
             {/* Badge Highlight */}
             {user?.badges?.length > 0 && (
               <motion.div
