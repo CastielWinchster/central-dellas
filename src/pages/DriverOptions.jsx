@@ -52,7 +52,7 @@ export default function DriverOptions() {
       items: [
         { 
           icon: FileText, 
-          label: 'Documentos', 
+          label: 'Documentos do Motorista', 
           description: 'CNH, RG, CRLV e Seguro',
           page: 'DriverDocuments'
         }
