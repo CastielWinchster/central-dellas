@@ -16,6 +16,22 @@ export default function PassengerOptions() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ photo_url: file_url });
+      setUser(prev => ({ ...prev, photo_url: file_url }));
+      toast.success('Foto atualizada!');
+    } catch (error) {
+      toast.error('Erro ao carregar foto');
+    }
+    setUploading(false);
+  };
 
   useEffect(() => {
     const loadUser = async () => {
