@@ -45,7 +45,11 @@ export default function DriverDocuments() {
           if (['under_review', 'approved', 'rejected'].includes(existing.status)) setSubmitted(true);
         }
       } catch (e) {
-        setLoadError('Não foi possível carregar seus documentos. Verifique sua conexão e tente novamente.');
+        console.error('[DriverDocuments] Erro ao carregar documentos:', e);
+        const msg = e?.code === 'permission-denied'
+          ? 'Sem permissão para acessar seus documentos. Verifique se você está autenticado corretamente.'
+          : 'Não foi possível carregar seus documentos. Verifique sua conexão e tente novamente.';
+        setLoadError(msg);
       } finally {
         setLoading(false);
       }
