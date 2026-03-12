@@ -134,12 +134,23 @@ export default function DriverDocuments() {
   }
 
   if (loadError) {
+    const isOffline = loadError === 'offline';
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-6">
         <div className="text-center space-y-4 max-w-sm">
-          <XCircle className="w-12 h-12 text-red-400 mx-auto" />
-          <p className="text-[#F2F2F2] font-semibold">Erro ao carregar</p>
-          <p className="text-[#F2F2F2]/50 text-sm">{loadError}</p>
+          {isOffline ? (
+            <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto" />
+          ) : (
+            <XCircle className="w-12 h-12 text-red-400 mx-auto" />
+          )}
+          <p className="text-[#F2F2F2] font-semibold">
+            {isOffline ? 'Sem conexão' : 'Acesso negado'}
+          </p>
+          <p className="text-[#F2F2F2]/50 text-sm">
+            {isOffline
+              ? 'Não foi possível carregar seus documentos. Verifique sua conexão com a internet e tente novamente.'
+              : 'Você não tem permissão para acessar estes documentos. Verifique se está autenticada corretamente.'}
+          </p>
           <Button
             onClick={() => window.location.reload()}
             className="mt-2"
