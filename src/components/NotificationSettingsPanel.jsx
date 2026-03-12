@@ -38,15 +38,19 @@ export default function NotificationSettingsPanel({ userId }) {
     };
 
     const updateSetting = async (field, value) => {
+        const updated = { ...settings, [field]: value };
+        setSettings(updated);
         try {
-            await base44.entities.NotificationSettings.update(settings.id, {
-                [field]: value
-            });
-            setSettings({ ...settings, [field]: value });
+            if (settings.id) {
+                await base44.entities.NotificationSettings.update(settings.id, { [field]: value });
+            } else {
+                const created = await base44.entities.NotificationSettings.create(updated);
+                setSettings(created);
+            }
             toast.success('Configuração atualizada!');
         } catch (error) {
-            console.error('Erro ao atualizar:', error);
-            toast.error('Erro ao atualizar configuração');
+            console.error('Erro ao atualizar configuração de notificação:', error);
+            toast.error('Erro ao salvar configuração');
         }
     };
 
