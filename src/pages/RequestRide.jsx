@@ -47,6 +47,7 @@ export default function RequestRide() {
   const [userCity, setUserCity] = useState('Orlândia');
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
+  const [activeField, setActiveField] = useState(null); // 'pickup' | 'destination'
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
   const abortControllerRef = React.useRef(null);
