@@ -743,161 +743,55 @@ export default function RequestRide() {
                   className="space-y-4"
                 >
                   <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block font-medium">
-                          De onde você está
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                            <div className="w-3 h-3 rounded-full bg-green-500" />
-                          </div>
-                          <Input
-                            placeholder="Digite seu endereço"
-                            value={pickup}
-                            onChange={(e) => {
-                              setPickup(e.target.value);
-                              setPickupError('');
-                            }}
-                            onBlur={() => pickup && validateAddress(pickup, true)}
-                            className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
-                              pickupError ? 'border-red-500' : ''
-                            }`}
-                          />
-                          {gettingLocation && (
-                            <button
-                              onClick={getCurrentLocation}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998] hover:text-[#BF3B79]"
-                            >
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            </button>
-                          )}
-                          {!gettingLocation && (
-                            <button
-                              onClick={getCurrentLocation}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998] hover:text-[#BF3B79]"
-                              title="Usar localização atual"
-                            >
-                              <Crosshair className="w-5 h-5" />
-                            </button>
-                          )}
+                    {/* Linha conectora visual */}
+                    <div className="space-y-1">
+                      <AddressSearchField
+                        label="De onde você está"
+                        value={pickup}
+                        onChange={(v) => { setPickup(v); setPickupError(''); }}
+                        onSelect={handlePickupSuggestionSelect}
+                        placeholder="Digite seu endereço de origem"
+                        dotColor="#22c55e"
+                        userLocation={pickupLocation}
+                        favoritesAndRecents={favoritesAndRecents}
+                        isActive={activeField === 'pickup'}
+                        onFocus={() => setActiveField('pickup')}
+                        error={pickupError}
+                        icon={
+                          <button
+                            onClick={getCurrentLocation}
+                            className="p-1 rounded-full hover:bg-[#F22998]/10 transition-colors"
+                            title="Usar minha localização"
+                          >
+                            {gettingLocation
+                              ? <Loader2 className="w-4 h-4 text-[#F22998] animate-spin" />
+                              : <Crosshair className="w-4 h-4 text-[#F22998]" />
+                            }
+                          </button>
+                        }
+                      />
+
+                      {/* Divisor com ícone de seta */}
+                      <div className="flex items-center gap-2 py-1 pl-3">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="w-px h-2 bg-[#F22998]/30 ml-[5px]" />
+                          <div className="w-px h-2 bg-[#F22998]/20 ml-[5px]" />
                         </div>
-                        {pickupError && (
-                          <p className="text-xs text-red-500 mt-1">{pickupError}</p>
-                        )}
                       </div>
-                      
-                      <div className="relative">
-                        <label className="text-sm text-[#F2F2F2]/70 mb-2 block font-medium">
-                          Para onde vai
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                            <div className="w-3 h-3 rounded-full bg-[#F22998]" />
-                          </div>
-                          <Input
-                            placeholder="Restaurante, loja, endereço..."
-                            value={destination}
-                            onChange={(e) => {
-                              setDestination(e.target.value);
-                              setDestinationError('');
-                              setSearchingAddress(true);
-                              handleDestinationInput(e.target.value);
-                            }}
-                            onFocus={() => {
-                              if (destination.length < 3) {
-                                setSuggestions(favoritesAndRecents);
-                                setShowSuggestions(favoritesAndRecents.length > 0);
-                              } else if (suggestions.length > 0) {
-                                setShowSuggestions(true);
-                              }
-                            }}
-                            onBlur={() => {
-                              setTimeout(() => setShowSuggestions(false), 200);
-                            }}
-                            className={`pl-10 py-6 bg-[#0D0D0D] border-[#F22998]/20 rounded-xl text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 ${
-                              destinationError ? 'border-red-500' : ''
-                            }`}
-                          />
-                          {searchingAddress && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <Loader2 className="w-4 h-4 text-[#F22998] animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Dropdown de sugestões */}
-                        <AnimatePresence>
-                          {showSuggestions && suggestions.length > 0 && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute z-50 w-full mt-1 bg-[#1a1a1a] border border-[#F22998]/30 rounded-xl shadow-2xl overflow-hidden max-h-[400px] overflow-y-auto"
-                            >
-                              {suggestions.map((suggestion, index) => (
-                                <button
-                                  key={suggestion.id || index}
-                                  onClick={() => selectSuggestion(suggestion)}
-                                  className="w-full px-4 py-3 text-left hover:bg-[#F22998]/10 transition-colors border-b border-[#F22998]/10 last:border-b-0"
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <span className="text-xl mt-0.5 flex-shrink-0">
-                                      {suggestion.icon}
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <p className="text-sm text-[#F2F2F2] font-medium">
-                                          {suggestion.name || suggestion.street}
-                                          {suggestion.housenumber && (
-                                            <span className="text-[#F22998] ml-1">
-                                              , {suggestion.housenumber}
-                                            </span>
-                                          )}
-                                          {suggestion.userProvidedNumber && (
-                                            <span className="text-[#F22998] ml-1">
-                                              , nº {suggestion.userProvidedNumber}
-                                            </span>
-                                          )}
-                                        </p>
-                                        {(suggestion.isFavorite || suggestion.isRecent) && (
-                                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#F22998]/20 text-[#F22998]">
-                                            {suggestion.categoryLabel}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="text-xs text-[#F2F2F2]/50 truncate mt-0.5">
-                                        {suggestion.street && suggestion.street !== suggestion.name && (
-                                          <span>{suggestion.street} • </span>
-                                        )}
-                                        {suggestion.city}
-                                        {suggestion.categoryLabel && !suggestion.isFavorite && !suggestion.isRecent && (
-                                          <span className="ml-1 text-[#F22998]">• {suggestion.categoryLabel}</span>
-                                        )}
-                                      </p>
-                                      {suggestion.isFaraway && (
-                                        <p className="text-xs text-yellow-400 mt-1">
-                                          ⚠️ Fora da sua região (~{Math.round(suggestion.distance)} km)
-                                        </p>
-                                      )}
-                                      {suggestion.userProvidedNumber && (
-                                        <p className="text-xs text-yellow-400 mt-1">
-                                          📍 Número informado por você
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        
-                        {destinationError && (
-                          <p className="text-xs text-red-500 mt-1">{destinationError}</p>
-                        )}
-                      </div>
+
+                      <AddressSearchField
+                        label="Para onde vai"
+                        value={destination}
+                        onChange={(v) => { setDestination(v); setDestinationError(''); }}
+                        onSelect={handleDestinationSuggestionSelect}
+                        placeholder="Restaurante, loja, endereço..."
+                        dotColor="#F22998"
+                        userLocation={pickupLocation}
+                        favoritesAndRecents={favoritesAndRecents}
+                        isActive={activeField === 'destination'}
+                        onFocus={() => setActiveField('destination')}
+                        error={destinationError}
+                      />
                     </div>
 
                     <Button 
