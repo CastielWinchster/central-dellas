@@ -45,14 +45,17 @@ export default function DriverDocuments() {
           if (['under_review', 'approved', 'rejected'].includes(existing.status)) setSubmitted(true);
         }
       } catch (e) {
-        console.error('[DriverDocuments] Erro ao carregar documentos:', e?.code, e?.message);
-        // Só mostrar tela de erro para falhas reais de rede ou permissão
-        if (e?.code === 'permission-denied') {
-          setLoadError('Sem permissão para acessar seus documentos. Verifique se você está autenticado corretamente.');
-        } else if (e?.code === 'unavailable') {
-          setLoadError('Serviço indisponível. Verifique sua conexão e tente novamente.');
+        const code = e?.code || 'unknown';
+        if (code === 'unavailable') {
+          console.warn('[DriverDocuments] Cliente offline — exibindo aviso de conexão');
+          setLoadError('offline');
+        } else if (code === 'permission-denied' || code === 'unauthenticated') {
+          console.error('[DriverDocuments] Permissão negada:', e.message);
+          setLoadError('permission');
+        } else {
+          console.warn('[DriverDocuments] Erro não crítico ignorado, abrindo formulário vazio:', code);
+          // Não bloquear a página
         }
-        // Qualquer outro erro: abrir o formulário vazio sem bloquear
       } finally {
         setLoading(false);
       }
