@@ -34,12 +34,12 @@ if (!firebaseConfig.projectId) {
 }
 export { app };
 
-// Firestore
-export const db = getFirestore(app);
+// Firestore — só inicializa se app estiver disponível
+export const db = app ? getFirestore(app) : null;
 
-// Firebase Cloud Messaging (apenas se suportado)
+// Firebase Cloud Messaging (apenas se suportado e app disponível)
 let messaging = null;
-if (typeof window !== 'undefined') {
+if (app && typeof window !== 'undefined') {
   isSupported().then((supported) => {
     if (supported) {
       messaging = getMessaging(app);
