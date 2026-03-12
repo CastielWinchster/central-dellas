@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
+import AddressSearchField from '../components/map/AddressSearchField';
 import { toast } from 'sonner';
 import { 
   searchPlaces, 
