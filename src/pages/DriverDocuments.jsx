@@ -45,11 +45,14 @@ export default function DriverDocuments() {
           if (['under_review', 'approved', 'rejected'].includes(existing.status)) setSubmitted(true);
         }
       } catch (e) {
-        console.error('[DriverDocuments] Erro ao carregar documentos:', e);
-        const msg = e?.code === 'permission-denied'
-          ? 'Sem permissão para acessar seus documentos. Verifique se você está autenticado corretamente.'
-          : 'Não foi possível carregar seus documentos. Verifique sua conexão e tente novamente.';
-        setLoadError(msg);
+        console.error('[DriverDocuments] Erro ao carregar documentos:', e?.code, e?.message);
+        // Só mostrar tela de erro para falhas reais de rede ou permissão
+        if (e?.code === 'permission-denied') {
+          setLoadError('Sem permissão para acessar seus documentos. Verifique se você está autenticado corretamente.');
+        } else if (e?.code === 'unavailable') {
+          setLoadError('Serviço indisponível. Verifique sua conexão e tente novamente.');
+        }
+        // Qualquer outro erro: abrir o formulário vazio sem bloquear
       } finally {
         setLoading(false);
       }
