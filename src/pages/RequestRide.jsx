@@ -268,64 +268,6 @@ export default function RequestRide() {
     }
   };
 
-  // Autocomplete híbrido Photon + Nominatim (400ms debounce)
-  const handleDestinationInput = React.useCallback(
-    debounce(async (value) => {
-      if (value.length < 3) {
-        setSuggestions(favoritesAndRecents);
-        setShowSuggestions(favoritesAndRecents.length > 0);
-        setSearchingAddress(false);
-        return;
-      }
-      
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-      
-      try {
-        setSearchingAddress(true);
-        
-        const userLoc = pickupLocation ? {
-          lat: pickupLocation.lat,
-          lng: pickupLocation.lng
-        } : null;
-        
-        const results = await searchPlaces(
-          value,
-          userLoc,
-          abortControllerRef.current.signal
-        );
-        
-        // Combinar favoritos/recentes + resultados online
-        const combined = [...favoritesAndRecents, ...results];
-        
-        setSuggestions(combined);
-        setShowSuggestions(combined.length > 0);
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Erro ao buscar endereços:', error);
-          toast.error('Erro ao buscar endereço. Tente novamente.');
-        }
-      } finally {
-        setSearchingAddress(false);
-      }
-    }, 400),
-    [pickupLocation, favoritesAndRecents]
-  );
-
-  // Função debounce
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
 
   // Handler para seleção no campo de ORIGEM
   const handlePickupSuggestionSelect = async (suggestion) => {
