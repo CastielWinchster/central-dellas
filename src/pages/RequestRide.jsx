@@ -836,31 +836,28 @@ export default function RequestRide() {
                     </div>
                   </Card>
 
-                  {/* Recent Destinations */}
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
-                    <h3 className="text-sm font-medium text-[#F2F2F2]/60 mb-4">Destinos Recentes</h3>
-                    <div className="space-y-3">
-                      {[
-                        { name: 'Shopping Ibirapuera', address: 'Av. Ibirapuera, 3103' },
-                        { name: 'Aeroporto Congonhas', address: 'Av. Washington Luís' },
-                        { name: 'Parque Villa-Lobos', address: 'Av. Prof. Fonseca Rodrigues, 1025' },
-                      ].map((place, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setDestination(place.address)}
-                          className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-[#F22998]/10 transition-colors text-left"
-                        >
-                          <div className="w-10 h-10 rounded-full bg-[#F22998]/10 flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-[#F22998]" />
-                          </div>
-                          <div>
-                            <p className="text-[#F2F2F2] font-medium">{place.name}</p>
-                            <p className="text-[#F2F2F2]/50 text-sm">{place.address}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </Card>
+                  {/* Favoritos e recentes são exibidos no dropdown do campo de destino */}
+                  {favoritesAndRecents.length > 0 && (
+                    <Card className="p-4 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-2xl">
+                      <h3 className="text-xs font-semibold text-[#F2F2F2]/40 uppercase tracking-wider mb-3">Locais salvos</h3>
+                      <div className="space-y-1">
+                        {favoritesAndRecents.slice(0, 4).map((place, index) => (
+                          <button
+                            key={place.id || index}
+                            onClick={() => handleDestinationSuggestionSelect(place)}
+                            className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F22998]/10 transition-colors text-left"
+                          >
+                            <span className="text-lg">{place.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-[#F2F2F2] font-medium truncate">{place.name}</p>
+                              <p className="text-xs text-[#F2F2F2]/40 truncate">{place.street}</p>
+                            </div>
+                            <span className="text-xs text-[#F22998]/60">{place.categoryLabel}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </Card>
+                  )}
                 </motion.div>
               )}
 
