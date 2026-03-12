@@ -329,6 +329,78 @@ export default function RequestRide() {
     };
   }
 
+  // Handler para seleção no campo de ORIGEM
+  const handlePickupSuggestionSelect = async (suggestion) => {
+    const lat = parseFloat(suggestion.lat);
+    const lon = parseFloat(suggestion.lon || suggestion.lng);
+    try {
+      const reverseData = await reverseGeocode(lat, lon);
+      const finalAddress = reverseData
+        ? formatAddressDisplay(reverseData, suggestion.userProvidedNumber)
+        : suggestion.name || suggestion.street || '';
+      const locationData = {
+        lat, lng: lon, text: finalAddress,
+        userProvidedNumber: suggestion.userProvidedNumber || reverseData?.housenumber,
+        hasHouseNumber: !!(reverseData?.housenumber || suggestion.userProvidedNumber)
+      };
+      setPickup(finalAddress);
+      setPickupLocation(locationData);
+      setPickupError('');
+      if (!locationData.hasHouseNumber) setPickupMarkerDraggable(true);
+      if (destinationLocation) calculateRouteAndPrice(locationData, destinationLocation);
+    } catch (e) {
+      setPickup(suggestion.name || suggestion.street || '');
+      setPickupLocation({ lat, lng: lon, text: suggestion.name || '' });
+    }
+    setActiveField(null);
+  };
+
+  // Handler para seleção no campo de DESTINO
+  const handleDestinationSuggestionSelect = async (suggestion) => {
+    const lat = parseFloat(suggestion.lat);
+    const lon = parseFloat(suggestion.lon || suggestion.lng);
+
+    if (suggestion.isFavorite || suggestion.isRecent) {
+      const locationData = { lat, lng: lon, text: suggestion.street || suggestion.name, userProvidedNumber: null, hasHouseNumber: true };
+      setDestination(suggestion.street || suggestion.name);
+      setDestinationLocation(locationData);
+      setDestinationError('');
+      setActiveField(null);
+      if (pickupLocation) calculateRouteAndPrice(pickupLocation, { lat, lng: lon });
+      return;
+    }
+
+    try {
+      const reverseData = await reverseGeocode(lat, lon);
+      const number = suggestion.userProvidedNumber || reverseData?.housenumber;
+      const finalAddress = reverseData
+        ? formatAddressDisplay({ street: reverseData.street || suggestion.name, housenumber: number, suburb: reverseData.suburb, city: reverseData.city }, suggestion.userProvidedNumber)
+        : suggestion.name || suggestion.street || '';
+      const locationData = { lat, lng: lon, text: finalAddress, userProvidedNumber: suggestion.userProvidedNumber, hasHouseNumber: !!number && number !== 's/n' };
+      setDestination(finalAddress);
+      setDestinationLocation(locationData);
+      if (!locationData.hasHouseNumber) setDestinationMarkerDraggable(true);
+      else setDestinationMarkerDraggable(false);
+      setDestinationError('');
+      setActiveField(null);
+
+      // Salvar como recente
+      try {
+        const existingRecent = await base44.entities.RecentPlace.filter({ user_id: user.id, address_text: finalAddress });
+        if (existingRecent.length > 0) {
+          await base44.entities.RecentPlace.update(existingRecent[0].id, { last_used_at: new Date().toISOString(), times_used: (existingRecent[0].times_used || 0) + 1 });
+        } else {
+          await base44.entities.RecentPlace.create({ user_id: user.id, address_text: finalAddress, lat, lng: lon, last_used_at: new Date().toISOString() });
+        }
+      } catch (e) {}
+
+      if (pickupLocation) calculateRouteAndPrice(pickupLocation, { lat, lng: lon });
+    } catch (e) {
+      setDestination(suggestion.name || suggestion.street || '');
+      setDestinationLocation({ lat, lng: lon, text: suggestion.name || '' });
+    }
+  };
+
   const selectSuggestion = async (suggestion) => {
     const lat = parseFloat(suggestion.lat);
     const lon = parseFloat(suggestion.lon);
