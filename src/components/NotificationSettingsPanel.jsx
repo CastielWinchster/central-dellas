@@ -18,22 +18,20 @@ export default function NotificationSettingsPanel({ userId }) {
     const loadSettings = async () => {
         try {
             const existing = await base44.entities.NotificationSettings.filter({ user_id: userId });
-            
             if (existing.length > 0) {
                 setSettings(existing[0]);
             } else {
-                // Criar configuração padrão
-                const newSettings = await base44.entities.NotificationSettings.create({
+                // Não criar automaticamente — usar valores padrão locais
+                setSettings({
                     user_id: userId,
                     notify_car_availability: true,
                     notify_motorcycle_availability: true,
                     availability_notification_frequency: 4
                 });
-                setSettings(newSettings);
             }
         } catch (error) {
-            console.error('Erro ao carregar configurações:', error);
-            toast.error('Erro ao carregar configurações');
+            console.error('Erro ao carregar configurações de notificação:', error);
+            // Não exibir toast de erro — não é bloqueante
         } finally {
             setLoading(false);
         }
