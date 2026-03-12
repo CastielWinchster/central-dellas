@@ -98,16 +98,22 @@ export async function getDriverDocuments(userId) {
     console.log('[driverDocService] getDriverDocuments → dados normalizados:', normalized);
     return normalized;
   } catch (err) {
-    console.error('[driverDocService] getDriverDocuments → ERRO:', err?.code, err?.message);
+    const code = err?.code || 'unknown';
 
-    // Erros de configuração/inicialização do Firebase não devem bloquear a página
-    // Tratar como "documento não encontrado" e retornar null
-    const fatalCodes = ['permission-denied', 'unavailable', 'unauthenticated'];
-    if (fatalCodes.includes(err?.code)) {
-      throw err; // Re-lançar apenas erros reais de rede/permissão
+    if (code === 'unavailable') {
+      console.warn('[driverDocService] getDriverDocuments → OFFLINE: cliente sem conexão com o Firestore');
+    } else if (code === 'permission-denied' || code === 'unauthenticated') {
+      console.error('[driverDocService] getDriverDocuments → PERMISSÃO NEGADA:', err.message);
+    } else {
+      console.warn('[driverDocService] getDriverDocuments → ERRO NÃO CRÍTICO (config/init):', code, err?.message);
     }
 
-    // Qualquer outro erro (configuração, inicialização, etc.) → retorna null
+    // Re-lançar apenas erros que a página precisa tratar explicitamente
+    if (['unavailable', 'permission-denied', 'unauthenticated'].includes(code)) {
+      throw err;
+    }
+
+    // Outros erros (config, inicialização) → formulário vazio sem bloquear
     return null;
   }
 }
