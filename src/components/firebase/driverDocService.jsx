@@ -98,11 +98,16 @@ export async function getDriverDocuments(userId) {
     console.log('[driverDocService] getDriverDocuments → dados normalizados:', normalized);
     return normalized;
   } catch (err) {
-    console.error('[driverDocService] getDriverDocuments → ERRO REAL:', err);
-    console.error('[driverDocService] getDriverDocuments → code:', err?.code);
-    console.error('[driverDocService] getDriverDocuments → message:', err?.message);
+    console.error('[driverDocService] getDriverDocuments → ERRO:', err?.code, err?.message);
 
-    // Relançar para que a página possa exibir o erro correto ao usuário
-    throw err;
+    // Erros de configuração/inicialização do Firebase não devem bloquear a página
+    // Tratar como "documento não encontrado" e retornar null
+    const fatalCodes = ['permission-denied', 'unavailable', 'unauthenticated'];
+    if (fatalCodes.includes(err?.code)) {
+      throw err; // Re-lançar apenas erros reais de rede/permissão
+    }
+
+    // Qualquer outro erro (configuração, inicialização, etc.) → retorna null
+    return null;
   }
 }
