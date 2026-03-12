@@ -41,6 +41,11 @@ export async function getDriverDocuments(userId) {
   const collectionPath = 'driverDocuments';
   const docPath = `${collectionPath}/${userId}`;
 
+  if (!db) {
+    console.error('[driverDocService] getDriverDocuments → db é null. Firebase não foi inicializado (verifique as env vars VITE_FIREBASE_*)');
+    return null;
+  }
+
   console.log(`[driverDocService] getDriverDocuments → userId usado: "${userId}"`);
   console.log(`[driverDocService] getDriverDocuments → caminho Firestore: "${docPath}"`);
 
