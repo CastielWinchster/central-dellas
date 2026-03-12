@@ -11,8 +11,28 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// --- Diagnóstico de env vars ---
+console.group('[firebaseConfig] Diagnóstico das variáveis de ambiente');
+Object.entries(firebaseConfig).forEach(([key, value]) => {
+  if (!value) {
+    console.error(`  ❌ ${key}: UNDEFINED ou VAZIO`);
+  } else {
+    console.log(`  ✅ ${key}: OK (${String(value).slice(0, 8)}...)`);
+  }
+});
+console.groupEnd();
+
 // Inicializar Firebase apenas uma vez (evita "Firebase App named '[DEFAULT]' already exists")
-export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Guard: só inicializa se projectId estiver presente
+let app;
+if (!firebaseConfig.projectId) {
+  console.error('[firebaseConfig] ❌ NÃO inicializando Firebase: projectId está undefined. Verifique as variáveis VITE_FIREBASE_* no Dashboard → Settings → Environment Variables.');
+  app = null;
+} else {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  console.log('[firebaseConfig] ✅ Firebase inicializado. Arquivo: components/firebase/firebaseConfig.js');
+}
+export { app };
 
 // Firestore
 export const db = getFirestore(app);
