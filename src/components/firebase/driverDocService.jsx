@@ -2,7 +2,12 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { app, db } from './firebaseConfig';
 
-const storage = getStorage(app);
+function getStorageSafe() {
+  if (!app) {
+    throw new Error('[driverDocService] Firebase app não inicializado. Verifique as env vars VITE_FIREBASE_*');
+  }
+  return getStorage(app);
+}
 
 /**
  * Upload a file to Firebase Storage and return its download URL.
@@ -11,6 +16,7 @@ const storage = getStorage(app);
  * @param {File} file
  */
 export async function uploadDocFile(userId, path, file) {
+  const storage = getStorageSafe();
   console.log(`[driverDocService] uploadDocFile → userId: ${userId}, path: ${path}`);
   const storageRef = ref(storage, `driver-documents/${userId}/${path}`);
   await uploadBytes(storageRef, file);
