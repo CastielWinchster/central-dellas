@@ -41,8 +41,6 @@ export default function RequestRide() {
   const [destinationError, setDestinationError] = useState('');
   const [loadingPickup, setLoadingPickup] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [favoritesAndRecents, setFavoritesAndRecents] = useState([]);
   const [userCity, setUserCity] = useState('Orlândia');
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
