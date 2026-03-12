@@ -25,6 +25,9 @@ export async function uploadDocFile(userId, path, file) {
  * @param {object} data
  */
 export async function saveDriverDocuments(userId, data) {
+  if (!db) {
+    throw new Error('[driverDocService] saveDriverDocuments → db é null. Firebase não foi inicializado.');
+  }
   console.log(`[driverDocService] saveDriverDocuments → userId: ${userId}`, data);
   const docRef = doc(db, 'driverDocuments', userId);
   await setDoc(docRef, data, { merge: true });
