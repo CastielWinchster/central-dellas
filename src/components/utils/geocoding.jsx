@@ -229,13 +229,11 @@ export async function searchPlaces(text, userLocation, signal) {
     });
 
     // Separar próximos (dentro do bbox) e distantes
-    const RADIUS_KM = 60; // compatível com bbox Orlândia
+    const RADIUS_KM = 60;
     const nearby = withMeta.filter(r => r.distance <= RADIUS_KM);
     const faraway = withMeta.filter(r => r.distance > RADIUS_KM).slice(0, 2);
 
-    console.log(`[searchPlaces] ${nearby.length} próximos, ${faraway.length} distantes`);
-
-    return [...nearby, ...faraway].slice(0, 10).map(item => ({
+    const remoteFormatted = [...nearby, ...faraway].map(item => ({
       id: item.id,
       lat: item.lat,
       lon: item.lon,
@@ -250,8 +248,17 @@ export async function searchPlaces(text, userLocation, signal) {
       distance: item.distance,
       isFaraway: item.distance > RADIUS_KM,
       icon: getCategoryIcon(item.category),
-      categoryLabel: getCategoryLabel(item.category)
+      categoryLabel: getCategoryLabel(item.category),
+      isLocalPOI: false,
     }));
+
+    // POIs locais primeiro, depois resultados remotos (sem duplicatas por nome)
+    const localNames = new Set(localResults.map(r => r.name.toLowerCase()));
+    const remoteDeduplicated = remoteFormatted.filter(r => !localNames.has(r.name.toLowerCase()));
+
+    console.log(`[searchPlaces] ${localResults.length} locais offline + ${remoteDeduplicated.length} remotos`);
+
+    return [...localResults, ...remoteDeduplicated].slice(0, 10);
   } catch (error) {
     if (error.name !== 'AbortError') console.error('[searchPlaces] Erro:', error);
     return [];
