@@ -1,6 +1,7 @@
 // Sistema de geocoding usando Mapbox Geocoding API
 
 import { MAPBOX_CONFIG } from './mapboxConfig';
+import { searchLocalPOIs } from './orlandiaPOIs';
 
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
