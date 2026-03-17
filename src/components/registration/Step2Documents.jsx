@@ -566,148 +566,18 @@ FEEDBACK ESPECÍFICO se inválido:
     return matches / Math.max(words1.length, words2.length);
   };
 
-  // Validar CNH com Google Cloud Vision API (timeout 10s)
+  // Validar CNH via backend function (chave nunca exposta no frontend)
   const validateCNHWithGoogleVision = async (fileUrl) => {
     try {
-      // Converter imagem para base64 de alta qualidade
-      const imageResponse = await fetch(fileUrl);
-      const imageBlob = await imageResponse.blob();
-      const base64Image = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64String = reader.result.split(',')[1];
-          resolve(base64String);
-        };
-        reader.readAsDataURL(imageBlob);
-      });
-
-      // Chamar Google Cloud Vision API com timeout de 10 segundos
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const visionResponse = await fetch(
-        'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyAPH-bGo4FnzaXeA3onA1CtG_poSs01QH8',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            requests: [
-              {
-                image: {
-                  content: base64Image,
-                },
-                features: [
-                  {
-                    type: 'TEXT_DETECTION',
-                    maxResults: 1,
-                  },
-                ],
-              },
-            ],
-          }),
-          signal: controller.signal
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      const visionData = await visionResponse.json();
-
-      if (!visionData.responses || !visionData.responses[0].textAnnotations) {
-        return {
-          valid: false,
-          error: 'ocr_failed',
-          specific_issue: 'ocr_failed',
-          feedback: 'OCR falhou'
-        };
+      const response = await base44.functions.invoke('validateCNHVision', { fileUrl });
+      const result = response.data;
+      if (!result.valid) {
+        return { valid: false, error: 'ocr_failed', specific_issue: 'ocr_failed', feedback: result.feedback || 'OCR falhou' };
       }
-
-      const fullText = visionData.responses[0].textAnnotations[0].description.toUpperCase();
-
-      // Extrair campos da CNH
-      const extractedData = {
-        name: null,
-        cpf: null,
-        document_number: null,
-        birth_date: null,
-        expiry_date: null,
-      };
-
-      // VALIDAÇÃO SIMPLIFICADA: Se detectar CPF ou palavras-chave, considerar VÁLIDO
-      const hasCPF = /\d{3}\.?\d{3}\.?\d{3}-?\d{2}/.test(fullText);
-      const hasBrazilianKeywords = /BRASILEIRA|HABILITAÇÃO|REPÚBLICA|FEDERATIVA/i.test(fullText);
-      
-      // Se encontrou CPF ou palavras-chave da CNH, considerar válido
-      if (!hasCPF && !hasBrazilianKeywords) {
-        return {
-          valid: false,
-          error: 'ocr_failed',
-          specific_issue: 'ocr_failed',
-          feedback: 'Documento não reconhecido'
-        };
-      }
-
-      // Extrair dados opcionalmente (não obrigatório para validação)
-      const nameMatch = fullText.match(/(?:NOME|NAME)[:\s]+([A-ZÀ-Ú\s]+?)(?:\n|CPF|RG|DATA)/);
-      if (nameMatch) {
-        extractedData.name = nameMatch[1].trim();
-      }
-
-      const cpfMatch = fullText.match(/(\d{3}\.?\d{3}\.?\d{3}-?\d{2})/);
-      if (cpfMatch) {
-        extractedData.cpf = cpfMatch[1];
-      }
-
-      const cnhMatch = fullText.match(/(?:REGISTRO|CNH|CARTEIRA)[:\s]*(\d{10,11})/);
-      if (cnhMatch) {
-        extractedData.document_number = cnhMatch[1];
-      }
-
-      const birthDateMatch = fullText.match(/(?:DATA DE NASCIMENTO|NASCIMENTO|NASC)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
-      if (birthDateMatch) {
-        extractedData.birth_date = birthDateMatch[1];
-      }
-
-      const expiryMatch = fullText.match(/(?:VALIDADE|VALID)[:\s]*(\d{2}\/\d{2}\/\d{4})/);
-      if (expiryMatch) {
-        extractedData.expiry_date = expiryMatch[1];
-      }
-
-      // Verificar se CNH está vencida (desabilitado por enquanto para não bloquear)
-      // if (extractedData.expiry_date) {
-      //   const [day, month, year] = extractedData.expiry_date.split('/');
-      //   const expiryDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      //   const today = new Date();
-      //   
-      //   if (expiryDate < today) {
-      //     return {
-      //       valid: false,
-      //       error: 'ocr_failed',
-      //       specific_issue: 'ocr_failed',
-      //       feedback: 'Documento vencido'
-      //     };
-      //   }
-      // }
-
-      // Sucesso!
-      return {
-        valid: true,
-        extracted_data: extractedData,
-        confidence: 0.9,
-        rotation_detected: false,
-        has_reflections: false
-      };
-
+      return { valid: true, extracted_data: result.extracted_data, confidence: result.confidence };
     } catch (error) {
-      console.error('Erro ao validar CNH com Google Vision:', error);
-      return {
-        valid: false,
-        error: 'ocr_failed',
-        specific_issue: 'ocr_failed',
-        feedback: error.message
-      };
+      console.error('Erro ao validar CNH:', error);
+      return { valid: false, error: 'ocr_failed', specific_issue: 'ocr_failed', feedback: error.message };
     }
   };
 
