@@ -19,6 +19,7 @@ import {
   loadFavoritesAndRecents,
   parseQuery 
 } from '@/components/utils/geocoding';
+import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 
 export default function RequestRide() {
   const [user, setUser] = useState(null);
