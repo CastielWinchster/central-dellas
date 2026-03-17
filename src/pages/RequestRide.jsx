@@ -333,6 +333,25 @@ export default function RequestRide() {
       return;
     }
 
+    // POI local: coordenadas já são precisas
+    if (suggestion.isLocalPOI) {
+      const address = [
+        suggestion.name,
+        suggestion.street && suggestion.housenumber
+          ? `${suggestion.street}, ${suggestion.housenumber}`
+          : suggestion.street || '',
+        'Orlândia - SP'
+      ].filter(Boolean).join(' - ');
+      const locationData = { lat, lng: lon, text: address, hasHouseNumber: true };
+      setDestination(suggestion.name);
+      setDestinationLocation(locationData);
+      setDestinationError('');
+      setDestinationMarkerDraggable(false);
+      setActiveField(null);
+      if (pickupLocation) calculateRouteAndPrice(pickupLocation, { lat, lng: lon });
+      return;
+    }
+
     try {
       const reverseData = await reverseGeocode(lat, lon);
       const number = suggestion.userProvidedNumber || reverseData?.housenumber;
