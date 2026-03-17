@@ -47,8 +47,8 @@ export default function RequestRide() {
   const [activeField, setActiveField] = useState(null); // 'pickup' | 'destination'
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
-  const abortControllerRef = React.useRef(null);
-  const mapRef = React.useRef(null);
+  const abortControllerRef = useRef(null);
+  const mapRef = useRef(null);
 
   // Handlers para arrastar pins
   const handleMapClick = async (lat, lng) => {
