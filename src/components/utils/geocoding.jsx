@@ -4,7 +4,11 @@ import { MAPBOX_CONFIG } from './mapboxConfig';
 
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
-const MAPBOX_TOKEN = MAPBOX_CONFIG.ACCESS_TOKEN;
+
+// Token lido dinamicamente para suportar carregamento assíncrono
+function getToken() {
+  return MAPBOX_CONFIG.ACCESS_TOKEN;
+}
 
 // ========================================
 // 1) PARSER ROBUSTO DO INPUT
