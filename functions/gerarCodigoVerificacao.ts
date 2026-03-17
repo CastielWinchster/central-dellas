@@ -4,10 +4,24 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { telefone } = await req.json();
+    // Rate-limit simples: validar que o payload é bem-formado antes de qualquer operação
+    const body = await req.json();
+    const { telefone } = body;
 
     if (!telefone) {
       return Response.json({ sucesso: false, erro: 'Telefone não fornecido' }, { status: 400 });
+    }
+
+    // Proteção contra abuso: verificar se já existe código recente (< 1 min) para este número
+    let numeroTemp = telefone.replace(/\D/g, '');
+    if (!numeroTemp.startsWith('55')) numeroTemp = '55' + numeroTemp;
+    const recentes = await base44.asServiceRole.entities.VerificationCode.filter({ telefone: numeroTemp, validado: false });
+    if (recentes.length > 0) {
+      const ultimo = recentes[0];
+      const criado = new Date(ultimo.created_date);
+      if ((Date.now() - criado.getTime()) < 60 * 1000) {
+        return Response.json({ sucesso: false, erro: 'Aguarde 1 minuto antes de solicitar novo código.' }, { status: 429 });
+      }
     }
 
     // Normalizar telefone

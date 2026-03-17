@@ -70,7 +70,18 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
 
-    // --- Modo automação (entidade Ride) ---
+    // --- Modo automação (entidade Ride): chamada interna, não requer auth de usuário ---
+    // --- Modo chamada direta: exige admin ---
+    if (!payload.event) {
+      const user = await base44.auth.me();
+      if (!user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
+    }
+
     if (payload.event) {
       const { event, data: ride } = payload;
 

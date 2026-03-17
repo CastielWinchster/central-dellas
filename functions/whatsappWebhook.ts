@@ -81,21 +81,23 @@ Sua mensagem foi registrada e daremos retorno o mais rápido possível!`;
       // Primeira interação ou pedido de corrida
       const appUrl = `${req.headers.get('origin')}/PassengerLogin`;
       
+      const promoCode = Deno.env.get('WHATSAPP_PROMO_CODE') || 'WHATSAPP10';
       responseText = `Olá ${userName}! 👋 Bem-vinda à Central Dellas!
 
 🚗 *Para chamar uma corrida IMEDIATA* e ver o preço em tempo real:
 
 📱 *Baixe nosso App*: ${appUrl}
 
-✨ *BÔNUS*: Use o código *WHATSAPP10* e ganhe *10% OFF* na primeira corrida pelo app!
+✨ *BÔNUS*: Use o código *${promoCode}* e ganhe *10% OFF* na primeira corrida pelo app!
 
 ---
 
 💬 Se for outro assunto (dúvida, reclamação, corporativo), responda esta mensagem e aguarde um atendente.`;
 
       // Criar código promocional se não existir
+      const promoCodeValue = Deno.env.get('WHATSAPP_PROMO_CODE') || 'WHATSAPP10';
       const existingPromo = await base44.asServiceRole.entities.PromoCode.filter({
-        code: 'WHATSAPP10'
+        code: promoCodeValue
       });
 
       if (existingPromo.length === 0) {
@@ -103,7 +105,7 @@ Sua mensagem foi registrada e daremos retorno o mais rápido possível!`;
         validUntil.setMonth(validUntil.getMonth() + 3);
         
         await base44.asServiceRole.entities.PromoCode.create({
-          code: 'WHATSAPP10',
+          code: promoCodeValue,
           discount_percentage: 10,
           valid_until: validUntil.toISOString().split('T')[0],
           is_active: true,

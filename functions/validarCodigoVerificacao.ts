@@ -4,7 +4,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { telefone, codigo } = await req.json();
+    const body = await req.json();
+    const { telefone, codigo } = body;
 
     if (!telefone || !codigo) {
       return Response.json({ 
