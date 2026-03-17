@@ -642,9 +642,9 @@ export default function RequestRide() {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-4"
                 >
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl overflow-visible">
                     {/* Linha conectora visual */}
-                    <div className="space-y-1">
+                    <div className="space-y-1" style={{ overflow: 'visible' }}>
                       <AddressSearchField
                         label="De onde você está"
                         value={pickup}
