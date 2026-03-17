@@ -276,6 +276,26 @@ export default function RequestRide() {
   const handlePickupSuggestionSelect = async (suggestion) => {
     const lat = parseFloat(suggestion.lat);
     const lon = parseFloat(suggestion.lon || suggestion.lng);
+
+    // POI local: coordenadas já são precisas, não precisa de reverse geocode
+    if (suggestion.isLocalPOI) {
+      const address = [
+        suggestion.name,
+        suggestion.street && suggestion.housenumber
+          ? `${suggestion.street}, ${suggestion.housenumber}`
+          : suggestion.street || '',
+        'Orlândia - SP'
+      ].filter(Boolean).join(' - ');
+      const locationData = { lat, lng: lon, text: address, hasHouseNumber: true };
+      setPickup(suggestion.name);
+      setPickupLocation(locationData);
+      setPickupError('');
+      setPickupMarkerDraggable(false);
+      if (destinationLocation) calculateRouteAndPrice(locationData, destinationLocation);
+      setActiveField(null);
+      return;
+    }
+
     try {
       const reverseData = await reverseGeocode(lat, lon);
       const finalAddress = reverseData
