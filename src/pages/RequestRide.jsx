@@ -148,6 +148,10 @@ export default function RequestRide() {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        // Garantir token do Mapbox carregado antes de qualquer busca
+        await loadMapboxToken(base44);
+        console.log('[RequestRide] Token Mapbox carregado');
+
         const userData = await base44.auth.me();
         setUser(userData);
         if (userData.preferred_payment) {
