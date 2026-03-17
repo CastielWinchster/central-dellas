@@ -295,8 +295,10 @@ export async function searchPlaces(text, userLocation, signal) {
 // ========================================
 export async function reverseGeocode(lat, lon) {
   try {
+    const token = getToken();
+    if (!token) return null;
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${MAPBOX_TOKEN}&language=pt&types=address,poi,place,locality,neighborhood`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?access_token=${token}&language=pt&types=address,poi,place,locality,neighborhood`
     );
     const data = await response.json();
     
