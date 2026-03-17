@@ -81,8 +81,14 @@ async function searchMapbox(query, userLat, userLon, signal) {
     return cached.data;
   }
   
+  const token = getToken();
+  if (!token) {
+    console.warn('[geocoding] searchMapbox: token ainda não carregado, abortando busca');
+    return [];
+  }
+
   const params = new URLSearchParams({
-    access_token: MAPBOX_TOKEN,
+    access_token: token,
     language: 'pt',
     country: 'br',
     limit: 10,
