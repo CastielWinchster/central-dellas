@@ -191,9 +191,29 @@ export async function searchPlaces(text, userLocation, signal) {
   console.log(`[searchPlaces] query="${fullQuery}" | number="${houseNumber}" | userLoc=${userLat},${userLon}`);
 
   try {
-    const results = await searchMapbox(fullQuery, userLat, userLon, signal);
+    // Busca local offline (POIs de Orlândia) — tem prioridade máxima
+    const localResults = searchLocalPOIs(text).map(poi => ({
+      id: poi.id,
+      lat: poi.lat,
+      lon: poi.lon,
+      name: poi.name,
+      street: poi.street,
+      housenumber: poi.housenumber,
+      city: 'Orlândia',
+      state: 'SP',
+      category: poi.amenity,
+      distance: 0,
+      priority: 0,
+      isFaraway: false,
+      icon: poi.icon,
+      categoryLabel: poi.categoryLabel,
+      isLocalPOI: true,
+      userProvidedNumber: null,
+    }));
 
-    const withMeta = results.map(r => ({
+    const remoteResults = await searchMapbox(fullQuery, userLat, userLon, signal);
+
+    const withMeta = remoteResults.map(r => ({
       ...r,
       distance: (userLat != null && userLon != null)
         ? haversineDistance(userLat, userLon, r.lat, r.lon)
