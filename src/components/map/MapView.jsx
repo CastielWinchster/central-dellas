@@ -242,29 +242,55 @@ export default function MapView({
     return () => { if (dashAnimRef.current) cancelAnimationFrame(dashAnimRef.current); };
   }, [routeData]);
 
-  // Calcular rota e animação de entrada
+  // Calcular rota — Etapas 3, 4 e 5
   useEffect(() => {
     if (showRoute && pickupLocation && destinationLocation) {
       const getRoute = async () => {
         try {
-          const response = await fetch(
-            `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupLocation.lng},${pickupLocation.lat};${destinationLocation.lng},${destinationLocation.lat}?geometries=geojson&access_token=${MAPBOX_CONFIG.ACCESS_TOKEN}`
-          );
-          const data = await response.json();
-          if (data.routes && data.routes[0]) {
-            const route = { type: 'Feature', geometry: data.routes[0].geometry };
-            setRouteData(route);
-            setRouteProgress(null);
-            animateRoute(data.routes[0].geometry.coordinates);
+          // Etapa 5: usar coordenadas exatas do geocoding (sem arredondamento)
+          const oLng = pickupLocation.lng;
+          const oLat = pickupLocation.lat;
+          const dLng = destinationLocation.lng;
+          const dLat = destinationLocation.lat;
 
-            if (mapRef.current) {
-              const coords = data.routes[0].geometry.coordinates;
-              const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-              mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: MAPBOX_CONFIG.DEFAULT_PITCH });
-            }
+          // Etapa 3: alternatives=true, geometries=geojson, overview=full, profile=driving
+          const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${oLng},${oLat};${dLng},${dLat}?alternatives=true&geometries=geojson&overview=full&access_token=${MAPBOX_CONFIG.ACCESS_TOKEN}`;
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!data.routes || data.routes.length === 0) {
+            console.warn('[MapView] Nenhuma rota retornada');
+            return;
+          }
+
+          // Etapa 4: logar todas as rotas e escolher a melhor (menor distância, desempate por duração)
+          console.log(`[MapView] ${data.routes.length} rotas retornadas:`);
+          data.routes.forEach((r, i) => {
+            console.log(`  Rota ${i}: dist=${(r.distance / 1000).toFixed(2)}km | dur=${Math.round(r.duration / 60)}min`);
+          });
+
+          const bestRoute = data.routes.reduce((best, current) => {
+            if (current.distance < best.distance) return current;
+            if (current.distance === best.distance && current.duration < best.duration) return current;
+            return best;
+          });
+
+          const bestIdx = data.routes.indexOf(bestRoute);
+          console.log(`[MapView] Rota escolhida: índice ${bestIdx} | dist=${(bestRoute.distance / 1000).toFixed(2)}km | dur=${Math.round(bestRoute.duration / 60)}min`);
+
+          const route = { type: 'Feature', geometry: bestRoute.geometry };
+          setRouteData(route);
+          setRouteProgress(null);
+          animateRoute(bestRoute.geometry.coordinates);
+
+          if (mapRef.current) {
+            const coords = bestRoute.geometry.coordinates;
+            const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+            mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: MAPBOX_CONFIG.DEFAULT_PITCH });
           }
         } catch (error) {
-          console.error('Erro ao calcular rota:', error);
+          console.error('[MapView] Erro ao calcular rota:', error);
         }
       };
       getRoute();
