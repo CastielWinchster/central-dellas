@@ -19,11 +19,10 @@ export default function DriverDashboard() {
   const [user, setUser] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [todayStats, setTodayStats] = useState({
-    rides: 8,
-    earnings: 245.50,
-    hours: 6.5,
-    rating: 4.9
+    rides: 0,
+    earnings: 0,
   });
+  const [mapTopView, setMapTopView] = useState(false);
   const [pendingRide, setPendingRide] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({ lat: -23.5505, lng: -46.6333 });
   const [presenceRecord, setPresenceRecord] = useState(null);
