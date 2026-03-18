@@ -47,6 +47,7 @@ export default function RequestRide() {
   const [activeField, setActiveField] = useState(null); // 'pickup' | 'destination'
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
+  const [mapTopView, setMapTopView] = useState(false);
   const abortControllerRef = useRef(null);
   const mapRef = useRef(null);
 
