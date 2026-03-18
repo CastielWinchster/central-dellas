@@ -15,6 +15,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, 
 export default function Earnings() {
   const [user, setUser] = useState(null);
   const [period, setPeriod] = useState('week');
+  const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const [commissionConfirmed, setCommissionConfirmed] = useState(false);
   const [earningsData, setEarningsData] = useState({
     total: 1245.50,
     rides: 42,
