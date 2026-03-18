@@ -28,14 +28,14 @@ export default function DriverDashboard() {
   const [pendingRide, setPendingRide] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({ lat: -23.5505, lng: -46.6333 });
   const [presenceRecord, setPresenceRecord] = useState(null);
-  const presenceRecordRef = React.useRef(null);
-  const watchIdRef = React.useRef(null);
-  const lastLocationRef = React.useRef(null);
-  const updateIntervalRef = React.useRef(null);
+  const presenceRecordRef = useRef(null);
+  const watchIdRef = useRef(null);
+  const lastLocationRef = useRef(null);
+  const updateIntervalRef = useRef(null);
   const [rideOffer, setRideOffer] = useState(null);
   const [offerRide, setOfferRide] = useState(null);
   const [offerPassenger, setOfferPassenger] = useState(null);
-  const offerPollingRef = React.useRef(null);
+  const offerPollingRef = useRef(null);
 
   useEffect(() => {
     const loadUser = async () => {
