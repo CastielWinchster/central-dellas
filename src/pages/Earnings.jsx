@@ -60,12 +60,7 @@ export default function Earnings() {
     { hour: '20h', rides: 6 }
   ];
 
-  const transactions = [
-    { id: '1', type: 'ride', description: 'Corrida - Ana Carolina', amount: 28.50, date: new Date(Date.now() - 3600000) },
-    { id: '2', type: 'ride', description: 'Corrida - Maria Silva', amount: 45.00, date: new Date(Date.now() - 7200000) },
-    { id: '3', type: 'bonus', description: 'Bônus de indicação', amount: 50.00, date: new Date(Date.now() - 86400000) },
-    { id: '4', type: 'ride', description: 'Corrida - Beatriz Santos', amount: 32.00, date: new Date(Date.now() - 172800000) },
-  ];
+  const transactions = [];
 
   const commissionValue = earningsData.total * COMMISSION_RATE;
   const netValue = earningsData.total - commissionValue;
