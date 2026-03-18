@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
+import AvailableRidesList from '../components/driver/AvailableRidesList';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
