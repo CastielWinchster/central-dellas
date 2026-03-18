@@ -109,7 +109,7 @@ export default function Earnings() {
             
             <div className="relative">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-white/70">Saldo disponível</p>
+                <p className="text-white/70">Ganhos da semana</p>
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20">
                   {earningsData.trend > 0 ? (
                     <ArrowUpRight className="w-4 h-4 text-green-300" />
