@@ -494,7 +494,9 @@ export default function DriverDashboard() {
         >
           <Card className="rounded-3xl overflow-hidden border-[#F22998]/10 relative">
             <MapView
-              pickupLocation={currentLocation}
+              pickupLocation={selectedRide ? { lat: selectedRide.pickup.lat, lng: selectedRide.pickup.lng } : currentLocation}
+              destinationLocation={selectedRide ? { lat: selectedRide.destination.lat, lng: selectedRide.destination.lng } : null}
+              showRoute={!!selectedRide}
               className="h-[460px]"
               forcePitch={mapTopView ? 0 : undefined}
             />
