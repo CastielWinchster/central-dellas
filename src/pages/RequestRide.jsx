@@ -625,7 +625,19 @@ export default function RequestRide() {
               pickupDraggable={pickupMarkerDraggable}
               destinationDraggable={destinationMarkerDraggable}
               onMapClick={step === 'address' ? handleMapClick : null}
+              forcePitch={mapTopView ? 0 : undefined}
             />
+            {/* Botão vista aérea */}
+            <button
+              onClick={() => setMapTopView(v => !v)}
+              className={`absolute top-4 right-4 z-10 px-3 py-2 rounded-xl text-xs font-semibold backdrop-blur-md border transition-all ${
+                mapTopView
+                  ? 'bg-[#F22998] border-[#F22998] text-white'
+                  : 'bg-[#0D0D0D]/80 border-[#F22998]/40 text-[#F22998]'
+              }`}
+            >
+              {mapTopView ? '🗺️ Vista 3D' : '🛰️ Vista Aérea'}
+            </button>
             
             {/* Card flutuante com informações da rota */}
             {routeDistance && routeDuration && step === 'options' && (
