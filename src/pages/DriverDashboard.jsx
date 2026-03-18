@@ -51,6 +51,18 @@ export default function DriverDashboard() {
           setPresenceRecord(existingPresence[0]);
           setIsOnline(existingPresence[0].is_online);
         }
+
+        // Buscar corridas reais de hoje
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const allRides = await base44.entities.Ride.filter({
+          assigned_driver_id: userData.id,
+          status: 'completed'
+        });
+        const todayRides = allRides.filter(r => new Date(r.created_date) >= today);
+        const todayEarnings = todayRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
+        setTodayStats({ rides: todayRides.length, earnings: todayEarnings });
+
       } catch (e) {
         if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
           base44.auth.redirectToLogin();
