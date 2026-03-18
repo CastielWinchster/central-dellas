@@ -24,6 +24,7 @@ export default function DriverDashboard() {
     earnings: 0,
   });
   const [mapTopView, setMapTopView] = useState(false);
+  const [selectedRide, setSelectedRide] = useState(null);
   const [pendingRide, setPendingRide] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({ lat: -23.5505, lng: -46.6333 });
   const [presenceRecord, setPresenceRecord] = useState(null);
