@@ -356,14 +356,14 @@ export default function DriverDashboard() {
       value: todayStats.rides, 
       icon: Car, 
       color: 'from-[#BF3B79] to-[#F22998]',
-      trend: '+3 vs ontem'
+      trend: null
     },
     { 
       label: 'Ganhos Hoje', 
       value: `R$ ${todayStats.earnings.toFixed(2)}`, 
       icon: DollarSign, 
       color: 'from-[#F22998] to-[#8C0D60]',
-      trend: '+12% vs média'
+      trend: null
     },
   ];
 
