@@ -483,6 +483,33 @@ export default function DriverDashboard() {
           </motion.div>
         )}
 
+        {/* Map - topo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6"
+        >
+          <Card className="rounded-3xl overflow-hidden border-[#F22998]/10 relative">
+            <MapView
+              pickupLocation={currentLocation}
+              className="h-[460px]"
+              forcePitch={mapTopView ? 0 : undefined}
+            />
+            {/* Botão vista aérea */}
+            <button
+              onClick={() => setMapTopView(v => !v)}
+              className={`absolute top-4 right-4 z-10 px-3 py-2 rounded-xl text-xs font-semibold backdrop-blur-md border transition-all ${
+                mapTopView
+                  ? 'bg-[#F22998] border-[#F22998] text-white'
+                  : 'bg-[#0D0D0D]/80 border-[#F22998]/40 text-[#F22998]'
+              }`}
+            >
+              {mapTopView ? '🗺️ Vista 3D' : '🛰️ Vista Aérea'}
+            </button>
+          </Card>
+        </motion.div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statsCards.map((stat, index) => (
@@ -507,20 +534,6 @@ export default function DriverDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Map */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="rounded-3xl overflow-hidden border-[#F22998]/10">
-              <MapView
-                pickupLocation={currentLocation}
-                className="h-[350px]"
-              />
-            </Card>
-          </motion.div>
-
           {/* Quick Actions */}
           <div className="space-y-4">
             <motion.div
