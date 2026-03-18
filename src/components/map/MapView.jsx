@@ -135,7 +135,8 @@ export default function MapView({
   pickupDraggable = false,
   destinationDraggable = false,
   onMapClick = null,
-  onDestinationSelected = null
+  onDestinationSelected = null,
+  forcePitch = undefined
 }) {
   const [tokenLoaded, setTokenLoaded] = useState(!!MAPBOX_CONFIG.ACCESS_TOKEN);
 
