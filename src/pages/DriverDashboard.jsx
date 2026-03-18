@@ -354,13 +354,6 @@ export default function DriverDashboard() {
       color: 'from-[#F22998] to-[#8C0D60]',
       trend: '+12% vs média'
     },
-    { 
-      label: 'Horas Online', 
-      value: `${todayStats.hours}h`, 
-      icon: Clock, 
-      color: 'from-[#8C0D60] to-[#BF3B79]',
-      trend: null
-    },
   ];
 
   return (
