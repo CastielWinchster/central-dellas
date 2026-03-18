@@ -405,6 +405,6 @@ export default function Earnings() {
         </motion.div>
       </div>
     </div>
-    </>
+    </> 
   );
 }
