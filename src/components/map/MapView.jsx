@@ -346,6 +346,14 @@ export default function MapView({
     }
   };
 
+  // Reagir a mudança de forcePitch
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (forcePitch !== undefined) {
+      mapRef.current.easeTo({ pitch: forcePitch, bearing: 0, duration: 600 });
+    }
+  }, [forcePitch]);
+
   const handleMapClick = useCallback(async (event) => {
     if (onMapClick) onMapClick(event.lngLat.lat, event.lngLat.lng);
     if (onDestinationSelected) {
