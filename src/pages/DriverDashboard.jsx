@@ -361,13 +361,6 @@ export default function DriverDashboard() {
       color: 'from-[#8C0D60] to-[#BF3B79]',
       trend: null
     },
-    { 
-      label: 'Avaliação', 
-      value: todayStats.rating, 
-      icon: Star, 
-      color: 'from-yellow-500 to-orange-500',
-      trend: '★★★★★'
-    },
   ];
 
   return (
