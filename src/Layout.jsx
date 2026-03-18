@@ -93,7 +93,6 @@ function LayoutContent({ children, currentPageName }) {
 
   const driverLinks = [
     { name: 'Home', icon: Home, page: 'DriverDashboard' },
-    { name: 'Corridas', icon: MapPin, page: 'AvailableRides' },
     { name: 'Ganhos', icon: Wallet, page: 'Earnings' },
     { name: 'Opções', icon: Settings, page: 'DriverOptions' }
   ];
