@@ -145,13 +145,12 @@ export default function Earnings() {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <Button className="flex-1 bg-white text-[#BF3B79] hover:bg-white/90 py-6 rounded-2xl">
-                  <Wallet className="w-5 h-5 mr-2" />
-                  Sacar
-                </Button>
-                <Button variant="outline" className="flex-1 border-white/30 text-white hover:bg-white/10 py-6 rounded-2xl">
-                  <Download className="w-5 h-5 mr-2" />
-                  Extrato
+                <Button
+                  onClick={() => { setShowCommissionModal(true); setCommissionConfirmed(false); }}
+                  className="flex-1 bg-white text-[#BF3B79] hover:bg-white/90 py-6 rounded-2xl font-semibold"
+                >
+                  <Percent className="w-5 h-5 mr-2" />
+                  Comissão
                 </Button>
               </div>
             </div>
