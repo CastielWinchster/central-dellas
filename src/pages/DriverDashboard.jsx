@@ -537,6 +537,22 @@ export default function DriverDashboard() {
           ))}
         </div>
 
+        {/* Corridas disponíveis — só quando online */}
+        {isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
+              <AvailableRidesList
+                onRideSelect={setSelectedRide}
+                selectedRideId={selectedRide?.id}
+              />
+            </Card>
+          </motion.div>
+        )}
+
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Quick Actions */}
           <div className="space-y-4">
