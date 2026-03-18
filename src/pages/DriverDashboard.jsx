@@ -78,63 +78,85 @@ export default function DriverDashboard() {
     loadUser();
   }, []);
 
+  // Sincronizar ref com state para uso dentro do effect sem causar re-render
+  useEffect(() => {
+    presenceRecordRef.current = presenceRecord;
+  }, [presenceRecord]);
+
   // Gerenciar presença online/offline
+  // IMPORTANTE: presenceRecord NÃO está nas deps — usa presenceRecordRef para evitar loop
   useEffect(() => {
     if (!user) return;
-    
+
     const startTracking = async () => {
-      if (!navigator.geolocation) {
-        toast.error('Geolocalização não suportada');
-        setIsOnline(false);
-        return;
-      }
-      
-      try {
-        // Solicitar permissão
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000
+      // Fallback de coordenadas caso geolocalização não esteja disponível
+      let latitude = -20.7195;
+      let longitude = -47.8864;
+      let accuracy = 0;
+      let heading = 0;
+      let speed = 0;
+
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000
+            });
           });
-        });
-        
-        const { latitude, longitude, accuracy, heading, speed } = position.coords;
-        setCurrentLocation({ lat: latitude, lng: longitude });
-        lastLocationRef.current = { lat: latitude, lng: longitude };
-        
-        // Criar/atualizar presença
-        let record = presenceRecord;
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+          accuracy = position.coords.accuracy || 0;
+          heading = position.coords.heading || 0;
+          speed = position.coords.speed || 0;
+        } catch (geoError) {
+          // Geolocalização falhou — continua online com coordenadas padrão
+          console.warn('Geolocalização indisponível, usando coordenadas padrão:', geoError.message);
+          toast.info('📍 Localização indisponível. Você está online sem GPS.');
+        }
+      }
+
+      setCurrentLocation({ lat: latitude, lng: longitude });
+      lastLocationRef.current = { lat: latitude, lng: longitude };
+
+      // Criar/atualizar presença usando a ref (não o state, para não gerar dependência)
+      let record = presenceRecordRef.current;
+      try {
         if (!record) {
           record = await base44.entities.DriverPresence.create({
             driver_id: user.id,
             is_online: true,
             lat: latitude,
             lng: longitude,
-            accuracy: accuracy || 0,
-            heading: heading || 0,
-            speed: speed || 0,
+            accuracy,
+            heading,
+            speed,
             last_seen_at: new Date().toISOString()
           });
+          presenceRecordRef.current = record;
           setPresenceRecord(record);
         } else {
           await base44.entities.DriverPresence.update(record.id, {
             is_online: true,
             lat: latitude,
             lng: longitude,
-            accuracy: accuracy || 0,
-            heading: heading || 0,
-            speed: speed || 0,
+            accuracy,
+            heading,
+            speed,
             last_seen_at: new Date().toISOString()
           });
         }
-        
-        // Iniciar watchPosition
+      } catch (dbError) {
+        console.error('Erro ao salvar presença:', dbError);
+      }
+
+      // Iniciar watchPosition se disponível
+      if (navigator.geolocation) {
         watchIdRef.current = navigator.geolocation.watchPosition(
           async (pos) => {
             const { latitude: lat, longitude: lng, accuracy: acc, heading: h, speed: s } = pos.coords;
             const newLocation = { lat, lng };
-            
-            // Verificar se moveu mais de 15 metros
+
             if (lastLocationRef.current) {
               const distance = calculateDistance(
                 lastLocationRef.current.lat,
@@ -142,19 +164,17 @@ export default function DriverDashboard() {
                 lat,
                 lng
               );
-              
-              if (distance < 15) return; // Ignorar movimentos pequenos
+              if (distance < 15) return;
             }
-            
+
             setCurrentLocation(newLocation);
             lastLocationRef.current = newLocation;
-            
-            // Atualizar no banco
-            if (record) {
+
+            const currentRecord = presenceRecordRef.current;
+            if (currentRecord) {
               try {
-                await base44.entities.DriverPresence.update(record.id, {
-                  lat,
-                  lng,
+                await base44.entities.DriverPresence.update(currentRecord.id, {
+                  lat, lng,
                   accuracy: acc || 0,
                   heading: h || 0,
                   speed: s || 0,
@@ -166,76 +186,71 @@ export default function DriverDashboard() {
             }
           },
           (error) => {
-            console.error('Erro no watchPosition:', error);
-            toast.error('Erro ao rastrear localização. Indo offline...');
-            setIsOnline(false);
+            // Erro no watchPosition — apenas loga, NÃO derruba o status online
+            console.warn('Erro no watchPosition (não crítico):', error.message);
           },
-          {
-            enableHighAccuracy: true,
-            maximumAge: 3000,
-            timeout: 10000
-          }
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
         );
-        
-        // Atualizar timestamp a cada 3 segundos
-        updateIntervalRef.current = setInterval(async () => {
-          if (record) {
-            try {
-              await base44.entities.DriverPresence.update(record.id, {
-                last_seen_at: new Date().toISOString()
-              });
-            } catch (error) {
-              console.error('Erro ao atualizar timestamp:', error);
-            }
-          }
-        }, 3000);
-        
-        toast.success('🚗 Você está online e visível no mapa!');
-        
-      } catch (error) {
-        console.error('Erro ao iniciar tracking:', error);
-        toast.error('Não foi possível acessar sua localização');
-        setIsOnline(false);
       }
+
+      // Atualizar timestamp a cada 3 segundos
+      updateIntervalRef.current = setInterval(async () => {
+        const currentRecord = presenceRecordRef.current;
+        if (currentRecord) {
+          try {
+            await base44.entities.DriverPresence.update(currentRecord.id, {
+              last_seen_at: new Date().toISOString()
+            });
+          } catch (error) {
+            console.error('Erro ao atualizar timestamp:', error);
+          }
+        }
+      }, 3000);
+
+      toast.success('🚗 Você está online e visível para passageiras!');
     };
-    
+
     const stopTracking = async () => {
-      // Parar watchPosition
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
-      
-      // Parar intervalo
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
       }
-      
-      // Atualizar presença para offline
-      if (presenceRecord) {
+      const currentRecord = presenceRecordRef.current;
+      if (currentRecord) {
         try {
-          await base44.entities.DriverPresence.update(presenceRecord.id, {
+          await base44.entities.DriverPresence.update(currentRecord.id, {
             is_online: false,
             last_seen_at: new Date().toISOString()
           });
           toast.info('Você está offline');
         } catch (error) {
-          console.error('Erro ao atualizar status:', error);
+          console.error('Erro ao atualizar status offline:', error);
         }
       }
     };
-    
+
     if (isOnline) {
       startTracking();
     } else {
       stopTracking();
     }
-    
+
     return () => {
-      stopTracking();
+      // Cleanup só para watchers/intervals, não chama stopTracking completo
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
+        updateIntervalRef.current = null;
+      }
     };
-  }, [isOnline, user, presenceRecord]);
+  }, [isOnline, user]); // presenceRecord removido das deps intencionalmente
   
   // Calcular distância entre dois pontos (em metros)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
