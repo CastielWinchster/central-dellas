@@ -67,7 +67,105 @@ export default function Earnings() {
     { id: '5', type: 'withdrawal', description: 'Saque para conta', amount: -500.00, date: new Date(Date.now() - 259200000) },
   ];
 
+  const COMMISSION_RATE = 0.05; // 5%
+  const commissionValue = earningsData.total * COMMISSION_RATE;
+  const netValue = earningsData.total - commissionValue;
+
   return (
+    <>
+    {/* Modal de Comissão */}
+    <AnimatePresence>
+      {showCommissionModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setShowCommissionModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.85, opacity: 0, y: 30 }}
+            transition={{ type: 'spring', damping: 22 }}
+            className="bg-[#1a1a1a] rounded-3xl p-8 w-full max-w-md border border-[#F22998]/20 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {!commissionConfirmed ? (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-[#F2F2F2]">Comissão Semanal</h2>
+                  <button onClick={() => setShowCommissionModal(false)} className="text-[#F2F2F2]/40 hover:text-[#F2F2F2] transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="bg-[#0D0D0D] rounded-2xl p-5 mb-5 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#F2F2F2]/60 text-sm">Ganhos da semana</span>
+                    <span className="text-[#F2F2F2] font-semibold">R$ {earningsData.total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#F2F2F2]/60 text-sm">Taxa de comissão</span>
+                    <span className="text-[#F22998] font-semibold">5%</span>
+                  </div>
+                  <div className="border-t border-[#F2F2F2]/10 pt-4 flex justify-between items-center">
+                    <span className="text-[#F2F2F2]/80 text-sm font-medium">Valor a repassar</span>
+                    <span className="text-2xl font-bold text-[#F22998]">R$ {commissionValue.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#F2F2F2]/60 text-sm">Seu líquido</span>
+                    <span className="text-green-400 font-semibold">R$ {netValue.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <p className="text-[#F2F2F2]/50 text-xs text-center mb-6">
+                  Este valor corresponde à comissão semanal devida à Central Dellas.<br/>Confirme o repasse quando efetuado.
+                </p>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCommissionModal(false)}
+                    className="flex-1 border-[#F2F2F2]/20 text-[#F2F2F2]/60 hover:bg-[#F2F2F2]/5 rounded-2xl py-5"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => setCommissionConfirmed(true)}
+                    className="flex-1 bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white rounded-2xl py-5 font-semibold"
+                  >
+                    Confirmar Repasse
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', damping: 15 }}
+                  className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-5"
+                >
+                  <CheckCircle className="w-10 h-10 text-green-400" />
+                </motion.div>
+                <h3 className="text-xl font-bold text-[#F2F2F2] mb-2">Repasse Confirmado!</h3>
+                <p className="text-[#F2F2F2]/50 text-sm mb-2">
+                  Comissão de <span className="text-[#F22998] font-semibold">R$ {commissionValue.toFixed(2)}</span> registrada com sucesso.
+                </p>
+                <p className="text-[#F2F2F2]/40 text-xs mb-8">Próximo repasse em 7 dias.</p>
+                <Button
+                  onClick={() => setShowCommissionModal(false)}
+                  className="w-full bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white rounded-2xl py-5 font-semibold"
+                >
+                  Fechar
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
