@@ -52,7 +52,8 @@ export default function DriverDashboard() {
         const existingPresence = await base44.entities.DriverPresence.filter({ driver_id: userData.id });
         if (existingPresence.length > 0) {
           setPresenceRecord(existingPresence[0]);
-          setIsOnline(existingPresence[0].is_online);
+          presenceRecordRef.current = existingPresence[0];
+          // Não restaura isOnline=true do banco — motorista sempre começa offline ao entrar
         }
 
         // Buscar corridas reais de hoje
