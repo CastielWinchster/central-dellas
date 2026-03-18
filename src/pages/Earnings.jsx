@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DollarSign, TrendingUp, Calendar, Car, 
   ChevronDown, Download, ArrowUpRight, ArrowDownRight,
-  Wallet, CreditCard, Clock
+  Wallet, CreditCard, Clock, Percent, X, CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
