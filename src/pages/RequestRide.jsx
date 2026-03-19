@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   MapPin, Navigation, Search, Clock, CreditCard, 
-  Car, Shield, Users, ChevronRight, Loader2, Star,
-  Wallet, X, Check, Phone, Dog, Crosshair
+  Car, Shield, ChevronRight, Loader2, Star,
+  Wallet, X, Check, Phone, Dog, Crosshair, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
