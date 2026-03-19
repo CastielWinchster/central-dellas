@@ -941,7 +941,7 @@ export default function RequestRide() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="text-[#F2F2F2]/60 text-sm">Valor estimado</p>
-                        <p className="text-3xl font-bold text-[#F2F2F2]">R$ {estimatedPrice},00</p>
+                        <p className="text-3xl font-bold text-[#F2F2F2]">R$ {String(estimatedPrice).replace('.', ',')}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[#F2F2F2]/60 text-sm">Tempo estimado</p>
