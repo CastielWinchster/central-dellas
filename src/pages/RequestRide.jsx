@@ -649,7 +649,7 @@ export default function RequestRide() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="top-10 left-2 right-2 z-10"
+                className="top-8 left-2 right-2 z-10"
               >
                 <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg flex items-center justify-between px-3 py-2">
                   <div className="flex items-center gap-1.5">
