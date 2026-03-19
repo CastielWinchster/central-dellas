@@ -387,6 +387,17 @@ export default function RequestRide() {
 
 
 
+  // Ícone de moto customizado
+  const MotoIcon = ({ className }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="5.5" cy="17.5" r="3.5"/>
+      <circle cx="18.5" cy="17.5" r="3.5"/>
+      <path d="M15 6h-4l-3 7h10l-1-4"/>
+      <path d="M15 6l2 4"/>
+      <path d="M9 13l-2-4"/>
+    </svg>
+  );
+
   // Calcular distância e preço da rota
   const calculateRouteAndPrice = async (origin, destination) => {
     try {
@@ -396,35 +407,26 @@ export default function RequestRide() {
       const data = await response.json();
       
       if (data.routes && data.routes[0]) {
-        const distanceKm = (data.routes[0].distance / 1000).toFixed(1);
+        const distanceKm = parseFloat((data.routes[0].distance / 1000).toFixed(1));
         const durationMin = Math.ceil(data.routes[0].duration / 60);
         
         setRouteDistance(distanceKm);
         setRouteDuration(durationMin);
         
-        // Atualizar preços dos tipos de corrida dinamicamente
+        // Preços: standard R$9,99 + R$4,50/km | rotta_roza R$6,99 + R$2,50/km
         setRideTypes(prevTypes => 
           prevTypes.map(type => {
-            let basePrice = 5;
-            let pricePerKm = 2.5;
-            
-            if (type.id === 'shared') {
-              basePrice = 3;
-              pricePerKm = 1.8;
-            } else if (type.id === 'premium') {
-              basePrice = 10;
-              pricePerKm = 3.5;
-            }
-            
-            const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
+            const basePrice = type.id === 'standard' ? 9.99 : 6.99;
+            const pricePerKm = type.id === 'standard' ? 4.50 : 2.50;
+            const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
             return { ...type, price: calculatedPrice, time: `${durationMin} min` };
           })
         );
         
         // Atualizar preço estimado do tipo selecionado
-        const basePrice = selectedRideType === 'shared' ? 3 : selectedRideType === 'premium' ? 10 : 5;
-        const pricePerKm = selectedRideType === 'shared' ? 1.8 : selectedRideType === 'premium' ? 3.5 : 2.5;
-        const calculatedPrice = Math.ceil(basePrice + (distanceKm * pricePerKm));
+        const basePrice = selectedRideType === 'standard' ? 9.99 : 6.99;
+        const pricePerKm = selectedRideType === 'standard' ? 4.50 : 2.50;
+        const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
         
         setEstimatedPrice(calculatedPrice);
         setEstimatedTime(`${durationMin} min`);
@@ -435,9 +437,8 @@ export default function RequestRide() {
   };
 
   const [rideTypes, setRideTypes] = useState([
-    { id: 'standard', name: 'Della Standard', icon: Car, price: 15, time: '5 min', description: 'Econômico e confortável' },
-    { id: 'shared', name: 'Carona Segura', icon: Users, price: 10, time: '8 min', description: 'Compartilhe com outras' },
-    { id: 'premium', name: 'Della Premium', icon: Star, price: 25, time: '3 min', description: 'Carros top e prioridade' },
+    { id: 'standard', name: 'Della Standard', iconType: 'car', price: '9.99', time: '5 min', description: 'Econômico e confortável', badge: null },
+    { id: 'rotta_roza', name: 'Rotta Roza', iconType: 'moto', price: '6.99', time: '3 min', description: 'Moto rápida e econômica', badge: '⚡ Mais Rápido' },
   ]);
 
   const paymentMethods = [
