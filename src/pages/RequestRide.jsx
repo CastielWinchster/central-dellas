@@ -757,10 +757,28 @@ export default function RequestRide() {
                       />
                     </div>
 
+                    {/* Botão Della Entrega */}
+                    <motion.button
+                      onClick={() => navigate('/RequestDelivery')}
+                      animate={{ boxShadow: ['0 0 0px rgba(242,41,152,0.2)', '0 0 18px rgba(242,41,152,0.5)', '0 0 0px rgba(242,41,152,0.2)'] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-full mt-5 flex items-center justify-between px-5 py-4 rounded-xl border border-[#F22998] hover:brightness-110 hover:shadow-[0_0_24px_rgba(242,41,152,0.4)] transition-all"
+                      style={{ background: 'linear-gradient(135deg, #8C0D60 0%, #BF3B79 100%)' }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">📦</span>
+                        <div className="text-left">
+                          <p className="font-semibold text-white text-sm">Gostaria de solicitar uma entrega?</p>
+                          <p className="text-white/60 text-xs">Clique aqui!</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-white/80 flex-shrink-0" />
+                    </motion.button>
+
                     <Button 
                       onClick={handleSearch}
                       disabled={!pickupLocation?.lat || !destinationLocation?.lat || loadingPickup}
-                      className="w-full mt-6 btn-gradient py-6 rounded-2xl text-lg font-semibold disabled:opacity-50"
+                      className="w-full mt-4 btn-gradient py-6 rounded-2xl text-lg font-semibold disabled:opacity-50"
                     >
                       {loadingPickup ? (
                         <>
