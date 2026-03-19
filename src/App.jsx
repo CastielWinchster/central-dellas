@@ -59,6 +59,11 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/RequestDelivery" element={
+        <LayoutWrapper currentPageName="RequestDelivery">
+          <RequestDelivery />
+        </LayoutWrapper>
+      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
