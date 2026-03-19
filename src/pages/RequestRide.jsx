@@ -649,30 +649,30 @@ export default function RequestRide() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-4 left-4 right-4 z-10"
+                className="absolute top-3 left-3 right-3 z-10"
               >
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#F22998] flex-shrink-0" />
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg flex items-center justify-between px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3 text-[#F22998] flex-shrink-0" />
                     <div>
-                      <p className="text-[10px] text-gray-500">Distância</p>
-                      <p className="font-bold text-gray-900 text-sm">{routeDistance} km</p>
+                      <p className="text-[9px] text-gray-400 leading-none">Distância</p>
+                      <p className="font-bold text-gray-900 text-xs leading-tight">{routeDistance} km</p>
                     </div>
                   </div>
-                  <div className="w-px h-7 bg-gray-200" />
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#F22998] flex-shrink-0" />
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-[#F22998] flex-shrink-0" />
                     <div>
-                      <p className="text-[10px] text-gray-500">Tempo</p>
-                      <p className="font-bold text-gray-900 text-sm">{routeDuration} min</p>
+                      <p className="text-[9px] text-gray-400 leading-none">Tempo</p>
+                      <p className="font-bold text-gray-900 text-xs leading-tight">{routeDuration} min</p>
                     </div>
                   </div>
-                  <div className="w-px h-7 bg-gray-200" />
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-[#F22998] flex-shrink-0" />
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="w-3 h-3 text-[#F22998] flex-shrink-0" />
                     <div>
-                      <p className="text-[10px] text-gray-500">Preço</p>
-                      <p className="font-bold text-[#F22998] text-sm">R$ {String(estimatedPrice).replace('.', ',')}</p>
+                      <p className="text-[9px] text-gray-400 leading-none">Preço</p>
+                      <p className="font-bold text-[#F22998] text-xs leading-tight">R$ {String(estimatedPrice).replace('.', ',')}</p>
                     </div>
                   </div>
                 </div>
