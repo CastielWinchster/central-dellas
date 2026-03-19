@@ -23,6 +23,7 @@ import {
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 
 export default function RequestRide() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [step, setStep] = useState('address');
   const [pickup, setPickup] = useState('');
