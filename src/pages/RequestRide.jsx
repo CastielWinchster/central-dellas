@@ -886,7 +886,7 @@ export default function RequestRide() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-[#F22998]">R$ {type.price}</p>
+                            <p className="font-bold text-[#F22998]">R$ {String(type.price).replace('.', ',')}</p>
                             <p className="text-sm text-[#F2F2F2]/50">{type.time}</p>
                           </div>
                         </motion.button>
