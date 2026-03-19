@@ -866,15 +866,26 @@ export default function RequestRide() {
                                 ? 'bg-gradient-to-br from-[#BF3B79] to-[#F22998]'
                                 : 'bg-[#F22998]/20'
                             }`}>
-                              <type.icon className={`w-6 h-6 ${selectedRideType === type.id ? 'text-white' : 'text-[#F22998]'}`} />
+                              {type.iconType === 'moto' ? (
+                                <MotoIcon className={`w-6 h-6 ${selectedRideType === type.id ? 'text-white' : 'text-[#F22998]'}`} />
+                              ) : (
+                                <Car className={`w-6 h-6 ${selectedRideType === type.id ? 'text-white' : 'text-[#F22998]'}`} />
+                              )}
                             </div>
                             <div className="text-left">
-                              <p className="font-semibold text-[#F2F2F2]">{type.name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-[#F2F2F2]">{type.name}</p>
+                                {type.badge && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: '#F59E0B22', color: '#F59E0B' }}>
+                                    {type.badge}
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-sm text-[#F2F2F2]/50">{type.description}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-[#F22998]">R$ {type.price},00</p>
+                            <p className="font-bold text-[#F22998]">R$ {type.price}</p>
                             <p className="text-sm text-[#F2F2F2]/50">{type.time}</p>
                           </div>
                         </motion.button>
