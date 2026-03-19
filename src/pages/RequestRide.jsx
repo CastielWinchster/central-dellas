@@ -645,31 +645,34 @@ export default function RequestRide() {
             {/* Card flutuante com informações da rota */}
             {routeDistance && routeDuration && step === 'options' && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-6 z-10"
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-10"
+                style={{ whiteSpace: 'nowrap' }}
               >
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-[#F22998]" />
-                  <div>
-                    <p className="text-xs text-gray-500">Distância</p>
-                    <p className="font-bold text-gray-900">{routeDistance} km</p>
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center gap-4 px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#F22998]" />
+                    <div>
+                      <p className="text-[10px] text-gray-500">Distância</p>
+                      <p className="font-bold text-gray-900 text-sm">{routeDistance} km</p>
+                    </div>
                   </div>
-                </div>
-                <div className="w-px h-8 bg-gray-200" />
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-[#F22998]" />
-                  <div>
-                    <p className="text-xs text-gray-500">Tempo</p>
-                    <p className="font-bold text-gray-900">{routeDuration} min</p>
+                  <div className="w-px h-7 bg-gray-200" />
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#F22998]" />
+                    <div>
+                      <p className="text-[10px] text-gray-500">Tempo</p>
+                      <p className="font-bold text-gray-900 text-sm">{routeDuration} min</p>
+                    </div>
                   </div>
-                </div>
-                <div className="w-px h-8 bg-gray-200" />
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-[#F22998]" />
-                  <div>
-                    <p className="text-xs text-gray-500">Estimado</p>
-                    <p className="font-bold text-[#F22998]">R$ {estimatedPrice}</p>
+                  <div className="w-px h-7 bg-gray-200" />
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#F22998]" />
+                    <div>
+                      <p className="text-[10px] text-gray-500">Preço Final</p>
+                      <p className="font-bold text-[#F22998] text-sm">R$ {estimatedPrice}</p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
