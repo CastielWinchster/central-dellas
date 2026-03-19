@@ -516,7 +516,7 @@ export default function RequestRide() {
         dropoffLng: destinationLocation.lng,
         dropoffText: destination,
         estimatedPrice,
-        estimatedDuration: parseInt(estimatedTime),
+        estimatedDuration: parseInt(routeDuration),
         rideType: selectedRideType,
         hasPet: acceptsPets
       });
