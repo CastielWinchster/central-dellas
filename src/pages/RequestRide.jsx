@@ -33,6 +33,8 @@ export default function RequestRide() {
   const [pickupMarkerDraggable, setPickupMarkerDraggable] = useState(false);
   const [destinationMarkerDraggable, setDestinationMarkerDraggable] = useState(false);
   const [selectedRideType, setSelectedRideType] = useState('standard');
+  // Preços base por tipo
+  const RIDE_PRICES = { standard: { base: 9.99, perKm: 4.50 }, rotta_roza: { base: 6.99, perKm: 2.50 } };
   const [selectedPayment, setSelectedPayment] = useState('pix');
   const [acceptsPets, setAcceptsPets] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
