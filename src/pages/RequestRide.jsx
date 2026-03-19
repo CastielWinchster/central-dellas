@@ -649,12 +649,11 @@ export default function RequestRide() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-10"
-                style={{ whiteSpace: 'nowrap' }}
+                className="absolute top-4 left-4 right-4 z-10"
               >
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center gap-4 px-5 py-3">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#F22998]" />
+                    <MapPin className="w-4 h-4 text-[#F22998] flex-shrink-0" />
                     <div>
                       <p className="text-[10px] text-gray-500">Distância</p>
                       <p className="font-bold text-gray-900 text-sm">{routeDistance} km</p>
@@ -662,7 +661,7 @@ export default function RequestRide() {
                   </div>
                   <div className="w-px h-7 bg-gray-200" />
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#F22998]" />
+                    <Clock className="w-4 h-4 text-[#F22998] flex-shrink-0" />
                     <div>
                       <p className="text-[10px] text-gray-500">Tempo</p>
                       <p className="font-bold text-gray-900 text-sm">{routeDuration} min</p>
@@ -670,10 +669,10 @@ export default function RequestRide() {
                   </div>
                   <div className="w-px h-7 bg-gray-200" />
                   <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-[#F22998]" />
+                    <CreditCard className="w-4 h-4 text-[#F22998] flex-shrink-0" />
                     <div>
-                      <p className="text-[10px] text-gray-500">Preço Final</p>
-                      <p className="font-bold text-[#F22998] text-sm">R$ {estimatedPrice}</p>
+                      <p className="text-[10px] text-gray-500">Preço</p>
+                      <p className="font-bold text-[#F22998] text-sm">R$ {String(estimatedPrice).replace('.', ',')}</p>
                     </div>
                   </div>
                 </div>
