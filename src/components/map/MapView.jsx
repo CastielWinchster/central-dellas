@@ -107,18 +107,53 @@ const DestinationMarker = () => (
   </div>
 );
 
-const CarMarker = ({ tags = [], heading = 0 }) => {
+const CarMarker3D = ({ tags = [], heading = 0 }) => {
   let color = '#F22998';
-  if (tags.includes('aceita_pet')) color = '#a855f7';
-  else if (tags.includes('frete')) color = '#3b82f6';
+  let glow = '242,41,152';
+  if (tags.includes('aceita_pet')) { color = '#a855f7'; glow = '168,85,247'; }
+  else if (tags.includes('frete')) { color = '#3b82f6'; glow = '59,130,246'; }
+
   return (
     <div style={{
-      background: color, borderRadius: '50%', padding: 8,
-      boxShadow: `0 0 20px ${color}99`,
       transform: `translate(-50%,-50%) rotate(${heading}deg)`,
-      transition: 'transform 0.8s ease-out'
+      transition: 'transform 0.8s ease-out',
+      filter: `drop-shadow(0 0 8px rgba(${glow},0.9))`,
     }}>
-      <Car className="w-5 h-5 text-white" />
+      <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id={`car-top-${glow}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.35"/>
+            <stop offset="100%" stopColor={color} stopOpacity="0"/>
+          </linearGradient>
+          <linearGradient id={`car-body-${glow}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color}/>
+            <stop offset="100%" stopColor={color} stopOpacity="0.7"/>
+          </linearGradient>
+          <filter id={`car-shadow-${glow}`} x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor={color} floodOpacity="0.5"/>
+          </filter>
+        </defs>
+        {/* Sombra no chão */}
+        <ellipse cx="24" cy="43" rx="10" ry="3" fill={color} opacity="0.3"/>
+        {/* Corpo do carro */}
+        <rect x="8" y="22" width="32" height="14" rx="4" fill={`url(#car-body-${glow})`} filter={`url(#car-shadow-${glow})`}/>
+        {/* Teto / cabine */}
+        <rect x="13" y="14" width="22" height="12" rx="5" fill={color}/>
+        {/* Reflexo no teto */}
+        <rect x="13" y="14" width="22" height="12" rx="5" fill={`url(#car-top-${glow})`}/>
+        {/* Para-brisa */}
+        <rect x="14" y="15" width="20" height="8" rx="3" fill="#b3eaff" opacity="0.55"/>
+        {/* Rodas */}
+        <circle cx="14" cy="36" r="4.5" fill="#111" stroke="#444" strokeWidth="1"/>
+        <circle cx="14" cy="36" r="2" fill="#888"/>
+        <circle cx="34" cy="36" r="4.5" fill="#111" stroke="#444" strokeWidth="1"/>
+        <circle cx="34" cy="36" r="2" fill="#888"/>
+        {/* Faróis */}
+        <rect x="8" y="25" width="4" height="3" rx="1" fill="#fffde7" opacity="0.9"/>
+        <rect x="36" y="25" width="4" height="3" rx="1" fill="#ffcdd2" opacity="0.8"/>
+        {/* Linha lateral brilho 3D */}
+        <rect x="8" y="22" width="32" height="3" rx="2" fill="#fff" opacity="0.18"/>
+      </svg>
     </div>
   );
 };
