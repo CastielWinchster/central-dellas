@@ -64,14 +64,11 @@ Deno.serve(async (req) => {
     });
     
     if (onlineDrivers.length === 0) {
-      await base44.asServiceRole.entities.Ride.update(ride.id, {
-        status: 'expired'
-      });
+      // Sem motoristas online: mantém corrida como 'requested' para aparecer na lista
       return Response.json({ 
-        error: 'Nenhuma motorista disponível no momento',
-        noDrivers: true,
-        rideId: ride.id
-      }, { status: 404 });
+        success: true,
+        ride: { id: ride.id, status: 'requested', offers_count: 0 }
+      });
     }
     
     // Calcular distâncias e filtrar por raio
