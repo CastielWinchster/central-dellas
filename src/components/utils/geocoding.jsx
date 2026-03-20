@@ -2,6 +2,7 @@
 
 import { MAPBOX_CONFIG } from './mapboxConfig';
 import { searchLocalPOIs } from './orlandiaPOIs';
+import { searchStreets, searchNeighbourhoods } from './orlandiaStreets';
 
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
