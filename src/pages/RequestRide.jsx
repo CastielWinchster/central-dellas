@@ -583,14 +583,17 @@ export default function RequestRide() {
       }
     }, 2000);
     
-    // Timeout de 20 segundos
+    // Timeout de 5 minutos
     setTimeout(() => {
       clearInterval(pollInterval);
-      if (step === 'searching') {
-        toast.error('Nenhuma motorista aceitou sua corrida');
-        setStep('options');
-      }
-    }, 20000);
+      setStep(prev => {
+        if (prev === 'searching') {
+          toast.error('Nenhuma motorista disponível no momento. Tente novamente.');
+          return 'options';
+        }
+        return prev;
+      });
+    }, 300000);
   };
 
   const simulatedDriver = {
