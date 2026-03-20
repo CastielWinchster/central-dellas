@@ -240,15 +240,15 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-4">
-            {user && (
-              <Link
-                to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 transition-all"
-              >
-                {isDriverPage ? <MapPin className="w-4 h-4" /> : <Car className="w-4 h-4" />}
-                <span className="text-sm">{isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}</span>
-              </Link>
-            )}
+            {user && (user.role === 'driver' || user.role === 'admin') && (
+                <Link
+                  to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
+                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 transition-all"
+                >
+                  {isDriverPage ? <MapPin className="w-4 h-4" /> : <Car className="w-4 h-4" />}
+                  <span className="text-sm">{isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}</span>
+                </Link>
+              )}
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
