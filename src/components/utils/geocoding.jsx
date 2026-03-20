@@ -192,8 +192,8 @@ export async function searchPlaces(text, userLocation, signal) {
   console.log(`[searchPlaces] query="${fullQuery}" | number="${houseNumber}" | userLoc=${userLat},${userLon}`);
 
   try {
-    // Busca local offline (POIs de Orlândia) — tem prioridade máxima
-    const localResults = searchLocalPOIs(text).map(poi => ({
+    // 1) POIs offline (estabelecimentos conhecidos)
+    const poiResults = searchLocalPOIs(text).map(poi => ({
       id: poi.id,
       lat: poi.lat,
       lon: poi.lon,
@@ -211,6 +211,48 @@ export async function searchPlaces(text, userLocation, signal) {
       isLocalPOI: true,
       userProvidedNumber: null,
     }));
+
+    // 2) Ruas e endereços numerados (interpolação local)
+    const streetResults = searchStreets(text).map(r => ({
+      id: r.id,
+      lat: r.lat,
+      lon: r.lon,
+      name: r.name,
+      street: r.street,
+      housenumber: r.housenumber,
+      city: 'Orlândia',
+      state: 'SP',
+      category: r.category,
+      distance: 0,
+      priority: r.housenumber ? 0 : 1,
+      isFaraway: false,
+      icon: r.icon,
+      categoryLabel: r.categoryLabel,
+      isLocalPOI: true,
+      userProvidedNumber: r.housenumber || null,
+    }));
+
+    // 3) Bairros
+    const neighbourhoodResults = searchNeighbourhoods(text).map(r => ({
+      id: r.id,
+      lat: r.lat,
+      lon: r.lon,
+      name: r.name,
+      street: '',
+      housenumber: '',
+      city: 'Orlândia',
+      state: 'SP',
+      category: r.category,
+      distance: 0,
+      priority: 2,
+      isFaraway: false,
+      icon: r.icon,
+      categoryLabel: r.categoryLabel,
+      isLocalPOI: true,
+      userProvidedNumber: null,
+    }));
+
+    const localResults = [...poiResults, ...streetResults, ...neighbourhoodResults];
 
     const remoteResults = await searchMapbox(fullQuery, userLat, userLon, signal);
 
