@@ -210,6 +210,37 @@ export default function MapView({
   const dashAnimRef = useRef(null);
   const driverAnimationsRef = useRef({});
 
+  // Polling de motoristas em tempo real
+  useEffect(() => {
+    if (!showRealTimeDrivers) return;
+
+    const fetchDrivers = async () => {
+      try {
+        const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+        const online = await base44.entities.DriverPresence.filter({
+          is_online: true,
+          last_seen_at: { $gte: thirtySecondsAgo }
+        });
+        const mapped = online
+          .filter(d => d.lat && d.lng)
+          .map(d => ({
+            id: d.driver_id,
+            lat: d.lat,
+            lng: d.lng,
+            tags: d.tags || [],
+            heading: d.heading || 0,
+          }));
+        setRealTimeDrivers(filterPets ? mapped.filter(d => d.tags.includes('aceita_pet')) : mapped);
+      } catch (e) {
+        console.error('[MapView] Erro ao buscar motoristas:', e);
+      }
+    };
+
+    fetchDrivers();
+    realTimeIntervalRef.current = setInterval(fetchDrivers, 4000);
+    return () => clearInterval(realTimeIntervalRef.current);
+  }, [showRealTimeDrivers, filterPets]);
+
   // Track user location
   useEffect(() => {
     if (!navigator.geolocation) return;
