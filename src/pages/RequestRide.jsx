@@ -526,10 +526,9 @@ export default function RequestRide() {
       
       if (response.data.success) {
         setCurrentRide(response.data.ride);
-        // Polling para verificar se foi aceita
         startRidePolling(response.data.ride.id);
-      } else if (response.data.noDrivers) {
-        toast.error(response.data.error);
+      } else {
+        toast.error(response.data.error || 'Erro ao buscar motoristas');
         setStep('options');
       }
     } catch (error) {
