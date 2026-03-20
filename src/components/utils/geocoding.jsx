@@ -7,6 +7,14 @@ import { searchStreets, searchNeighbourhoods } from './orlandiaStreets';
 const cache = new Map();
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
 
+function normalize(text) {
+  return (text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
 // Token lido dinamicamente
 function getToken() {
   return MAPBOX_CONFIG.ACCESS_TOKEN;
