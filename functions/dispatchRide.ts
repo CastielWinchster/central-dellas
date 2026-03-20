@@ -39,8 +39,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
     
-    // Criar corrida
-    const ride = await base44.entities.Ride.create({
+    // Criar corrida (usando serviceRole para contornar RLS na função backend)
+    const ride = await base44.asServiceRole.entities.Ride.create({
       passenger_id: user.id,
       pickup_lat: pickupLat,
       pickup_lng: pickupLng,
