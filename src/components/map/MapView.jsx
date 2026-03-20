@@ -601,12 +601,40 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* Motoristas */}
+        {/* Motoristas passados como prop */}
         {driversWithHeading.map((driver) => (
           <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat} anchor="center">
             <CarMarker3D tags={driver.tags || []} heading={driver.heading || 0} />
           </Marker>
         ))}
+
+        {/* Motoristas em tempo real do banco */}
+        {realTimeDrivers.map((driver) => (
+          <Marker key={`rt-${driver.id}`} longitude={driver.lng} latitude={driver.lat} anchor="center">
+            <CarMarker3D tags={driver.tags || []} heading={driver.heading || 0} />
+          </Marker>
+        ))}
+
+        {/* Marcador do passageiro (visível para o motorista) */}
+        {passengerMarker && (
+          <Marker longitude={passengerMarker.lng} latitude={passengerMarker.lat} anchor="bottom">
+            <div style={{ transform: 'translate(-50%, -100%)' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+                borderRadius: '50% 50% 50% 0',
+                padding: 10,
+                border: '2.5px solid white',
+                transform: 'rotate(-45deg)',
+                width: 42, height: 42,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 0 14px rgba(251,191,36,0.7)'
+              }}>
+                <MapPin className="w-5 h-5 text-white" style={{ transform: 'rotate(45deg)' }} />
+              </div>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', margin: '2px auto 0', opacity: 0.7 }} />
+            </div>
+          </Marker>
+        )}
       </Map>
     </div>
   );
