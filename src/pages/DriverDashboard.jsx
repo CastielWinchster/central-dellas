@@ -565,6 +565,7 @@ export default function DriverDashboard() {
               <AvailableRidesList
                 onRideSelect={setSelectedRide}
                 selectedRideId={selectedRide?.id}
+                driverLocation={currentLocation}
               />
             </Card>
           </motion.div>
