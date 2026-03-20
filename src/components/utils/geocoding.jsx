@@ -295,9 +295,9 @@ export async function searchPlaces(text, userLocation, signal) {
       isLocalPOI: false,
     }));
 
-    // POIs locais primeiro, depois resultados remotos (sem duplicatas por nome)
-    const localNames = new Set(localResults.map(r => r.name.toLowerCase()));
-    const remoteDeduplicated = remoteFormatted.filter(r => !localNames.has(r.name.toLowerCase()));
+    // POIs locais primeiro, depois resultados remotos (sem duplicatas)
+    const localKeys = new Set(localResults.map(r => normalize(r.name)));
+    const remoteDeduplicated = remoteFormatted.filter(r => !localKeys.has(normalize(r.name)));
 
     console.log(`[searchPlaces] ${localResults.length} locais offline + ${remoteDeduplicated.length} remotos`);
 
