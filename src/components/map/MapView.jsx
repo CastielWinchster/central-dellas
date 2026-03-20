@@ -199,6 +199,8 @@ export default function MapView({
   const [routeAnimOffset, setRouteAnimOffset] = useState(0);
   const [followMode, setFollowMode] = useState(true);
   const [driversWithHeading, setDriversWithHeading] = useState([]);
+  const [realTimeDrivers, setRealTimeDrivers] = useState([]);
+  const realTimeIntervalRef = useRef(null);
 
   const mapRef = useRef();
   const watchIdRef = useRef(null);
