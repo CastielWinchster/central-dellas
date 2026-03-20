@@ -171,7 +171,10 @@ export default function MapView({
   destinationDraggable = false,
   onMapClick = null,
   onDestinationSelected = null,
-  forcePitch = undefined
+  forcePitch = undefined,
+  showRealTimeDrivers = false,
+  filterPets = false,
+  passengerMarker = null,
 }) {
   const [tokenLoaded, setTokenLoaded] = useState(!!MAPBOX_CONFIG.ACCESS_TOKEN);
 
