@@ -568,7 +568,7 @@ export default function MapView({
         {/* Motoristas */}
         {driversWithHeading.map((driver) => (
           <Marker key={driver.id} longitude={driver.lng} latitude={driver.lat} anchor="center">
-            <CarMarker tags={driver.tags || []} heading={driver.heading || 0} />
+            <CarMarker3D tags={driver.tags || []} heading={driver.heading || 0} />
           </Marker>
         ))}
       </Map>
