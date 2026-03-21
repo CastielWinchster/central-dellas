@@ -50,12 +50,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
 
-    // Criar corrida usando o token do usuário autenticado
-    // RLS permite create para qualquer usuário autenticado (is_authenticated: true)
+    // Criar corrida via asServiceRole (RLS create = null, sem restrição)
     console.log('[dispatchRide] Criando corrida para passenger_id:', user.id);
     let ride;
     try {
-      ride = await base44.entities.Ride.create({
+      ride = await base44.asServiceRole.entities.Ride.create({
         passenger_id: user.id,
         pickup_lat: pickupLat,
         pickup_lng: pickupLng,
@@ -71,7 +70,7 @@ Deno.serve(async (req) => {
         has_pet: hasPet || false
       });
     } catch (e) {
-      console.error('[dispatchRide] Erro ao criar Ride:', e.message, '| status:', e.status);
+      console.error('[dispatchRide] Erro ao criar Ride:', e.message);
       return Response.json({ error: 'Falha ao criar corrida: ' + e.message }, { status: 500 });
     }
 
