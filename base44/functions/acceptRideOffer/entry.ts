@@ -1,41 +1,54 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    
-    if (!user) {
+
+    // Autenticar motorista
+    let driver;
+    try {
+      driver = await base44.auth.me();
+    } catch (e) {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
-    
+
+    if (!driver) {
+      return Response.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
+    console.log(`[acceptRideOffer] Motorista: ${driver.id} (${driver.email})`);
+
     const { rideId, offerId } = await req.json();
-    
+
     if (!rideId) {
       return Response.json({ error: 'rideId é obrigatório' }, { status: 400 });
     }
-    
+
+    // Buscar corrida via asServiceRole para contornar RLS
     const rides = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
     if (rides.length === 0) {
       return Response.json({ error: 'Corrida não encontrada' }, { status: 404 });
     }
-    
+
     const ride = rides[0];
-    
+    console.log(`[acceptRideOffer] Corrida encontrada: ${ride.id} | status: ${ride.status}`);
+
+    // Só aceitar se ainda estiver disponível
     if (ride.status !== 'requested' && ride.status !== 'assigned') {
-      return Response.json({ 
-        error: 'Corrida não disponível', 
-        reason: 'Já foi aceita ou cancelada' 
+      return Response.json({
+        error: 'Corrida não disponível',
+        reason: `Status atual: ${ride.status}`
       }, { status: 409 });
     }
-    
-    if (ride.assigned_driver_id && ride.assigned_driver_id !== user.id) {
+
+    // Evitar aceitar corrida já aceita por outra motorista
+    if (ride.assigned_driver_id && ride.assigned_driver_id !== driver.id) {
       return Response.json({ error: 'Corrida já aceita por outra motorista' }, { status: 409 });
     }
 
     const now = new Date();
 
-    // Se foi passado offerId, verificar e expirar a oferta
+    // Atualizar oferta se fornecida
     if (offerId) {
       const offers = await base44.asServiceRole.entities.RideOffer.filter({ id: offerId });
       if (offers.length > 0) {
@@ -48,7 +61,7 @@ Deno.serve(async (req) => {
           status: 'accepted',
           responded_at: now.toISOString()
         });
-        // Expirar outras ofertas
+        // Expirar as demais ofertas desta corrida
         const allOffers = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId });
         await Promise.all(
           allOffers
@@ -58,38 +71,49 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Aceitar corrida
+    // ✅ UPDATE PRINCIPAL: status = 'accepted' + assigned_driver_id = driver.id
+    console.log(`[acceptRideOffer] Atualizando corrida ${ride.id} → accepted, driver: ${driver.id}`);
     await base44.asServiceRole.entities.Ride.update(ride.id, {
       status: 'accepted',
-      assigned_driver_id: user.id
+      assigned_driver_id: driver.id
     });
+    console.log(`[acceptRideOffer] Corrida atualizada com sucesso`);
 
     // Notificar passageira
-    await base44.asServiceRole.entities.Notification.create({
-      user_id: ride.passenger_id,
-      title: 'Motorista encontrada!',
-      message: `${user.full_name} aceitou sua corrida`,
-      type: 'ride',
-      is_read: false,
-      is_persistent: true
-    });
+    try {
+      await base44.asServiceRole.entities.Notification.create({
+        user_id: ride.passenger_id,
+        title: 'Motorista encontrada! 🚗',
+        message: `${driver.full_name} aceitou sua corrida`,
+        type: 'ride',
+        is_read: false,
+        is_persistent: true
+      });
+    } catch (notifErr) {
+      console.warn('[acceptRideOffer] Falha ao criar notificação:', notifErr.message);
+    }
 
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       ride: {
         id: ride.id,
         status: 'accepted',
+        assigned_driver_id: driver.id,
         pickup_text: ride.pickup_text,
         dropoff_text: ride.dropoff_text,
+        pickup_lat: ride.pickup_lat,
+        pickup_lng: ride.pickup_lng,
+        dropoff_lat: ride.dropoff_lat,
+        dropoff_lng: ride.dropoff_lng,
         passenger_id: ride.passenger_id
       }
     });
-    
+
   } catch (error) {
-    console.error('Erro no acceptRideOffer:', error);
-    return Response.json({ 
-      error: 'Erro no servidor', 
-      details: error.message 
+    console.error('[acceptRideOffer] Erro geral:', error.message);
+    return Response.json({
+      error: 'Erro no servidor',
+      details: error.message
     }, { status: 500 });
   }
 });
