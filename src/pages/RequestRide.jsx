@@ -541,23 +541,52 @@ export default function RequestRide() {
   };
   
   const startRidePolling = (rideId) => {
+    console.log('[Polling] Iniciando polling para rideId:', rideId);
+    let consecutiveEmptyResults = 0;
+
     const pollInterval = setInterval(async () => {
       try {
+        console.log('[Polling] Consultando ride:', rideId);
         const rides = await base44.entities.Ride.filter({ id: rideId });
-        if (rides.length === 0) return;
-        
+        console.log('[Polling] Resultado:', rides.length, 'registros', rides[0] ? `| status: ${rides[0].status} | passenger_id: ${rides[0].passenger_id} | assigned_driver_id: ${rides[0].assigned_driver_id}` : '| VAZIO');
+
+        if (rides.length === 0) {
+          consecutiveEmptyResults++;
+          console.warn(`[Polling] Array vazio (tentativa ${consecutiveEmptyResults}) — possível problema de RLS ou id inválido`);
+          // Só aborta após 10 tentativas vazias seguidas (~20s)
+          if (consecutiveEmptyResults >= 10) {
+            clearInterval(pollInterval);
+            toast.error('Não foi possível acompanhar sua corrida. Tente novamente.');
+            setStep('options');
+          }
+          return;
+        }
+
+        consecutiveEmptyResults = 0;
         const ride = rides[0];
-        
+
         if (ride.status === 'accepted') {
+          console.log('[Polling] Corrida aceita! assigned_driver_id:', ride.assigned_driver_id);
           clearInterval(pollInterval);
-          // Buscar dados da motorista
-          const driverData = await base44.entities.User.filter({ id: ride.assigned_driver_id });
-          const vehicles = await base44.entities.Vehicle.filter({ driver_id: ride.assigned_driver_id });
-          
-          if (driverData.length > 0) {
+
+          if (!ride.assigned_driver_id) {
+            console.error('[Polling] assigned_driver_id está vazio mesmo com status accepted!');
+            toast.error('Erro ao identificar a motorista. Tente novamente.');
+            setStep('options');
+            return;
+          }
+
+          try {
+            const [driverData, vehicles] = await Promise.all([
+              base44.entities.User.filter({ id: ride.assigned_driver_id }),
+              base44.entities.Vehicle.filter({ driver_id: ride.assigned_driver_id })
+            ]);
+
+            console.log('[Polling] Dados da motorista:', driverData[0]?.full_name, '| Veículo:', vehicles[0]?.model);
+
             setDriver({
-              name: driverData[0].full_name,
-              photo: driverData[0].photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+              name: driverData[0]?.full_name || 'Motorista',
+              photo: driverData[0]?.photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
               rating: 4.9,
               totalRides: 234,
               vehicle: vehicles[0] ? {
@@ -572,22 +601,40 @@ export default function RequestRide() {
               eta: 4
             });
             setStep('driver_found');
+            console.log('[Polling] setStep("driver_found") chamado com sucesso!');
+          } catch (driverError) {
+            console.error('[Polling] Erro ao buscar dados da motorista:', driverError);
+            // Mesmo sem os dados da motorista, avança a tela
+            setDriver({
+              name: 'Motorista',
+              photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+              rating: 4.9,
+              totalRides: 0,
+              vehicle: { model: 'Veículo', color: 'N/A', plate: 'N/A' },
+              eta: 4
+            });
+            setStep('driver_found');
           }
+
         } else if (ride.status === 'expired' || ride.status === 'cancelled') {
+          console.log('[Polling] Corrida encerrada com status:', ride.status);
           clearInterval(pollInterval);
           toast.error('Nenhuma motorista aceitou sua corrida');
           setStep('options');
+        } else {
+          console.log('[Polling] Aguardando... status atual:', ride.status);
         }
       } catch (error) {
-        console.error('Erro no polling:', error);
+        console.error('[Polling] Erro na consulta:', error);
       }
     }, 2000);
-    
+
     // Timeout de 5 minutos
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       clearInterval(pollInterval);
       setStep(prev => {
         if (prev === 'searching') {
+          console.log('[Polling] Timeout de 5 minutos atingido');
           toast.error('Nenhuma motorista disponível no momento. Tente novamente.');
           return 'options';
         }
