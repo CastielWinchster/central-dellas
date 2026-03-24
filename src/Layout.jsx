@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import LoadingScreen from '@/components/LoadingScreen';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
@@ -106,28 +107,9 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [loading, user, currentPageName, navigate]);
 
-  // Loading screen elegante
+  // Loading screen animada com corrida
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] via-[#1a0a1a] to-[#0D0D0D] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="mb-4"
-          >
-            <Car className="w-16 h-16 text-[#F22998]" />
-          </motion.div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#BF3B79] to-[#F22998] bg-clip-text text-transparent">
-            Central Dellas
-          </h1>
-        </motion.div>
-      </div>
-    );
+    return <LoadingScreen isLoading={true} />;
   }
 
   const isDark = user?.theme !== 'light';
