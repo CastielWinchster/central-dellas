@@ -85,8 +85,19 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
         offerId: null
       });
       if (response.data?.success) {
+        const acceptedRide = response.data.ride;
         setRides(prev => prev.filter(r => r.id !== ride.id));
-        onRideSelect(null);
+        // Passar a corrida aceita com coordenadas para o mapa mostrar os pinos
+        onRideSelect({
+          id: acceptedRide.id,
+          pickup_lat: acceptedRide.pickup_lat,
+          pickup_lng: acceptedRide.pickup_lng,
+          dropoff_lat: acceptedRide.dropoff_lat,
+          dropoff_lng: acceptedRide.dropoff_lng,
+          pickup_text: acceptedRide.pickup_text,
+          dropoff_text: acceptedRide.dropoff_text,
+          passenger_id: acceptedRide.passenger_id
+        });
       }
     } catch (err) {
       console.error('Erro ao aceitar corrida:', err);
