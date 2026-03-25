@@ -582,36 +582,34 @@ export default function RequestRide() {
               base44.entities.Vehicle.filter({ driver_id: ride.assigned_driver_id })
             ]);
 
-            console.log('[Polling] Dados da motorista:', driverData[0]?.full_name, '| Veículo:', vehicles[0]?.model);
+            const driverUser = driverData[0] || null;
+            const vehicle = vehicles[0] || null;
+
+            console.log('[Polling] Dados da motorista:', driverUser?.full_name, '| Veículo:', vehicle?.model);
 
             setDriver({
-              name: driverData[0]?.full_name || 'Motorista',
-              photo: driverData[0]?.photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-              rating: 4.9,
-              totalRides: 234,
-              vehicle: vehicles[0] ? {
-                model: `${vehicles[0].brand} ${vehicles[0].model}`,
-                color: vehicles[0].color,
-                plate: vehicles[0].plate
-              } : {
-                model: 'Veículo',
-                color: 'N/A',
-                plate: 'N/A'
-              },
-              eta: 4
+              name: driverUser?.full_name || 'Motorista',
+              photo: driverUser?.photo_url || null,
+              rating: driverUser?.rating ?? null,
+              totalRides: driverUser?.total_rides ?? null,
+              vehicle: vehicle ? {
+                model: `${vehicle.brand} ${vehicle.model}`.trim(),
+                color: vehicle.color || null,
+                plate: vehicle.plate || null,
+              } : null,
+              eta: null,
             });
             setStep('driver_found');
-            console.log('[Polling] setStep("driver_found") chamado com sucesso!');
+            console.log('[Polling] Motorista real carregada com sucesso:', driverUser?.id);
           } catch (driverError) {
             console.error('[Polling] Erro ao buscar dados da motorista:', driverError);
-            // Mesmo sem os dados da motorista, avança a tela
             setDriver({
               name: 'Motorista',
-              photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-              rating: 4.9,
-              totalRides: 0,
-              vehicle: { model: 'Veículo', color: 'N/A', plate: 'N/A' },
-              eta: 4
+              photo: null,
+              rating: null,
+              totalRides: null,
+              vehicle: null,
+              eta: null,
             });
             setStep('driver_found');
           }
@@ -1052,47 +1050,75 @@ export default function RequestRide() {
                   className="space-y-4"
                 >
                   <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm">
-                        <Check className="w-4 h-4" />
-                        Motorista encontrada!
-                      </div>
-                      <p className="text-[#F22998] font-semibold">
-                        {driver.eta} min até você
-                      </p>
-                    </div>
+                   <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm">
+                       <Check className="w-4 h-4" />
+                       Motorista encontrada!
+                     </div>
+                     {driver.eta != null && (
+                       <p className="text-[#F22998] font-semibold">
+                         {driver.eta} min até você
+                       </p>
+                     )}
+                   </div>
 
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="relative">
-                        <img 
-                          src={driver.photo}
-                          alt={driver.name}
-                          className="w-20 h-20 rounded-full object-cover border-3 border-[#F22998]"
-                        />
-                        <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center text-white text-xs font-bold">
-                          {driver.rating}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-[#F2F2F2]">{driver.name}</h3>
-                        <div className="flex items-center gap-2 text-[#F2F2F2]/60">
-                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                          <span>{driver.rating} • {driver.totalRides} corridas</span>
-                        </div>
-                      </div>
-                    </div>
+                   <div className="flex items-center gap-4 mb-6">
+                     <div className="relative">
+                       {driver.photo ? (
+                         <img
+                           src={driver.photo}
+                           alt={driver.name}
+                           className="w-20 h-20 rounded-full object-cover border-2 border-[#F22998]"
+                         />
+                       ) : (
+                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center border-2 border-[#F22998]">
+                           <span className="text-white text-2xl font-bold">
+                             {driver.name?.charAt(0)?.toUpperCase() || 'M'}
+                           </span>
+                         </div>
+                       )}
+                       {driver.rating != null && (
+                         <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center text-white text-xs font-bold">
+                           {driver.rating.toFixed(1)}
+                         </div>
+                       )}
+                     </div>
+                     <div>
+                       <h3 className="text-xl font-bold text-[#F2F2F2]">{driver.name}</h3>
+                       {(driver.rating != null || driver.totalRides != null) && (
+                         <div className="flex items-center gap-2 text-[#F2F2F2]/60">
+                           {driver.rating != null && (
+                             <>
+                               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                               <span>{driver.rating.toFixed(1)}</span>
+                             </>
+                           )}
+                           {driver.rating != null && driver.totalRides != null && (
+                             <span>•</span>
+                           )}
+                           {driver.totalRides != null && (
+                             <span>{driver.totalRides} corridas</span>
+                           )}
+                         </div>
+                       )}
+                     </div>
+                   </div>
 
-                    <div className="p-4 rounded-2xl bg-[#0D0D0D] mb-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Car className="w-8 h-8 text-[#F22998]" />
-                          <div>
-                            <p className="font-medium text-[#F2F2F2]">{driver.vehicle.model}</p>
-                            <p className="text-sm text-[#F2F2F2]/50">{driver.vehicle.color} • {driver.vehicle.plate}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                   <div className="p-4 rounded-2xl bg-[#0D0D0D] mb-6">
+                     <div className="flex items-center gap-3">
+                       <Car className="w-8 h-8 text-[#F22998] flex-shrink-0" />
+                       {driver.vehicle ? (
+                         <div>
+                           <p className="font-medium text-[#F2F2F2]">{driver.vehicle.model}</p>
+                           <p className="text-sm text-[#F2F2F2]/50">
+                             {[driver.vehicle.color, driver.vehicle.plate].filter(Boolean).join(' • ')}
+                           </p>
+                         </div>
+                       ) : (
+                         <p className="text-sm text-[#F2F2F2]/50">Veículo não informado</p>
+                       )}
+                     </div>
+                   </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <Button 
