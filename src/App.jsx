@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import RequestDelivery from './pages/RequestDelivery';
+import DriverVehicle from './pages/DriverVehicle';
 import LoadingScreen from './components/LoadingScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -59,6 +60,11 @@ const AuthenticatedApp = () => {
       <Route path="/RequestDelivery" element={
         <LayoutWrapper currentPageName="RequestDelivery">
           <RequestDelivery />
+        </LayoutWrapper>
+      } />
+      <Route path="/DriverVehicle" element={
+        <LayoutWrapper currentPageName="DriverVehicle">
+          <DriverVehicle />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />

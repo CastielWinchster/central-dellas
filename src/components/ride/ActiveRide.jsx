@@ -11,25 +11,26 @@ import { base44 } from '@/api/base44Client';
 
 export default function ActiveRide({ ride, onComplete }) {
   const [driver, setDriver] = useState(null);
+  const [driverVehicle, setDriverVehicle] = useState(null);
   const [passenger, setPassenger] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
-    // Carregar dados da motorista e passageira
     const loadUsers = async () => {
       try {
-        if (ride.driver_id) {
-          const drivers = await base44.entities.User.filter({ id: ride.driver_id });
-          if (drivers.length > 0) {
-            setDriver(drivers[0]);
-          }
+        const driverId = ride.driver_id || ride.assigned_driver_id;
+        if (driverId) {
+          const [drivers, vehicles] = await Promise.all([
+            base44.entities.User.filter({ id: driverId }),
+            base44.entities.Vehicle.filter({ driver_id: driverId }),
+          ]);
+          if (drivers.length > 0) setDriver(drivers[0]);
+          if (vehicles.length > 0) setDriverVehicle(vehicles[0]);
         }
         
         if (ride.passenger_id) {
           const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
-          if (passengers.length > 0) {
-            setPassenger(passengers[0]);
-          }
+          if (passengers.length > 0) setPassenger(passengers[0]);
         }
       } catch (error) {
         console.error('Error loading users:', error);
@@ -84,13 +85,24 @@ export default function ActiveRide({ ride, onComplete }) {
             </div>
           )}
           
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className={`font-semibold ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
               {driver?.full_name || 'Motorista'}
             </h3>
             <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/60'}`}>
               {ride.status === 'arriving' ? 'A caminho' : 'Em andamento'}
             </p>
+            {driverVehicle && (
+              <div className="flex items-center gap-2 mt-1">
+                {driverVehicle.photo_url && (
+                  <img src={driverVehicle.photo_url} alt="Veículo" className="w-8 h-6 object-cover rounded border border-[#F22998]/30 flex-shrink-0" />
+                )}
+                <p className={`text-xs truncate ${isDark ? 'text-[#F22998]/80' : 'text-[#F22998]'}`}>
+                  Carro: {[driverVehicle.brand, driverVehicle.model, driverVehicle.color].filter(Boolean).join(' ')}
+                  {driverVehicle.plate && ` – Placa ${driverVehicle.plate}`}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2">
