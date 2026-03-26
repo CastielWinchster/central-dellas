@@ -29,29 +29,32 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
   const [filter, setFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pollingRef = useRef(null);
+  // Ref para sempre capturar o driverLocation mais recente dentro da closure do polling
+  const driverLocationRef = useRef(driverLocation);
+  useEffect(() => { driverLocationRef.current = driverLocation; }, [driverLocation]);
 
   const fetchRides = async () => {
+    const loc = driverLocationRef.current;
     try {
-      // Usa backend function para contornar RLS (motoristas não podem ler corridas de outras por RLS)
       const response = await base44.functions.invoke('getAvailableRides', {
-        driverLat: driverLocation?.lat ?? null,
-        driverLng: driverLocation?.lng ?? null,
+        driverLat: loc?.lat ?? null,
+        driverLng: loc?.lng ?? null,
         radiusKm: PROXIMITY_KM,
       });
 
-      const rides = response.data?.rides || [];
+      const fetched = response.data?.rides || [];
 
-      // Adicionar campos extras necessários
-      const enriched = rides.map(ride => ({
+      const enriched = fetched.map(ride => ({
         ...ride,
         passengerRating: 4.8,
-        distance: ride.distance ?? (driverLocation
-          ? haversine(driverLocation.lat, driverLocation.lng, ride.pickup_lat, ride.pickup_lng)
+        // distance já vem calculada pelo backend; fallback local apenas se nula
+        distance: ride.distance ?? (loc
+          ? haversine(loc.lat, loc.lng, ride.pickup_lat, ride.pickup_lng)
           : null),
       }));
 
       setRides(enriched);
-      console.log(`[AvailableRidesList] ${enriched.length} corridas encontradas`);
+      console.log(`[AvailableRidesList] ${enriched.length} corridas encontradas | GPS: ${loc?.lat ?? 'sem GPS'}`);
     } catch (e) {
       console.error('[AvailableRidesList] Erro ao buscar corridas:', e);
     }
@@ -61,7 +64,7 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
     fetchRides();
     pollingRef.current = setInterval(fetchRides, 5000);
     return () => clearInterval(pollingRef.current);
-  }, []); // Não depende de driverLocation para não reiniciar o polling a cada atualização de GPS
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

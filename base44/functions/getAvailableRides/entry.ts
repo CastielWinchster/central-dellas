@@ -13,7 +13,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Autenticar motorista
     let driver;
     try {
       driver = await base44.auth.me();
@@ -29,27 +28,43 @@ Deno.serve(async (req) => {
 
     const { driverLat, driverLng, radiusKm = 15 } = await req.json();
 
-    // Buscar corridas disponíveis (requested ou assigned sem driver) via asServiceRole
-    // para contornar o RLS que bloqueia motoristas de ver corridas de passageiras
-    const rides = await base44.asServiceRole.entities.Ride.filter({
-      status: 'requested'
-    });
+    // Buscar todas corridas abertas via asServiceRole (contorna RLS para motoristas com role=user)
+    // status 'requested': passageira solicitou, nenhum motorista foi acionado ainda
+    // status 'assigned': dispatchRide encontrou motoristas e criou ofertas (mas corrida ainda não foi aceita)
+    const allRidesRequested = await base44.asServiceRole.entities.Ride.filter({ status: 'requested' });
+    const allRidesAssigned = await base44.asServiceRole.entities.Ride.filter({ status: 'assigned', assigned_driver_id: null });
+    const allRides = [...allRidesRequested, ...allRidesAssigned];
 
-    console.log(`[getAvailableRides] Total corridas requested: ${rides.length}`);
+    console.log(`[getAvailableRides] Total corridas abertas: ${allRides.length} (requested: ${allRidesRequested.length}, assigned: ${allRidesAssigned.length})`);
 
-    // Filtrar por proximidade se localização disponível
-    let filtered = rides;
+    // Filtro de tempo no código: apenas corridas dos últimos 30 minutos
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const recentRides = allRides.filter(r => new Date(r.created_date) >= thirtyMinutesAgo);
+
+    console.log(`[getAvailableRides] Corridas recentes (últimos 30min): ${recentRides.length}`);
+
+    // Excluir corridas que já têm motorista designada
+    const openRides = recentRides.filter(r => !r.assigned_driver_id);
+
+    console.log(`[getAvailableRides] Corridas sem motorista: ${openRides.length}`);
+
+    // Filtrar por proximidade
+    let filtered = openRides;
     if (driverLat != null && driverLng != null) {
-      filtered = rides
+      filtered = openRides
         .map(r => ({
           ...r,
           distance: haversine(driverLat, driverLng, r.pickup_lat, r.pickup_lng)
         }))
         .filter(r => r.distance <= radiusKm)
         .sort((a, b) => a.distance - b.distance);
-    }
 
-    console.log(`[getAvailableRides] Corridas dentro de ${radiusKm}km: ${filtered.length}`);
+      console.log(`[getAvailableRides] Dentro de ${radiusKm}km: ${filtered.length}`);
+    } else {
+      // Sem localização: mostra todas as abertas (motorista ainda sem GPS)
+      filtered = openRides.map(r => ({ ...r, distance: null }));
+      console.log(`[getAvailableRides] Sem GPS da motorista, retornando todas: ${filtered.length}`);
+    }
 
     // Enriquecer com dados das passageiras
     const enriched = await Promise.all(filtered.map(async (ride) => {
