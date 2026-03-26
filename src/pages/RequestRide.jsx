@@ -495,9 +495,13 @@ export default function RequestRide() {
     try {
       // Calcular rota e preços
       await calculateRouteAndPrice(pickupLocation, destinationLocation);
+      // Garantir preço padrão se cálculo falhar
+      setEstimatedPrice(prev => prev ?? '9.99');
+      setEstimatedTime(prev => prev ?? '5 min');
       setStep('options');
     } catch (error) {
-      toast.error('Erro ao calcular rota');
+      console.error('Erro ao calcular rota:', error);
+      toast.error('Ocorreu um problema ao buscar motoristas. Tente novamente.');
     } finally {
       setLoadingPickup(false);
     }
@@ -719,7 +723,7 @@ export default function RequestRide() {
                     <CreditCard className="w-3 h-3 text-[#F22998] flex-shrink-0" />
                     <div>
                       <p className="text-[9px] text-gray-400 leading-none">Preço</p>
-                      <p className="font-bold text-[#F22998] text-xs leading-tight">R$ {String(estimatedPrice).replace('.', ',')}</p>
+                      <p className="font-bold text-[#F22998] text-xs leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
                     </div>
                   </div>
                 </div>
@@ -933,7 +937,7 @@ export default function RequestRide() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-[#F22998]">R$ {String(type.price).replace('.', ',')}</p>
+                            <p className="font-bold text-[#F22998]">R$ {String(type.price ?? '0.00').replace('.', ',')}</p>
                             <p className="text-sm text-[#F2F2F2]/50">{type.time}</p>
                           </div>
                         </motion.button>
@@ -988,7 +992,7 @@ export default function RequestRide() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="text-[#F2F2F2]/60 text-sm">Valor estimado</p>
-                        <p className="text-3xl font-bold text-[#F2F2F2]">R$ {String(estimatedPrice).replace('.', ',')}</p>
+                        <p className="text-3xl font-bold text-[#F2F2F2]">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[#F2F2F2]/60 text-sm">Tempo estimado</p>
@@ -1036,6 +1040,13 @@ export default function RequestRide() {
                       <Shield className="w-5 h-5 text-[#F22998]" />
                       <span className="text-sm text-[#F2F2F2]/60">Motoristas verificadas</span>
                     </div>
+
+                    <button
+                      onClick={() => setStep('options')}
+                      className="mt-6 text-sm text-[#F2F2F2]/40 hover:text-[#F2F2F2]/70 transition-colors"
+                    >
+                      Cancelar busca
+                    </button>
                   </Card>
                 </motion.div>
               )}

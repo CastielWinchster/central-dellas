@@ -76,14 +76,33 @@ Deno.serve(async (req) => {
 
     console.log(`[dispatchRide] Corrida criada: ${ride.id}`);
 
-    // Buscar motoristas online nos últimos 30 segundos
-    const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+    // Buscar motoristas online nos últimos 60 segundos
+    const sixtySecondsAgo = new Date(Date.now() - 60000).toISOString();
     let onlineDrivers = [];
     try {
-      onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
+      // Tenta pelo campo is_online + last_seen_at
+      const byOnline = await base44.asServiceRole.entities.DriverPresence.filter({
         is_online: true,
-        last_seen_at: { $gte: thirtySecondsAgo }
+        last_seen_at: { $gte: sixtySecondsAgo }
       });
+      onlineDrivers = byOnline;
+
+      // Se não encontrou, tenta fallback com is_available (campo legado)
+      if (onlineDrivers.length === 0) {
+        const byAvailable = await base44.asServiceRole.entities.DriverPresence.filter({
+          is_available: true
+        });
+        onlineDrivers = byAvailable;
+        console.log(`[dispatchRide] Fallback is_available: ${onlineDrivers.length} motoristas`);
+      }
+
+      // Normalizar coordenadas: aceitar lat/lng ou current_lat/current_lng
+      onlineDrivers = onlineDrivers.map(d => ({
+        ...d,
+        lat: d.lat ?? d.current_lat,
+        lng: d.lng ?? d.current_lng,
+      })).filter(d => d.lat != null && d.lng != null);
+
     } catch (e) {
       console.warn('[dispatchRide] Não foi possível buscar DriverPresence:', e.message);
     }

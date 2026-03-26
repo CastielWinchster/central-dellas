@@ -1,0 +1,99 @@
+{
+  "name": "DriverPresence",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "ID da motorista"
+    },
+    "is_online": {
+      "type": "boolean",
+      "default": false,
+      "description": "Motorista est\u00e1 online e dispon\u00edvel"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Motorista dispon\u00edvel para corridas (campo legado)"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude atual"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude atual"
+    },
+    "accuracy": {
+      "type": "number",
+      "description": "Precis\u00e3o do GPS em metros"
+    },
+    "heading": {
+      "type": "number",
+      "description": "Dire\u00e7\u00e3o em graus"
+    },
+    "speed": {
+      "type": "number",
+      "description": "Velocidade em m/s"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que a motorista foi vista online"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": [
+        "car",
+        "motorcycle"
+      ],
+      "description": "Tipo de ve\u00edculo"
+    },
+    "accepts_pets": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aceita pets"
+    },
+    "current_lat": {
+      "type": "number",
+      "description": "Latitude (campo legado)"
+    },
+    "current_lng": {
+      "type": "number",
+      "description": "Longitude (campo legado)"
+    },
+    "last_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima atualiza\u00e7\u00e3o (campo legado)"
+    }
+  },
+  "required": [
+    "driver_id"
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "user_condition": {
+        "is_authenticated": true
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "driver_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -223,7 +223,7 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <div className="flex items-center gap-4">
-            {user && (user.role === 'driver' || user.role === 'admin') && (
+            {user && (user.user_type === 'driver' || user.user_type === 'both' || user.role === 'admin') && (
                 <Link
                   to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
                   className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 transition-all"
@@ -283,7 +283,7 @@ function LayoutContent({ children, currentPageName }) {
             className={`fixed inset-0 z-[9999] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
-              {user && (user.role === 'driver' || user.role === 'admin') && (
+              {user && (user.user_type === 'driver' || user.user_type === 'both' || user.role === 'admin') && (
                 <Link
                   to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
                   onClick={() => setIsMenuOpen(false)}
