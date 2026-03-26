@@ -53,11 +53,7 @@
     "plate"
   ],
   "rls": {
-    "create": {
-      "user_condition": {
-        "is_authenticated": true
-      }
-    },
+    "create": null,
     "read": {
       "$or": [
         {
