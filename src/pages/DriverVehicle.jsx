@@ -108,7 +108,12 @@ export default function DriverVehicle() {
       setShowModal(false);
     } catch (err) {
       console.error('Erro ao salvar veículo:', err);
-      toast.error('Erro ao salvar veículo. Tente novamente.');
+      const status = err?.response?.status || err?.status;
+      if (status === 403) {
+        toast.error('Você não tem permissão para salvar este veículo. Verifique se está logada corretamente.');
+      } else {
+        toast.error('Erro ao salvar veículo. Tente novamente.');
+      }
     }
     setSaving(false);
   };
