@@ -32,34 +32,26 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
 
   const fetchRides = async () => {
     try {
-      const requested = await base44.entities.Ride.filter({ status: 'requested' });
+      // Usa backend function para contornar RLS (motoristas não podem ler corridas de outras por RLS)
+      const response = await base44.functions.invoke('getAvailableRides', {
+        driverLat: driverLocation?.lat ?? null,
+        driverLng: driverLocation?.lng ?? null,
+        radiusKm: PROXIMITY_KM,
+      });
 
-      // Buscar info das passageiras
-      const enriched = await Promise.all(requested.map(async (ride) => {
-        try {
-          const users = await base44.entities.User.filter({ id: ride.passenger_id });
-          const passenger = users[0];
-          return {
-            ...ride,
-            passengerName: passenger?.full_name || 'Passageira',
-            passengerPhoto: passenger?.photo_url || null,
-            passengerRating: 4.8,
-            distance: driverLocation
-              ? haversine(driverLocation.lat, driverLocation.lng, ride.pickup_lat, ride.pickup_lng)
-              : null,
-          };
-        } catch {
-          return { ...ride, passengerName: 'Passageira', passengerPhoto: null, passengerRating: 4.8, distance: null };
-        }
+      const rides = response.data?.rides || [];
+
+      // Adicionar campos extras necessários
+      const enriched = rides.map(ride => ({
+        ...ride,
+        passengerRating: 4.8,
+        distance: ride.distance ?? (driverLocation
+          ? haversine(driverLocation.lat, driverLocation.lng, ride.pickup_lat, ride.pickup_lng)
+          : null),
       }));
 
-      // Filtrar por proximidade se localização disponível
-      const nearby = driverLocation
-        ? enriched.filter(r => r.distance !== null && r.distance <= PROXIMITY_KM)
-        : enriched;
-
-      nearby.sort((a, b) => (a.distance || 999) - (b.distance || 999));
-      setRides(nearby);
+      setRides(enriched);
+      console.log(`[AvailableRidesList] ${enriched.length} corridas encontradas`);
     } catch (e) {
       console.error('[AvailableRidesList] Erro ao buscar corridas:', e);
     }
@@ -69,7 +61,7 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
     fetchRides();
     pollingRef.current = setInterval(fetchRides, 5000);
     return () => clearInterval(pollingRef.current);
-  }, [driverLocation?.lat, driverLocation?.lng]);
+  }, []); // Não depende de driverLocation para não reiniciar o polling a cada atualização de GPS
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

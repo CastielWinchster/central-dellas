@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // Calcular distância Haversine
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -76,24 +76,34 @@ Deno.serve(async (req) => {
 
     console.log(`[dispatchRide] Corrida criada: ${ride.id}`);
 
-    // Buscar motoristas online nos últimos 60 segundos
-    const sixtySecondsAgo = new Date(Date.now() - 60000).toISOString();
+    // Buscar motoristas online (últimos 5 minutos para tolerar instabilidade de rede)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     let onlineDrivers = [];
     try {
-      // Tenta pelo campo is_online + last_seen_at
+      // Tenta pelo campo is_online + last_seen_at recente
       const byOnline = await base44.asServiceRole.entities.DriverPresence.filter({
         is_online: true,
-        last_seen_at: { $gte: sixtySecondsAgo }
+        last_seen_at: { $gte: fiveMinutesAgo }
       });
       onlineDrivers = byOnline;
+      console.log(`[dispatchRide] is_online=true (últimos 5min): ${onlineDrivers.length}`);
 
-      // Se não encontrou, tenta fallback com is_available (campo legado)
+      // Fallback 1: is_online=true sem restrição de tempo (pode ter tido queda de rede)
+      if (onlineDrivers.length === 0) {
+        const byOnlineNoTime = await base44.asServiceRole.entities.DriverPresence.filter({
+          is_online: true
+        });
+        onlineDrivers = byOnlineNoTime;
+        console.log(`[dispatchRide] Fallback is_online sem tempo: ${onlineDrivers.length}`);
+      }
+
+      // Fallback 2: is_available (campo legado)
       if (onlineDrivers.length === 0) {
         const byAvailable = await base44.asServiceRole.entities.DriverPresence.filter({
           is_available: true
         });
         onlineDrivers = byAvailable;
-        console.log(`[dispatchRide] Fallback is_available: ${onlineDrivers.length} motoristas`);
+        console.log(`[dispatchRide] Fallback is_available: ${onlineDrivers.length}`);
       }
 
       // Normalizar coordenadas: aceitar lat/lng ou current_lat/current_lng
@@ -102,6 +112,8 @@ Deno.serve(async (req) => {
         lat: d.lat ?? d.current_lat,
         lng: d.lng ?? d.current_lng,
       })).filter(d => d.lat != null && d.lng != null);
+
+      console.log(`[dispatchRide] Motoristas com coordenadas válidas: ${onlineDrivers.length}`);
 
     } catch (e) {
       console.warn('[dispatchRide] Não foi possível buscar DriverPresence:', e.message);
