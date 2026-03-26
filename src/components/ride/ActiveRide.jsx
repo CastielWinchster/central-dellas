@@ -8,6 +8,7 @@ import OfflineTracker from '../OfflineTracker';
 import ShareRideButton from './ShareRideButton';
 import EmergencyButton from './EmergencyButton';
 import { base44 } from '@/api/base44Client';
+import VehicleCard from './VehicleCard';
 
 export default function ActiveRide({ ride, onComplete }) {
   const [driver, setDriver] = useState(null);
@@ -92,17 +93,7 @@ export default function ActiveRide({ ride, onComplete }) {
             <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/60'}`}>
               {ride.status === 'arriving' ? 'A caminho' : 'Em andamento'}
             </p>
-            {driverVehicle && (
-              <div className="flex items-center gap-2 mt-1">
-                {driverVehicle.photo_url && (
-                  <img src={driverVehicle.photo_url} alt="Veículo" className="w-8 h-6 object-cover rounded border border-[#F22998]/30 flex-shrink-0" />
-                )}
-                <p className={`text-xs truncate ${isDark ? 'text-[#F22998]/80' : 'text-[#F22998]'}`}>
-                  Carro: {[driverVehicle.brand, driverVehicle.model, driverVehicle.color].filter(Boolean).join(' ')}
-                  {driverVehicle.plate && ` – Placa ${driverVehicle.plate}`}
-                </p>
-              </div>
-            )}
+
           </div>
 
           <div className="flex gap-2">
@@ -121,6 +112,9 @@ export default function ActiveRide({ ride, onComplete }) {
           </div>
         </div>
       </Card>
+
+      {/* Vehicle Card */}
+      <VehicleCard vehicle={driverVehicle} />
 
       {/* Map */}
       <Card className="rounded-2xl overflow-hidden">
