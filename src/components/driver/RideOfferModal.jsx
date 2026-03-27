@@ -51,17 +51,19 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-[10001] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, y: 20 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.9, y: 20 }}
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="max-w-lg w-full"
+          className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto"
+          style={{ borderRadius: '24px 24px 0 0' }}
         >
-          <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/30 to-[#F22998]/30 border-2 border-[#F22998] rounded-3xl relative overflow-hidden">
+          <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/30 to-[#F22998]/30 border-2 border-[#F22998] rounded-[24px] sm:rounded-3xl relative overflow-hidden" style={{ borderRadius: 'inherit' }}>
             {/* Timer Badge */}
             <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 rounded-full bg-[#F22998] text-white font-bold">
               <Clock className="w-4 h-4" />
