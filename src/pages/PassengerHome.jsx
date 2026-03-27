@@ -407,44 +407,6 @@ export default function PassengerHome() {
           ))}
         </div>
       </section>
-
-      {/* CTA Section - Seja Motorista */}
-      <section id="seja-motorista-section" className="max-w-7xl mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="relative overflow-hidden rounded-3xl"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#BF3B79] via-[#F22998] to-[#8C0D60]" />
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
-          
-          <div className="relative px-8 py-12 md:py-16 text-center">
-            <Sparkles className="w-12 h-12 text-white/80 mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Seja uma motorista parceira
-            </h2>
-            <p className="text-white/80 max-w-lg mx-auto mb-8">
-              Ganhe dinheiro extra com flexibilidade e segurança. Junte-se à nossa comunidade de motoristas mulheres.
-            </p>
-            <Button 
-              onClick={() => {
-                if (user) {
-                  navigate(createPageUrl('DriverRegistration'));
-                } else {
-                  navigate(createPageUrl('DriverLogin'));
-                }
-              }}
-              className="bg-white text-[#BF3B79] hover:bg-white/90 px-8 py-6 rounded-2xl text-lg font-semibold"
-            >
-              Começar Agora
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
-        </motion.div>
-      </section>
-
-
     </div>
   );
 }
