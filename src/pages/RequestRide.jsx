@@ -580,33 +580,28 @@ export default function RequestRide() {
           }
 
           try {
-            const [driverData, vehicles] = await Promise.all([
-              base44.entities.User.filter({ id: ride.assigned_driver_id }),
-              base44.entities.Vehicle.filter({ driver_id: ride.assigned_driver_id })
-            ]);
+            const res = await base44.functions.invoke('getDriverInfo', {
+              driverId: ride.assigned_driver_id
+            });
+            const info = res.data || {};
 
-            const driverUser = driverData[0] || null;
-            const vehicle = vehicles[0] || null;
-
-            console.log('[Polling] Dados da motorista:', driverUser?.full_name, '| Veículo:', vehicle?.model);
+            console.log('[Polling] Dados da motorista via backend:', info.name, '| Veículo:', info.vehicle?.model);
 
             setDriver({
-              name: driverUser?.full_name || 'Motorista',
-              photo: driverUser?.photo_url || null,
-              rating: driverUser?.rating ?? null,
-              totalRides: driverUser?.total_rides ?? null,
-              vehicle: vehicle ? {
-                model: `${vehicle.brand} ${vehicle.model}`.trim(),
-                color: vehicle.color || null,
-                plate: vehicle.plate || null,
-              } : null,
+              id: ride.assigned_driver_id,
+              name: info.name || 'Motorista',
+              photo: info.photo || null,
+              rating: info.rating ?? null,
+              totalRides: info.totalRides ?? null,
+              vehicle: info.vehicle || null,
               eta: null,
             });
             setStep('driver_found');
-            console.log('[Polling] Motorista real carregada com sucesso:', driverUser?.id);
+            console.log('[Polling] Motorista carregada:', ride.assigned_driver_id, info.name);
           } catch (driverError) {
             console.error('[Polling] Erro ao buscar dados da motorista:', driverError);
             setDriver({
+              id: ride.assigned_driver_id,
               name: 'Motorista',
               photo: null,
               rating: null,
