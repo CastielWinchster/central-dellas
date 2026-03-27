@@ -94,23 +94,6 @@ export default function PassengerOptions() {
       ]
     },
     {
-      title: '⭐ FAVORITOS',
-      items: [
-        { 
-          icon: Heart, 
-          label: 'Motoristas Favoritas', 
-          description: 'Minhas motoristas preferidas',
-          page: 'FavoriteDrivers'
-        },
-        { 
-          icon: MapPin, 
-          label: 'Locais Favoritos', 
-          description: 'Casa, trabalho e mais',
-          page: 'FavoritePlaces'
-        }
-      ]
-    },
-    {
       title: '🆘 SEGURANÇA',
       items: [
         { 
@@ -124,17 +107,6 @@ export default function PassengerOptions() {
           label: 'Bloqueadas', 
           description: 'Motoristas bloqueadas',
           page: 'BlockedUsers'
-        }
-      ]
-    },
-    {
-      title: '🔐 CONTA',
-      items: [
-        { 
-          icon: Lock, 
-          label: 'Alterar Senha', 
-          description: 'Atualizar senha de acesso',
-          page: 'PassengerSecurity'
         }
       ]
     },
