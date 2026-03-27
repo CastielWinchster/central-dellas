@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import RideChat from '../components/chat/RideChat';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
@@ -38,6 +39,9 @@ export default function DriverDashboard() {
   const offerPollingRef = useRef(null);
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [acceptedRide, setAcceptedRide] = useState(null);
+  const [passengerUser, setPassengerUser] = useState(null);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -363,6 +367,9 @@ export default function DriverDashboard() {
       
       if (response.data.success) {
         toast.success('🎉 Corrida aceita! Navegue até a passageira');
+        // Salvar corrida aceita e passageira para o chat
+        setAcceptedRide(response.data.ride || ride);
+        setPassengerUser(offerPassenger);
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
@@ -680,6 +687,35 @@ export default function DriverDashboard() {
         </div>
       </div>
       
+      {/* Chat com a passageira após corrida aceita */}
+      {acceptedRide && (
+        <div className="px-4 mb-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/30 flex items-center justify-between">
+              <div>
+                <p className="text-[#F22998] font-semibold text-sm">💬 Chat disponível</p>
+                <p className="text-[#F2F2F2]/60 text-xs">Corrida com {passengerUser?.full_name || 'Passageira'}</p>
+              </div>
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white text-sm font-medium"
+              >
+                Abrir Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <RideChat
+        rideId={acceptedRide?.id}
+        currentUserId={user?.id}
+        otherUser={{ name: passengerUser?.full_name, photo: passengerUser?.photo_url }}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        rideStatus={acceptedRide?.status || 'accepted'}
+      />
+
       {/* Ride Offer Modal */}
       {rideOffer && offerRide && (
         <RideOfferModal

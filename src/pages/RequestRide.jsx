@@ -7,6 +7,7 @@ import {
   Car, Shield, ChevronRight, Loader2, Star,
   X, Check, Phone, Dog, Crosshair, Package
 } from 'lucide-react';
+import RideChat from '../components/chat/RideChat';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -508,6 +509,7 @@ export default function RequestRide() {
 
   const [currentRide, setCurrentRide] = useState(null);
   const [searchingDrivers, setSearchingDrivers] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   const handleConfirmRide = async () => {
     setStep('searching');
@@ -655,6 +657,13 @@ export default function RequestRide() {
 
   return (
     <div className="min-h-screen pb-24 md:pb-10">
+      <PassengerRideChat
+        currentRide={currentRide}
+        user={user}
+        driver={driver}
+        isChatOpen={isChatOpen}
+        setIsChatOpen={setIsChatOpen}
+      />
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Map */}
@@ -1139,7 +1148,6 @@ export default function RequestRide() {
                         <Button
                           variant="outline"
                           disabled
-                          onClick={() => toast.info('Motorista ainda não cadastrou um telefone')}
                           className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998]/40"
                         >
                           <Phone className="w-5 h-5 mr-2" />
@@ -1148,6 +1156,7 @@ export default function RequestRide() {
                       )}
                       <Button 
                         variant="outline"
+                        onClick={() => setIsChatOpen(true)}
                         className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
                       >
                         <MessageCircle className="w-5 h-5 mr-2" />
@@ -1184,5 +1193,20 @@ function MessageCircle(props) {
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
     </svg>
+  );
+}
+
+// RideChat renderizado fora do fluxo principal
+function PassengerRideChat({ currentRide, user, driver, isChatOpen, setIsChatOpen }) {
+  if (!currentRide || !isChatOpen) return null;
+  return (
+    <RideChat
+      rideId={currentRide.id}
+      currentUserId={user?.id}
+      otherUser={{ name: driver?.name, photo: driver?.photo }}
+      isOpen={isChatOpen}
+      onClose={() => setIsChatOpen(false)}
+      rideStatus={currentRide.status || 'accepted'}
+    />
   );
 }

@@ -1,0 +1,39 @@
+{
+  "name": "RideMessage",
+  "type": "object",
+  "properties": {
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "sender_id": {
+      "type": "string",
+      "description": "ID de quem enviou"
+    },
+    "receiver_id": {
+      "type": "string",
+      "description": "ID de quem recebe"
+    },
+    "text": {
+      "type": "string",
+      "description": "Texto da mensagem"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mensagem lida"
+    }
+  },
+  "required": [
+    "ride_id",
+    "sender_id",
+    "receiver_id",
+    "text"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}
