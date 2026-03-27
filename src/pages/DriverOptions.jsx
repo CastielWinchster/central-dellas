@@ -104,34 +104,6 @@ export default function DriverOptions() {
       ]
     },
     {
-      title: '🔐 SEGURANÇA',
-      items: [
-        { 
-          icon: Lock, 
-          label: 'Alterar Senha', 
-          description: 'Atualizar senha de acesso',
-          page: 'DriverSecurity'
-        },
-        { 
-          icon: Shield, 
-          label: 'Autenticação 2FA', 
-          description: 'Segurança extra',
-          page: 'Driver2FA'
-        }
-      ]
-    },
-    {
-      title: '🔔 NOTIFICAÇÕES',
-      items: [
-        { 
-          icon: Bell, 
-          label: 'Notificações', 
-          description: 'Gerenciar alertas',
-          page: 'DriverNotifications'
-        }
-      ]
-    },
-    {
       title: '⚙️ CONFIGURAÇÕES',
       items: [
         { 
