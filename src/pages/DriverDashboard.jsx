@@ -36,6 +36,25 @@ export default function DriverDashboard() {
   const [offerRide, setOfferRide] = useState(null);
   const [offerPassenger, setOfferPassenger] = useState(null);
   const offerPollingRef = useRef(null);
+  const [liveEta, setLiveEta] = useState(null);
+  const etaIntervalRef = useRef(null);
+
+  // Haversine local para ETA em tempo real
+  const haversineLocal = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const calcEta = (driverLoc, ride) => {
+    if (!driverLoc?.lat || !driverLoc?.lng || !ride?.pickup_lat || !ride?.pickup_lng) return null;
+    const distKm = haversineLocal(driverLoc.lat, driverLoc.lng, ride.pickup_lat, ride.pickup_lng);
+    if (distKm < 0.1) return 'Chegando';
+    return Math.ceil((distKm / 30) * 60);
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -268,6 +287,22 @@ export default function DriverDashboard() {
     return R * c;
   };
   
+  // Polling de ETA em tempo real (motorista → passageira)
+  useEffect(() => {
+    if (etaIntervalRef.current) clearInterval(etaIntervalRef.current);
+
+    if (!selectedRide) {
+      setLiveEta(null);
+      return;
+    }
+
+    const update = () => setLiveEta(calcEta(currentLocation, selectedRide));
+    update();
+    etaIntervalRef.current = setInterval(update, 5000);
+
+    return () => clearInterval(etaIntervalRef.current);
+  }, [selectedRide, currentLocation]);
+
   // Polling de ofertas quando online
   useEffect(() => {
     if (!isOnline || !user) {

@@ -4,10 +4,18 @@ import { MapPin, Navigation, Clock, DollarSign, X, Check, AlertCircle, User } fr
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
+// ETA motorista→passageira baseado na distância da oferta (a 30 km/h urbano)
+function calcOfferEta(distanceKm) {
+  if (distanceKm == null) return null;
+  if (distanceKm < 0.1) return 'Chegando';
+  return Math.ceil((distanceKm / 30) * 60);
+}
+
 export default function RideOfferModal({ offer, ride, passenger, onAccept, onReject, onClose }) {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
+  const eta = calcOfferEta(offer.distance_km);
   
   // Countdown
   React.useEffect(() => {
@@ -116,8 +124,10 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
               
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">
                 <Clock className="w-5 h-5 text-[#F22998] mx-auto mb-1" />
-                <p className="text-xs text-[#F2F2F2]/60">Tempo</p>
-                <p className="font-bold text-[#F2F2F2]">~{ride.estimated_duration} min</p>
+                <p className="text-xs text-[#F2F2F2]/60">ETA até você</p>
+                <p className="font-bold text-[#F2F2F2]">
+                  {eta == null ? '—' : typeof eta === 'string' ? eta : `~${eta} min`}
+                </p>
               </div>
               
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">

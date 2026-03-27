@@ -44,14 +44,26 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
 
       const fetched = response.data?.rides || [];
 
-      const enriched = fetched.map(ride => ({
-        ...ride,
-        passengerRating: 4.8,
-        // distance já vem calculada pelo backend; fallback local apenas se nula
-        distance: ride.distance ?? (loc
+      const enriched = fetched.map(ride => {
+        const distKm = ride.distance ?? (loc
           ? haversine(loc.lat, loc.lng, ride.pickup_lat, ride.pickup_lng)
-          : null),
-      }));
+          : null);
+        // ETA em tempo real: distância motorista→passageira a 30 km/h
+        let etaMin = null;
+        if (distKm !== null) {
+          if (distKm < 0.1) {
+            etaMin = 'Chegando';
+          } else {
+            etaMin = Math.ceil((distKm / 30) * 60);
+          }
+        }
+        return {
+          ...ride,
+          passengerRating: 4.8,
+          distance: distKm,
+          etaMin,
+        };
+      });
 
       setRides(enriched);
       console.log(`[AvailableRidesList] ${enriched.length} corridas encontradas | GPS: ${loc?.lat ?? 'sem GPS'}`);
@@ -211,10 +223,15 @@ export default function AvailableRidesList({ onRideSelect, selectedRideId, drive
                           {ride.distance.toFixed(1)} km
                         </span>
                       )}
-                      {ride.estimated_duration && (
+                      {ride.etaMin !== null && ride.etaMin !== undefined ? (
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          {ride.estimated_duration} min
+                          {typeof ride.etaMin === 'string' ? ride.etaMin : `${ride.etaMin} min`}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[#F2F2F2]/30">
+                          <Clock className="w-3.5 h-3.5" />
+                          Tempo indisponível
                         </span>
                       )}
                     </div>
