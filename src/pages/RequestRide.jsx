@@ -550,13 +550,13 @@ export default function RequestRide() {
     const pollInterval = setInterval(async () => {
       try {
         console.log('[Polling] Consultando ride:', rideId);
-        const rides = await base44.entities.Ride.filter({ id: rideId });
-        console.log('[Polling] Resultado:', rides.length, 'registros', rides[0] ? `| status: ${rides[0].status} | passenger_id: ${rides[0].passenger_id} | assigned_driver_id: ${rides[0].assigned_driver_id}` : '| VAZIO');
+        const res = await base44.functions.invoke('getRideStatus', { rideId });
+        const rideData = res.data;
+        console.log('[Polling] Resultado:', rideData);
 
-        if (rides.length === 0) {
+        if (!rideData?.found) {
           consecutiveEmptyResults++;
-          console.warn(`[Polling] Array vazio (tentativa ${consecutiveEmptyResults}) — possível problema de RLS ou id inválido`);
-          // Só aborta após 10 tentativas vazias seguidas (~20s)
+          console.warn(`[Polling] Corrida não encontrada (tentativa ${consecutiveEmptyResults})`);
           if (consecutiveEmptyResults >= 10) {
             clearInterval(pollInterval);
             toast.error('Não foi possível acompanhar sua corrida. Tente novamente.');
@@ -566,7 +566,7 @@ export default function RequestRide() {
         }
 
         consecutiveEmptyResults = 0;
-        const ride = rides[0];
+        const ride = rideData;
 
         if (ride.status === 'accepted') {
           console.log('[Polling] Corrida aceita! assigned_driver_id:', ride.assigned_driver_id);
@@ -612,8 +612,8 @@ export default function RequestRide() {
             setStep('driver_found');
           }
 
-        } else if (ride.status === 'expired' || ride.status === 'cancelled') {
-          console.log('[Polling] Corrida encerrada com status:', ride.status);
+        } else if (rideData.status === 'expired' || rideData.status === 'cancelled') {
+          console.log('[Polling] Corrida encerrada com status:', rideData.status);
           clearInterval(pollInterval);
           toast.error('Nenhuma motorista aceitou sua corrida');
           setStep('options');
