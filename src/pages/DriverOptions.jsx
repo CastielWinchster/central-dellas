@@ -92,7 +92,7 @@ export default function DriverOptions() {
         { 
           icon: Settings, 
           label: 'Configurações', 
-          description: 'Tema, idioma e privacidade',
+          description: 'Telefone',
           page: 'Settings'
         }
       ]
