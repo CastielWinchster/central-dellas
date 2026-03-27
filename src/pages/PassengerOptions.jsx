@@ -5,7 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
   User, Heart, MapPin, Shield, Lock, Bell, 
-  Settings, HelpCircle, LogOut, ChevronRight, Wallet, Gift,
+  Settings, HelpCircle, LogOut, ChevronRight, Gift,
   Clock, Star, History, UserX, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

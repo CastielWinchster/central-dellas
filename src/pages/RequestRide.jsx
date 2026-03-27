@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   MapPin, Navigation, Search, Clock, CreditCard, 
   Car, Shield, ChevronRight, Loader2, Star,
-  Wallet, X, Check, Phone, Dog, Crosshair, Package
+  X, Check, Phone, Dog, Crosshair, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -448,7 +448,6 @@ export default function RequestRide() {
     { id: 'pix', name: 'Pix', icon: '💜' },
     { id: 'credit_card', name: 'Cartão de Crédito', icon: '💳' },
     { id: 'debit_card', name: 'Cartão de Débito', icon: '💳' },
-    { id: 'wallet', name: 'Carteira Digital', icon: '👛' },
   ];
 
   const validateAddress = async (address, isPickup = true) => {

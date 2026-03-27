@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
-  User, FileText, CreditCard, Shield, Lock, Bell, 
+  User, FileText, Shield, Bell, 
   Settings, HelpCircle, LogOut, ChevronRight, Camera,
-  DollarSign, Car, Package, Star
+  DollarSign, Car, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -79,15 +79,9 @@ export default function DriverOptions() {
       title: '💰 FINANCEIRO',
       items: [
         { 
-          icon: CreditCard, 
-          label: 'Conta Bancária', 
-          description: 'Gerenciar dados bancários',
-          page: 'DriverBanking'
-        },
-        { 
           icon: DollarSign, 
           label: 'Meus Ganhos', 
-          description: 'Saldo e histórico de saques',
+          description: 'Histórico de corridas e ganhos',
           page: 'Earnings'
         }
       ]
