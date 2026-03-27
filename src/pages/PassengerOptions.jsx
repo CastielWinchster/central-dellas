@@ -123,17 +123,6 @@ export default function PassengerOptions() {
       showPanel: true
     },
     {
-      title: '⚙️ CONFIGURAÇÕES',
-      items: [
-        { 
-          icon: Settings, 
-          label: 'Configurações', 
-          description: 'Privacidade',
-          page: 'Settings'
-        }
-      ]
-    },
-    {
       title: '💬 SUPORTE',
       items: [
         { 
