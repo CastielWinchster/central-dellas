@@ -93,17 +93,6 @@ export default function DriverOptions() {
       ]
     },
     {
-      title: '⭐ AVALIAÇÕES',
-      items: [
-        { 
-          icon: Star, 
-          label: 'Minhas Avaliações', 
-          description: 'Ver notas e comentários',
-          page: 'MyReviews'
-        }
-      ]
-    },
-    {
       title: '⚙️ CONFIGURAÇÕES',
       items: [
         { 
