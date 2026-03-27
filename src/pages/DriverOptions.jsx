@@ -6,7 +6,7 @@ import { createPageUrl } from '../utils';
 import { 
   User, FileText, Shield, Bell, 
   Settings, HelpCircle, LogOut, ChevronRight, Camera,
-  DollarSign, Car, Package
+  DollarSign, Car, Package, Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 export default function DriverOptions() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -28,12 +31,31 @@ export default function DriverOptions() {
         }
         
         setUser(userData);
+        setPhone(userData.phone || '');
       } catch (e) {
         base44.auth.redirectToLogin();
       }
     };
     loadUser();
   }, []);
+
+  const handleSavePhone = async () => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 11) {
+      setPhoneError('Informe um telefone válido');
+      return;
+    }
+    setPhoneError('');
+    setSavingPhone(true);
+    try {
+      await base44.auth.updateMe({ phone });
+      toast.success('Telefone salvo com sucesso!');
+    } catch (e) {
+      toast.error('Erro ao salvar telefone');
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
   const menuSections = [
     {
@@ -148,6 +170,46 @@ export default function DriverOptions() {
                   <span className="text-sm text-green-400">Verificada</span>
                 </div>
               </div>
+            </div>
+          </motion.div>
+
+          {/* Telefone de Contato */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <h3 className="text-xs font-bold text-[#8C0D60] mb-3 uppercase tracking-wider px-2">
+              📞 TELEFONE DE CONTATO
+            </h3>
+            <div className="bg-[#1A1A1A] border border-[#8C0D60] rounded-2xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-6 h-6 text-[#F22998]" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-[#F2F2F2]">Telefone (WhatsApp/Celular)</p>
+                  <p className="text-xs text-[#CCCCCC]">Visível para passageiras após aceitar corrida</p>
+                </div>
+              </div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); setPhoneError(''); }}
+                placeholder="(99) 99999-9999"
+                className="w-full bg-[#2A2A2A] border border-[#F22998]/20 rounded-xl px-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#F22998]/60 mb-2"
+              />
+              {phoneError && (
+                <p className="text-red-400 text-xs mb-2">{phoneError}</p>
+              )}
+              <Button
+                onClick={handleSavePhone}
+                disabled={savingPhone}
+                className="w-full btn-gradient rounded-xl py-2"
+              >
+                {savingPhone ? 'Salvando...' : 'Salvar Telefone'}
+              </Button>
             </div>
           </motion.div>
 

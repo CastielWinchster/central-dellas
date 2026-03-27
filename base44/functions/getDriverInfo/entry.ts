@@ -31,6 +31,7 @@ Deno.serve(async (req) => {
     return Response.json({
       name: driver?.full_name || null,
       photo: driver?.photo_url || null,
+      phone: driver?.phone || null,
       rating: driver?.rating ?? null,
       totalRides: driver?.total_rides ?? null,
       vehicle: vehicle ? {

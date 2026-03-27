@@ -591,6 +591,7 @@ export default function RequestRide() {
               id: ride.assigned_driver_id,
               name: info.name || 'Motorista',
               photo: info.photo || null,
+              phone: info.phone || null,
               rating: info.rating ?? null,
               totalRides: info.totalRides ?? null,
               vehicle: info.vehicle || null,
@@ -1126,13 +1127,25 @@ export default function RequestRide() {
                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Button 
-                        variant="outline"
-                        className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
-                      >
-                        <Phone className="w-5 h-5 mr-2" />
-                        Ligar
-                      </Button>
+                      {driver.phone ? (
+                        <a
+                          href={`tel:+55${driver.phone.replace(/\D/g, '')}`}
+                          className="py-6 rounded-2xl border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 flex items-center justify-center font-medium transition-colors"
+                        >
+                          <Phone className="w-5 h-5 mr-2" />
+                          Ligar
+                        </a>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          disabled
+                          onClick={() => toast.info('Motorista ainda não cadastrou um telefone')}
+                          className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998]/40"
+                        >
+                          <Phone className="w-5 h-5 mr-2" />
+                          Ligar
+                        </Button>
+                      )}
                       <Button 
                         variant="outline"
                         className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
