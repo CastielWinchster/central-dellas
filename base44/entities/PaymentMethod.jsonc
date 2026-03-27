@@ -1,0 +1,68 @@
+{
+  "name": "PaymentMethod",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "pix",
+        "card"
+      ],
+      "description": "Tipo de pagamento"
+    },
+    "pix_key_type": {
+      "type": "string",
+      "enum": [
+        "cpf",
+        "cnpj",
+        "email",
+        "phone",
+        "random"
+      ],
+      "description": "Tipo de chave Pix"
+    },
+    "pix_key_value": {
+      "type": "string",
+      "description": "Valor da chave Pix"
+    },
+    "card_brand": {
+      "type": "string",
+      "description": "Bandeira do cart\u00e3o"
+    },
+    "card_last4": {
+      "type": "string",
+      "description": "\u00daltimos 4 d\u00edgitos do cart\u00e3o"
+    },
+    "card_holder_name": {
+      "type": "string",
+      "description": "Nome no cart\u00e3o"
+    },
+    "card_exp_month": {
+      "type": "string",
+      "description": "M\u00eas de expira\u00e7\u00e3o (01-12)"
+    },
+    "card_exp_year": {
+      "type": "string",
+      "description": "Ano de expira\u00e7\u00e3o (YYYY)"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "M\u00e9todo padr\u00e3o"
+    }
+  },
+  "required": [
+    "user_id",
+    "type"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

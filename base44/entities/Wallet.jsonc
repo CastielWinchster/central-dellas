@@ -1,0 +1,24 @@
+{
+  "name": "Wallet",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo em reais"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "prata",
+        "ouro"
+      ],
+      "description": "Tipo de plano"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "expired"
+      ],
+      "default": "active",
+      "description": "Status da assinatura"
+    },
+    "monthly_price": {
+      "type": "number",
+      "description": "Valor mensal do plano"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "description": "Percentual de desconto"
+    },
+    "free_rides_remaining": {
+      "type": "number",
+      "default": 0,
+      "description": "Corridas cortesia restantes no m\u00eas"
+    },
+    "total_saved": {
+      "type": "number",
+      "default": 0,
+      "description": "Total economizado desde in\u00edcio"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Pr\u00f3xima data de cobran\u00e7a"
+    },
+    "auto_renew": {
+      "type": "boolean",
+      "default": true,
+      "description": "Renova\u00e7\u00e3o autom\u00e1tica ativa"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "ID da assinatura no Stripe"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "ID do cliente no Stripe"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan",
+    "monthly_price"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

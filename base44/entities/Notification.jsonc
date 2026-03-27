@@ -1,0 +1,54 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da notifica\u00e7\u00e3o"
+    },
+    "message": {
+      "type": "string",
+      "description": "Mensagem da notifica\u00e7\u00e3o"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "coupon",
+        "ride",
+        "event",
+        "system"
+      ],
+      "description": "Tipo da notifica\u00e7\u00e3o"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a notifica\u00e7\u00e3o foi lida"
+    },
+    "is_persistent": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a notifica\u00e7\u00e3o \u00e9 persistente"
+    },
+    "related_link": {
+      "type": "string",
+      "description": "Link relacionado (opcional)"
+    }
+  },
+  "required": [
+    "user_id",
+    "title",
+    "message",
+    "type"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

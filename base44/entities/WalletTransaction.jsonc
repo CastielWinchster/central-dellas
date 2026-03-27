@@ -1,0 +1,66 @@
+{
+  "name": "WalletTransaction",
+  "type": "object",
+  "properties": {
+    "wallet_id": {
+      "type": "string",
+      "description": "ID da carteira"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "deposit",
+        "withdrawal",
+        "payment",
+        "refund"
+      ],
+      "description": "Tipo de transa\u00e7\u00e3o"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor da transa\u00e7\u00e3o"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da transa\u00e7\u00e3o"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "pix",
+        "credit_card",
+        "debit_card"
+      ],
+      "description": "M\u00e9todo usado para dep\u00f3sito"
+    },
+    "pix_qr_code": {
+      "type": "string",
+      "description": "QR Code PIX para pagamento"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Status da transa\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "amount"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

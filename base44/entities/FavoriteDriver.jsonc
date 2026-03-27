@@ -1,0 +1,33 @@
+{
+  "name": "FavoriteDriver",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da passageira"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "ID da motorista favorita"
+    },
+    "total_rides_together": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de corridas juntas"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas sobre a motorista"
+    }
+  },
+  "required": [
+    "user_id",
+    "driver_id"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

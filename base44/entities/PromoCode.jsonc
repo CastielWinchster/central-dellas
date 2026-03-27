@@ -1,0 +1,61 @@
+{
+  "name": "PromoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo promocional"
+    },
+    "discount_amount": {
+      "type": "number",
+      "description": "Valor do desconto em reais"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "description": "Percentual de desconto"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de validade"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "C\u00f3digo ativo"
+    },
+    "max_uses": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de usos"
+    },
+    "current_uses": {
+      "type": "number",
+      "default": 0,
+      "description": "Usos atuais"
+    },
+    "first_ride_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "V\u00e1lido apenas para primeira corrida"
+    },
+    "promo_type": {
+      "type": "string",
+      "enum": [
+        "app_migration",
+        "referral",
+        "general"
+      ],
+      "default": "general",
+      "description": "Tipo de promo\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "code"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

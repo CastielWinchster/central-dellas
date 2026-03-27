@@ -1,0 +1,47 @@
+{
+  "name": "SharedTracking",
+  "type": "object",
+  "properties": {
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "passenger_id": {
+      "type": "string",
+      "description": "ID da passageira"
+    },
+    "share_token": {
+      "type": "string",
+      "description": "Token \u00fanico para compartilhamento"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Nome do contato de confian\u00e7a"
+    },
+    "contact_phone": {
+      "type": "string",
+      "description": "Telefone do contato"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Link de rastreamento ativo"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o link expira"
+    }
+  },
+  "required": [
+    "ride_id",
+    "passenger_id",
+    "share_token"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

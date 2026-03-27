@@ -1,0 +1,78 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "description": "ID da conversa"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID da sess\u00e3o de chat"
+    },
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "sender_id": {
+      "type": "string",
+      "description": "ID de quem enviou"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "audio",
+        "system"
+      ],
+      "default": "text",
+      "description": "Tipo da mensagem"
+    },
+    "text": {
+      "type": "string",
+      "description": "Texto da mensagem"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL do arquivo (imagem/\u00e1udio)"
+    },
+    "duration_sec": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o do \u00e1udio em segundos"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "visible",
+        "removed"
+      ],
+      "default": "visible",
+      "description": "Status da mensagem"
+    },
+    "removed_reason": {
+      "type": "string",
+      "enum": [
+        "offensive",
+        "manual"
+      ],
+      "description": "Motivo da remo\u00e7\u00e3o"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mensagem lida"
+    }
+  },
+  "required": [
+    "conversation_id",
+    "sender_id",
+    "type"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

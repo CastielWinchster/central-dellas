@@ -1,0 +1,42 @@
+{
+  "name": "SavedAddress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "label": {
+      "type": "string",
+      "description": "Nome do endere\u00e7o (Casa, Trabalho, etc)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Endere\u00e7o padr\u00e3o"
+    }
+  },
+  "required": [
+    "user_id",
+    "label",
+    "address"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

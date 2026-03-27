@@ -1,0 +1,65 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "passenger_id": {
+      "type": "string",
+      "description": "ID da passageira"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "ID da motorista"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active",
+      "description": "Status da conversa"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "test"
+      ],
+      "default": "normal",
+      "description": "Tipo de conversa"
+    },
+    "active_session_id": {
+      "type": "string",
+      "description": "ID da sess\u00e3o ativa atual"
+    },
+    "active_session_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a sess\u00e3o ativa come\u00e7ou"
+    },
+    "active_session_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a sess\u00e3o ativa expira"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando foi arquivada"
+    }
+  },
+  "required": [
+    "passenger_id",
+    "driver_id"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

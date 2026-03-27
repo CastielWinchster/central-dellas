@@ -1,0 +1,55 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "reviewer_id": {
+      "type": "string",
+      "description": "ID de quem avaliou"
+    },
+    "reviewed_id": {
+      "type": "string",
+      "description": "ID de quem foi avaliado"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Nota de 1 a 5 estrelas"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Coment\u00e1rio da avalia\u00e7\u00e3o"
+    },
+    "review_type": {
+      "type": "string",
+      "enum": [
+        "passenger_to_driver",
+        "driver_to_passenger"
+      ],
+      "description": "Tipo de avalia\u00e7\u00e3o"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags positivas"
+    }
+  },
+  "required": [
+    "ride_id",
+    "reviewer_id",
+    "reviewed_id",
+    "rating"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

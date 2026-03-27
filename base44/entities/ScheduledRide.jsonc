@@ -1,0 +1,95 @@
+{
+  "name": "ScheduledRide",
+  "type": "object",
+  "properties": {
+    "passenger_id": {
+      "type": "string",
+      "description": "ID da passageira"
+    },
+    "pickup_address": {
+      "type": "string",
+      "description": "Endere\u00e7o de origem"
+    },
+    "pickup_lat": {
+      "type": "number",
+      "description": "Latitude de origem"
+    },
+    "pickup_lng": {
+      "type": "number",
+      "description": "Longitude de origem"
+    },
+    "destination_address": {
+      "type": "string",
+      "description": "Endere\u00e7o de destino"
+    },
+    "destination_lat": {
+      "type": "number",
+      "description": "Latitude de destino"
+    },
+    "destination_lng": {
+      "type": "number",
+      "description": "Longitude de destino"
+    },
+    "scheduled_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hor\u00e1rio agendado da corrida"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es ou paradas no caminho"
+    },
+    "ride_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "shared",
+        "kids",
+        "senior",
+        "pet"
+      ],
+      "default": "standard",
+      "description": "Tipo de corrida"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Status do agendamento"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "ID da motorista designada"
+    },
+    "estimated_price": {
+      "type": "number",
+      "description": "Pre\u00e7o estimado"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notifica\u00e7\u00e3o de 1h antes enviada"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Motivo do cancelamento se aplic\u00e1vel"
+    }
+  },
+  "required": [
+    "passenger_id",
+    "pickup_address",
+    "destination_address",
+    "scheduled_time"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

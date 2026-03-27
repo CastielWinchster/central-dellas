@@ -1,0 +1,105 @@
+{
+  "name": "Ride",
+  "type": "object",
+  "properties": {
+    "passenger_id": {
+      "type": "string",
+      "description": "ID da passageira"
+    },
+    "pickup_lat": {
+      "type": "number",
+      "description": "Latitude de origem"
+    },
+    "pickup_lng": {
+      "type": "number",
+      "description": "Longitude de origem"
+    },
+    "pickup_text": {
+      "type": "string",
+      "description": "Endere\u00e7o de origem formatado"
+    },
+    "dropoff_lat": {
+      "type": "number",
+      "description": "Latitude de destino"
+    },
+    "dropoff_lng": {
+      "type": "number",
+      "description": "Longitude de destino"
+    },
+    "dropoff_text": {
+      "type": "string",
+      "description": "Endere\u00e7o de destino formatado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "assigned",
+        "accepted",
+        "arrived",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "expired"
+      ],
+      "default": "requested",
+      "description": "Status da corrida"
+    },
+    "assigned_driver_id": {
+      "type": "string",
+      "description": "ID da motorista designada"
+    },
+    "offer_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando as ofertas expiram"
+    },
+    "search_radius_km": {
+      "type": "number",
+      "default": 5,
+      "description": "Raio de busca em km"
+    },
+    "estimated_price": {
+      "type": "number",
+      "description": "Pre\u00e7o estimado"
+    },
+    "estimated_duration": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o estimada em minutos"
+    },
+    "ride_type": {
+      "type": "string",
+      "default": "standard",
+      "description": "Tipo de corrida"
+    },
+    "has_pet": {
+      "type": "boolean",
+      "default": false,
+      "description": "Passageira est\u00e1 com pet"
+    },
+    "is_test": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica se \u00e9 uma corrida de teste (dev seed)"
+    },
+    "test_seed_key": {
+      "type": "string",
+      "description": "Chave \u00fanica para identificar corridas de teste"
+    }
+  },
+  "required": [
+    "passenger_id",
+    "pickup_lat",
+    "pickup_lng",
+    "pickup_text",
+    "dropoff_lat",
+    "dropoff_lng",
+    "dropoff_text"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}
