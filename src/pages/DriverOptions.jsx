@@ -87,17 +87,6 @@ export default function DriverOptions() {
       ]
     },
     {
-      title: '⚙️ CONFIGURAÇÕES',
-      items: [
-        { 
-          icon: Settings, 
-          label: 'Configurações', 
-          description: 'Telefone',
-          page: 'Settings'
-        }
-      ]
-    },
-    {
       title: '❓ SUPORTE',
       items: [
         { 
