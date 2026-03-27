@@ -17,6 +17,22 @@ export default function DriverOptions() {
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [savingPhone, setSavingPhone] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ photo_url: file_url });
+      setUser(prev => ({ ...prev, photo_url: file_url }));
+      toast.success('Foto atualizada!');
+    } catch (error) {
+      toast.error('Erro ao carregar foto');
+    }
+    setUploading(false);
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -153,14 +169,24 @@ export default function DriverOptions() {
             className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#8C0D60]"
           >
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#F22998]">
-                {user.photo_url ? (
-                  <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
-                    <User className="w-10 h-10 text-white/80" />
-                  </div>
-                )}
+              <div className="relative flex-shrink-0">
+                <div className="w-20 h-20 min-w-[80px] rounded-full overflow-hidden border-4 border-[#F22998]">
+                  {user.photo_url ? (
+                    <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                      <User className="w-10 h-10 text-white/80" />
+                    </div>
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#F22998] flex items-center justify-center cursor-pointer hover:bg-[#BF3B79] transition-colors">
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                  {uploading ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  ) : (
+                    <Camera className="w-4 h-4 text-white" />
+                  )}
+                </label>
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-[#F2F2F2]">{user.full_name}</h2>
