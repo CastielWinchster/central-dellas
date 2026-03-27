@@ -4,66 +4,135 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DollarSign, TrendingUp, Car, 
   ArrowUpRight, ArrowDownRight,
-  CreditCard, Clock, Percent, X, CheckCircle
+  CreditCard, Clock, Percent, X, CheckCircle, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { format } from 'date-fns';
+import { format, startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const COMMISSION_RATE = 0.05;
 
+const PERIOD_LABELS = { week: 'Semana', month: 'Mês', year: 'Ano' };
+
+function getPeriodStart(period) {
+  const now = new Date();
+  if (period === 'week') return startOfWeek(now, { weekStartsOn: 1 });
+  if (period === 'month') return startOfMonth(now);
+  return startOfYear(now);
+}
+
+function buildChartData(rides, period) {
+  if (period === 'week') {
+    const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const map = {};
+    days.forEach(d => { map[d] = 0; });
+    rides.forEach(r => {
+      const dayIdx = new Date(r.created_date).getDay(); // 0=Dom
+      const label = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][dayIdx];
+      if (label in map) map[label] += r.estimated_price || 0;
+    });
+    return days.map(d => ({ day: d, value: parseFloat(map[d].toFixed(2)) }));
+  }
+  if (period === 'month') {
+    const weeks = ['S1', 'S2', 'S3', 'S4'];
+    const map = { S1: 0, S2: 0, S3: 0, S4: 0 };
+    rides.forEach(r => {
+      const dom = new Date(r.created_date).getDate();
+      const key = dom <= 7 ? 'S1' : dom <= 14 ? 'S2' : dom <= 21 ? 'S3' : 'S4';
+      map[key] += r.estimated_price || 0;
+    });
+    return weeks.map(w => ({ day: w, value: parseFloat(map[w].toFixed(2)) }));
+  }
+  // year
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const map = {};
+  months.forEach(m => { map[m] = 0; });
+  rides.forEach(r => {
+    const m = months[new Date(r.created_date).getMonth()];
+    map[m] += r.estimated_price || 0;
+  });
+  return months.map(m => ({ day: m, value: parseFloat(map[m].toFixed(2)) }));
+}
+
+function buildHourlyData(rides) {
+  const slots = [
+    { hour: '06h', from: 6 }, { hour: '08h', from: 8 }, { hour: '10h', from: 10 },
+    { hour: '12h', from: 12 }, { hour: '14h', from: 14 }, { hour: '16h', from: 16 },
+    { hour: '18h', from: 18 }, { hour: '20h', from: 20 }
+  ];
+  const map = {};
+  slots.forEach(s => { map[s.from] = 0; });
+  rides.forEach(r => {
+    const h = new Date(r.created_date).getHours();
+    // Mapeia para o slot mais próximo
+    const slot = slots.reduce((prev, curr) => Math.abs(curr.from - h) < Math.abs(prev.from - h) ? curr : prev);
+    map[slot.from]++;
+  });
+  return slots.map(s => ({ hour: s.hour, rides: map[s.from] }));
+}
+
 export default function Earnings() {
   const [user, setUser] = useState(null);
   const [period, setPeriod] = useState('week');
+  const [loading, setLoading] = useState(true);
+  const [allRides, setAllRides] = useState([]);
   const [showCommissionModal, setShowCommissionModal] = useState(false);
   const [commissionConfirmed, setCommissionConfirmed] = useState(false);
-  const [earningsData] = useState({
-    total: 1245.50,
-    rides: 42,
-    hours: 35,
-    avgPerRide: 29.65,
-    trend: 12.5
-  });
 
   useEffect(() => {
-    const loadUser = async () => {
+    const load = async () => {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
+        // Buscar todas as corridas completadas da motorista
+        const rides = await base44.entities.Ride.filter({
+          assigned_driver_id: userData.id,
+          status: 'completed'
+        });
+        setAllRides(rides);
       } catch (e) {
         base44.auth.redirectToLogin();
+      } finally {
+        setLoading(false);
       }
     };
-    loadUser();
+    load();
   }, []);
 
-  const chartData = [
-    { day: 'Seg', value: 145 },
-    { day: 'Ter', value: 189 },
-    { day: 'Qua', value: 220 },
-    { day: 'Qui', value: 178 },
-    { day: 'Sex', value: 256 },
-    { day: 'Sáb', value: 310 },
-    { day: 'Dom', value: 147.50 }
-  ];
+  // Filtrar corridas pelo período selecionado
+  const periodStart = getPeriodStart(period);
+  const filteredRides = allRides.filter(r => isAfter(new Date(r.created_date), periodStart));
 
-  const hourlyData = [
-    { hour: '06h', rides: 2 },
-    { hour: '08h', rides: 5 },
-    { hour: '10h', rides: 3 },
-    { hour: '12h', rides: 6 },
-    { hour: '14h', rides: 4 },
-    { hour: '16h', rides: 7 },
-    { hour: '18h', rides: 9 },
-    { hour: '20h', rides: 6 }
-  ];
+  const total = filteredRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
+  const rides = filteredRides.length;
+  const avgPerRide = rides > 0 ? total / rides : 0;
 
-  const transactions = [];
+  // Comparar com período anterior para calcular tendência
+  const prevStart = new Date(periodStart.getTime() - (new Date() - periodStart));
+  const prevRides = allRides.filter(r => {
+    const d = new Date(r.created_date);
+    return isAfter(d, prevStart) && d < periodStart;
+  });
+  const prevTotal = prevRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
+  const trend = prevTotal > 0 ? ((total - prevTotal) / prevTotal) * 100 : 0;
 
-  const commissionValue = earningsData.total * COMMISSION_RATE;
-  const netValue = earningsData.total - commissionValue;
+  const chartData = buildChartData(filteredRides, period);
+  const hourlyData = buildHourlyData(filteredRides);
+
+  const commissionValue = total * COMMISSION_RATE;
+  const netValue = total - commissionValue;
+
+  const periodLabel = PERIOD_LABELS[period];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#F22998] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
@@ -89,7 +158,7 @@ export default function Earnings() {
               {!commissionConfirmed ? (
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-[#F2F2F2]">Comissão Semanal</h2>
+                    <h2 className="text-xl font-bold text-[#F2F2F2]">Comissão da {periodLabel}</h2>
                     <button onClick={() => setShowCommissionModal(false)} className="text-[#F2F2F2]/40 hover:text-[#F2F2F2] transition-colors">
                       <X className="w-5 h-5" />
                     </button>
@@ -97,8 +166,8 @@ export default function Earnings() {
 
                   <div className="bg-[#0D0D0D] rounded-2xl p-5 mb-5 space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-[#F2F2F2]/60 text-sm">Ganhos da semana</span>
-                      <span className="text-[#F2F2F2] font-semibold">R$ {earningsData.total.toFixed(2)}</span>
+                      <span className="text-[#F2F2F2]/60 text-sm">Ganhos ({periodLabel})</span>
+                      <span className="text-[#F2F2F2] font-semibold">R$ {total.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[#F2F2F2]/60 text-sm">Taxa de comissão</span>
@@ -115,7 +184,7 @@ export default function Earnings() {
                   </div>
 
                   <p className="text-[#F2F2F2]/50 text-xs text-center mb-6">
-                    Este valor corresponde à comissão semanal devida à Central Dellas. Confirme o repasse quando efetuado.
+                    Este valor corresponde à comissão devida à Central Dellas. Confirme o repasse quando efetuado.
                   </p>
 
                   <div className="flex gap-3">
@@ -202,37 +271,39 @@ export default function Earnings() {
             
             <div className="relative">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-white/70">Ganhos da semana</p>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20">
-                  {earningsData.trend > 0 ? (
-                    <ArrowUpRight className="w-4 h-4 text-green-300" />
-                  ) : (
-                    <ArrowDownRight className="w-4 h-4 text-red-300" />
-                  )}
-                  <span className="text-sm text-white font-medium">
-                    {earningsData.trend > 0 ? '+' : ''}{earningsData.trend}%
-                  </span>
-                </div>
+                <p className="text-white/70">Ganhos da {periodLabel.toLowerCase()}</p>
+                {prevTotal > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20">
+                    {trend >= 0 ? (
+                      <ArrowUpRight className="w-4 h-4 text-green-300" />
+                    ) : (
+                      <ArrowDownRight className="w-4 h-4 text-red-300" />
+                    )}
+                    <span className="text-sm text-white font-medium">
+                      {trend >= 0 ? '+' : ''}{trend.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
               </div>
               
               <h2 className="text-5xl font-bold text-white mb-8">
-                R$ {earningsData.total.toFixed(2)}
+                R$ {total.toFixed(2)}
               </h2>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl bg-white/10">
                   <Car className="w-6 h-6 text-white/70 mb-2" />
-                  <p className="text-2xl font-bold text-white">{earningsData.rides}</p>
+                  <p className="text-2xl font-bold text-white">{rides}</p>
                   <p className="text-white/60 text-sm">Corridas</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/10">
                   <Clock className="w-6 h-6 text-white/70 mb-2" />
-                  <p className="text-2xl font-bold text-white">{earningsData.hours}h</p>
+                  <p className="text-2xl font-bold text-white">—</p>
                   <p className="text-white/60 text-sm">Online</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/10">
                   <DollarSign className="w-6 h-6 text-white/70 mb-2" />
-                  <p className="text-2xl font-bold text-white">R$ {earningsData.avgPerRide.toFixed(0)}</p>
+                  <p className="text-2xl font-bold text-white">R$ {avgPerRide.toFixed(0)}</p>
                   <p className="text-white/60 text-sm">Média/corrida</p>
                 </div>
               </div>
@@ -353,49 +424,41 @@ export default function Earnings() {
           className="mt-6"
         >
           <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-[#F2F2F2]">Histórico</h3>
-              <Button variant="ghost" className="text-[#F22998] hover:bg-[#F22998]/10">
-                Ver tudo
-              </Button>
-            </div>
+            <h3 className="text-lg font-semibold text-[#F2F2F2] mb-6">Histórico de Corridas</h3>
 
-            <div className="space-y-3">
-              {transactions.map((tx, index) => (
-                <motion.div
-                  key={tx.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 + 0.5 }}
-                  className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/5 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      tx.type === 'ride' ? 'bg-[#F22998]/20' :
-                      tx.type === 'bonus' ? 'bg-green-500/20' :
-                      'bg-blue-500/20'
-                    }`}>
-                      {tx.type === 'ride' ? (
+            {filteredRides.length === 0 ? (
+              <div className="text-center py-10">
+                <Car className="w-12 h-12 text-[#F22998]/20 mx-auto mb-3" />
+                <p className="text-[#F2F2F2]/40">Nenhuma corrida concluída neste período</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredRides.slice().reverse().slice(0, 20).map((ride, index) => (
+                  <motion.div
+                    key={ride.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.04 }}
+                    className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/5 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#F22998]/20 flex items-center justify-center flex-shrink-0">
                         <Car className="w-5 h-5 text-[#F22998]" />
-                      ) : tx.type === 'bonus' ? (
-                        <TrendingUp className="w-5 h-5 text-green-400" />
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-blue-400" />
-                      )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-[#F2F2F2] truncate">{ride.dropoff_text || 'Destino'}</p>
+                        <p className="text-sm text-[#F2F2F2]/50">
+                          {format(new Date(ride.created_date), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-[#F2F2F2]">{tx.description}</p>
-                      <p className="text-sm text-[#F2F2F2]/50">
-                        {format(tx.date, "dd 'de' MMM, HH:mm", { locale: ptBR })}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {tx.amount > 0 ? '+' : ''}R$ {Math.abs(tx.amount).toFixed(2)}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
+                    <span className="font-bold text-green-400 flex-shrink-0 ml-4">
+                      +R$ {(ride.estimated_price || 0).toFixed(2)}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </Card>
         </motion.div>
       </div>
