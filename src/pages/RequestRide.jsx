@@ -22,6 +22,7 @@ import {
   parseQuery 
 } from '@/components/utils/geocoding';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
+import { calculateEtaWithGoogle } from '@/components/utils/googlePlaces';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -402,39 +403,49 @@ export default function RequestRide() {
     </svg>
   );
 
-  // Calcular distância e preço da rota
+  // Calcular distância e preço da rota — usa Google Distance Matrix com fallback OSRM
   const calculateRouteAndPrice = async (origin, destination) => {
     try {
-      const response = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=false`
-      );
-      const data = await response.json();
-      
-      if (data.routes && data.routes[0]) {
-        const distanceKm = parseFloat((data.routes[0].distance / 1000).toFixed(1));
-        const durationMin = Math.ceil(data.routes[0].duration / 60);
-        
-        setRouteDistance(distanceKm);
-        setRouteDuration(durationMin);
-        
-        // Preços: standard R$9,99 + R$4,50/km | rotta_roza R$6,99 + R$2,50/km
-        setRideTypes(prevTypes => 
-          prevTypes.map(type => {
-            const basePrice = type.id === 'standard' ? 9.99 : 6.99;
-            const pricePerKm = type.id === 'standard' ? 4.50 : 2.50;
-            const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
-            return { ...type, price: calculatedPrice, time: `${durationMin} min` };
-          })
+      let distanceKm, durationMin;
+
+      // Tentativa 1: Google Distance Matrix
+      const google = await calculateEtaWithGoogle(origin, destination);
+      if (google) {
+        distanceKm = google.distanceKm;
+        durationMin = google.durationMin;
+        console.log(`[RouteCalc] Google: ${distanceKm}km, ${durationMin}min`);
+      } else {
+        // Fallback: OSRM
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=false`
         );
-        
-        // Atualizar preço estimado do tipo selecionado
-        const basePrice = selectedRideType === 'standard' ? 9.99 : 6.99;
-        const pricePerKm = selectedRideType === 'standard' ? 4.50 : 2.50;
-        const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
-        
-        setEstimatedPrice(calculatedPrice);
-        setEstimatedTime(`${durationMin} min`);
+        const data = await response.json();
+        if (data.routes && data.routes[0]) {
+          distanceKm = parseFloat((data.routes[0].distance / 1000).toFixed(1));
+          durationMin = Math.ceil(data.routes[0].duration / 60);
+          console.log(`[RouteCalc] OSRM fallback: ${distanceKm}km, ${durationMin}min`);
+        }
       }
+
+      if (distanceKm == null) return;
+
+      setRouteDistance(distanceKm);
+      setRouteDuration(durationMin);
+
+      // Preços: standard R$9,99 + R$4,50/km | rotta_roza R$6,99 + R$2,50/km
+      setRideTypes(prevTypes =>
+        prevTypes.map(type => {
+          const basePrice = type.id === 'standard' ? 9.99 : 6.99;
+          const pricePerKm = type.id === 'standard' ? 4.50 : 2.50;
+          const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
+          return { ...type, price: calculatedPrice, time: `${durationMin} min` };
+        })
+      );
+
+      const basePrice = selectedRideType === 'standard' ? 9.99 : 6.99;
+      const pricePerKm = selectedRideType === 'standard' ? 4.50 : 2.50;
+      setEstimatedPrice((basePrice + distanceKm * pricePerKm).toFixed(2));
+      setEstimatedTime(`${durationMin} min`);
     } catch (error) {
       console.error('Erro ao calcular rota:', error);
     }
