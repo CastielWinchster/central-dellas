@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchPlaces } from '@/components/utils/geocoding';
-
+import { initGoogleMaps, initPlacesAutocomplete, placeToLocation } from '@/components/utils/googlePlaces';
 
 // Dropdown renderizado via Portal no body — nunca é cortado por overflow/isolation dos pais
 function SuggestionDropdown({ anchorRef, show, searching, suggestions, value, onSelect }) {
@@ -123,11 +123,46 @@ export default function AddressSearchField({
   const inputRef = useRef(null);
   const wrapperRef = useRef(null); // ancora para o portal
   const timerRef = useRef(null);
+  const googleCleanupRef = useRef(null);
+  const googleReadyRef = useRef(false);
+
   // Refs estáveis para evitar stale closures no debounce
   const userLocationRef = useRef(userLocation);
   const favoritesRef = useRef(favoritesAndRecents);
   useEffect(() => { userLocationRef.current = userLocation; }, [userLocation]);
   useEffect(() => { favoritesRef.current = favoritesAndRecents; }, [favoritesAndRecents]);
+
+  // Inicializar Google Places Autocomplete no input
+  useEffect(() => {
+    let cancelled = false;
+    initGoogleMaps().then(() => {
+      if (cancelled || !inputRef.current || googleReadyRef.current) return;
+      googleReadyRef.current = true;
+
+      // Bias para região de Orlândia/SP
+      const bounds = new window.google.maps.LatLngBounds(
+        new window.google.maps.LatLng(-21.5, -48.8),
+        new window.google.maps.LatLng(-19.8, -46.5)
+      );
+
+      const cleanup = initPlacesAutocomplete(
+        inputRef.current,
+        { bounds, strictBounds: false },
+        (place) => {
+          const loc = placeToLocation(place);
+          onChange(loc.text);
+          if (onSelect) onSelect({ ...loc, lon: loc.lng, name: loc.text, id: `google-${Date.now()}` });
+          setShowSuggestions(false);
+        }
+      );
+      googleCleanupRef.current = cleanup;
+    }).catch(e => console.warn('[AddressSearchField] Google Places não carregou:', e));
+
+    return () => {
+      cancelled = true;
+      if (googleCleanupRef.current) googleCleanupRef.current();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const triggerSearch = useCallback((text) => {
     if (timerRef.current) clearTimeout(timerRef.current);
