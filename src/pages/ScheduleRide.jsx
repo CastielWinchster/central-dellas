@@ -28,30 +28,18 @@ export default function ScheduleRide() {
       label: 'Dellas Standard', 
       icon: Car, 
       color: 'from-[#BF3B79] to-[#F22998]',
-      price: '+0%'
     },
     { 
-      value: 'kids', 
-      label: 'Dellas Kids', 
-      icon: Baby, 
+      value: 'roza', 
+      label: 'Rotta Roza', 
+      icon: Motorcycle, 
       color: 'from-[#F22998] to-[#8C0D60]',
-      price: '+30%',
-      description: 'Segurança infantil certificada'
-    },
-    { 
-      value: 'senior', 
-      label: 'Dellas Senior', 
-      icon: UserIcon, 
-      color: 'from-[#8C0D60] to-[#BF3B79]',
-      price: '+20%',
-      description: 'Atendimento especializado'
     },
     { 
       value: 'pet', 
       label: 'Dellas Pet', 
       icon: Dog, 
       color: 'from-[#BF3B79] to-[#F22998]',
-      price: '+15%',
       description: 'Carros pet-friendly'
     }
   ];
