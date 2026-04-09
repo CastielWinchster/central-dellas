@@ -1,78 +1,44 @@
-import { useState, useEffect } from 'react';
-import { ensureChatExists, sendMessage, subscribeToMessages, getChatInfo } from '../firebase/rideChatService';
+import { useState, useEffect, useRef } from 'react';
+import { base44 } from '@/api/base44Client';
 
 /**
- * Hook customizado para gerenciar chat de corrida
- * @param {string} rideId - ID da corrida
- * @param {string} currentUserId - UID do usuário atual
- * @param {string} driverUid - UID do motorista
- * @param {string} passengerUid - UID do passageiro
+ * Hook para gerenciar chat de corrida via Base44 nativo
  */
-export function useRideChat(rideId, currentUserId, driverUid, passengerUid) {
+export function useRideChat(rideId, currentUserId) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
-  const [chatInfo, setChatInfo] = useState(null);
 
-  // Inicializar e escutar mensagens
   useEffect(() => {
-    if (!rideId || !currentUserId || !driverUid || !passengerUid) {
+    if (!rideId || !currentUserId) {
       setLoading(false);
       return;
     }
 
-    let unsubscribe = null;
+    // Carregar mensagens iniciais
+    base44.functions.invoke('listRideMessages', { rideId })
+      .then(res => { setMessages(res.data?.messages || []); })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
 
-    const initChat = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Garantir que o chat existe
-        await ensureChatExists(rideId, driverUid, passengerUid);
-
-        // Obter informações do chat
-        const info = await getChatInfo(rideId);
-        setChatInfo(info);
-
-        // Verificar se usuário é participante
-        if (!info.participants.includes(currentUserId)) {
-          throw new Error('Você não tem permissão para acessar este chat');
-        }
-
-        // Inscrever-se para receber mensagens
-        unsubscribe = subscribeToMessages(rideId, (msgs) => {
-          setMessages(msgs);
-          setLoading(false);
-        });
-      } catch (err) {
-        console.error('Erro ao inicializar chat:', err);
-        setError(err.message);
-        setLoading(false);
+    // Subscription em tempo real
+    const unsubscribe = base44.entities.RideMessage.subscribe((event) => {
+      if (event.data?.ride_id !== rideId) return;
+      if (event.type === 'create') {
+        setMessages(prev => [...prev, event.data]);
       }
-    };
+    });
 
-    initChat();
+    return () => unsubscribe();
+  }, [rideId, currentUserId]);
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [rideId, currentUserId, driverUid, passengerUid]);
-
-  // Enviar mensagem
   const send = async (text) => {
-    if (!text || text.trim().length === 0) {
-      return;
-    }
-
+    if (!text?.trim()) return;
+    setSending(true);
     try {
-      setSending(true);
-      await sendMessage(rideId, currentUserId, text);
+      await base44.functions.invoke('sendRideMessage', { rideId, text });
     } catch (err) {
-      console.error('Erro ao enviar mensagem:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -80,12 +46,5 @@ export function useRideChat(rideId, currentUserId, driverUid, passengerUid) {
     }
   };
 
-  return {
-    messages,
-    loading,
-    sending,
-    error,
-    chatInfo,
-    send
-  };
+  return { messages, loading, sending, error, send };
 }

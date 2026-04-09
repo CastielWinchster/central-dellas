@@ -367,8 +367,9 @@ export default function DriverDashboard() {
       
       if (response.data.success) {
         toast.success('🎉 Corrida aceita! Navegue até a passageira');
-        // Salvar corrida aceita e passageira para o chat
-        setAcceptedRide(response.data.ride || ride);
+        const acceptedRideData = response.data.ride || ride;
+        setAcceptedRide(acceptedRideData);
+        setSelectedRide(acceptedRideData);
         setPassengerUser(offerPassenger);
         setRideOffer(null);
         setOfferRide(null);
@@ -558,7 +559,6 @@ export default function DriverDashboard() {
               showRoute={!!selectedRide}
               className="h-[460px]"
               forcePitch={mapTopView ? 0 : undefined}
-              passengerMarker={selectedRide ? { lat: selectedRide.pickup_lat, lng: selectedRide.pickup_lng } : null}
             />
             {/* Botão vista aérea */}
             <button
@@ -597,8 +597,81 @@ export default function DriverDashboard() {
           ))}
         </div>
 
-        {/* Corridas disponíveis — só quando online */}
-        {isOnline && (
+        {/* Corrida aceita — card principal */}
+        {acceptedRide && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border-2 border-[#F22998]">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-green-400 font-semibold text-sm">Corrida Aceita</span>
+                {liveEta && (
+                  <span className="ml-auto text-[#F22998] font-bold text-sm">
+                    {typeof liveEta === 'string' ? liveEta : `~${liveEta} min até passageira`}
+                  </span>
+                )}
+              </div>
+
+              {/* Passageira */}
+              <div className="flex items-center gap-4 mb-5">
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#F22998] flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                  {passengerUser?.photo_url
+                    ? <img src={passengerUser.photo_url} alt={passengerUser.full_name} className="w-full h-full object-cover" />
+                    : <span className="text-white text-xl font-bold">{passengerUser?.full_name?.charAt(0) || 'P'}</span>
+                  }
+                </div>
+                <div>
+                  <p className="font-bold text-[#F2F2F2] text-lg">{passengerUser?.full_name || 'Passageira'}</p>
+                  <p className="text-[#F2F2F2]/50 text-sm">R$ {acceptedRide.estimated_price?.toFixed(2) || '--'}</p>
+                </div>
+              </div>
+
+              {/* Rota */}
+              <div className="space-y-3 mb-5">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
+                  <div className="w-3 h-3 rounded-full bg-green-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Origem</p>
+                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.pickup_text}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
+                  <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Destino</p>
+                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.dropoff_text}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="py-3 rounded-2xl border border-[#F22998]/40 text-[#F22998] hover:bg-[#F22998]/10 flex items-center justify-center gap-2 font-medium transition-colors"
+                >
+                  💬 Chat
+                </button>
+                <button
+                  onClick={() => {
+                    setAcceptedRide(null);
+                    setSelectedRide(null);
+                    setPassengerUser(null);
+                  }}
+                  className="py-3 rounded-2xl border border-[#F2F2F2]/20 text-[#F2F2F2]/50 hover:bg-[#F2F2F2]/5 flex items-center justify-center gap-2 font-medium transition-colors"
+                >
+                  ✓ Concluir
+                </button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Corridas disponíveis — só quando online e sem corrida aceita */}
+        {isOnline && !acceptedRide && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -687,30 +760,12 @@ export default function DriverDashboard() {
         </div>
       </div>
       
-      {/* Chat com a passageira após corrida aceita */}
-      {acceptedRide && (
-        <div className="px-4 mb-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/30 flex items-center justify-between">
-              <div>
-                <p className="text-[#F22998] font-semibold text-sm">💬 Chat disponível</p>
-                <p className="text-[#F2F2F2]/60 text-xs">Corrida com {passengerUser?.full_name || 'Passageira'}</p>
-              </div>
-              <button
-                onClick={() => setIsChatOpen(true)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white text-sm font-medium"
-              >
-                Abrir Chat
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <RideChat
         rideId={acceptedRide?.id}
         currentUserId={user?.id}
-        otherUser={{ name: passengerUser?.full_name, photo: passengerUser?.photo_url }}
+        otherUserId={acceptedRide?.passenger_id}
+        otherUserName={passengerUser?.full_name}
+        otherUserPhoto={passengerUser?.photo_url}
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
         rideStatus={acceptedRide?.status || 'accepted'}
