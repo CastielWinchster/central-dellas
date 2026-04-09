@@ -716,6 +716,7 @@ export default function DriverDashboard() {
         rideStatus={acceptedRide?.status || 'accepted'}
       />
 
+
       {/* Ride Offer Modal */}
       {rideOffer && offerRide && (
         <RideOfferModal

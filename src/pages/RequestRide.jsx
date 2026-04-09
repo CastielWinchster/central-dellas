@@ -1176,19 +1176,7 @@ export default function RequestRide() {
                     </div>
                   </Card>
 
-                  {/* Emergency Button */}
-                  <Card className="p-4 bg-red-500/10 border-red-500/30 rounded-3xl">
-                    <button className="w-full flex items-center justify-center gap-3 text-red-400 font-medium">
-                      <Shield className="w-5 h-5" />
-                      Botão de Emergência
-                    </button>
-                  </Card>
 
-                  {/* Share Route */}
-                  <button className="w-full p-4 rounded-2xl border border-[#F22998]/20 text-[#F22998] hover:bg-[#F22998]/10 transition-colors flex items-center justify-center gap-2">
-                    <Navigation className="w-5 h-5" />
-                    Compartilhar minha rota
-                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1209,7 +1197,7 @@ function MessageCircle(props) {
 
 // RideChat renderizado fora do fluxo principal
 function PassengerRideChat({ currentRide, user, driver, isChatOpen, setIsChatOpen }) {
-  if (!currentRide || !isChatOpen) return null;
+  if (!currentRide) return null;
   return (
     <RideChat
       rideId={currentRide.id}

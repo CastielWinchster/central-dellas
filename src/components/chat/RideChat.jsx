@@ -73,6 +73,8 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
       if (res.data?.message) {
         setMessages(prev => prev.map(m => m.id === tempMsg.id ? res.data.message : m));
       }
+      // Re-fetch imediatamente para garantir sincronização
+      await fetchMessages();
     } catch (e) {
       console.error('[RideChat] Erro ao enviar:', e);
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));

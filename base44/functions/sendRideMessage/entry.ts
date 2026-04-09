@@ -15,10 +15,12 @@ Deno.serve(async (req) => {
     if (rides.length === 0) return Response.json({ error: 'Corrida não encontrada' }, { status: 404 });
 
     const ride = rides[0];
-    const isPassenger = ride.passenger_id === user.id;
-    const isDriver = ride.assigned_driver_id === user.id;
+    const isPassenger = String(ride.passenger_id) === String(user.id);
+    const isDriver = String(ride.assigned_driver_id) === String(user.id);
+    console.log('[sendRideMessage] userId:', user.id, 'passenger_id:', ride.passenger_id, 'driver_id:', ride.assigned_driver_id, 'isPassenger:', isPassenger, 'isDriver:', isDriver);
 
     if (!isPassenger && !isDriver) {
+      console.log('[sendRideMessage] ACESSO NEGADO para userId:', user.id);
       return Response.json({ error: 'Não autorizado para esta corrida' }, { status: 403 });
     }
 
