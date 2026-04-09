@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Navigation, FileText, Car, Baby, User as UserIcon, Dog } from 'lucide-react';
+import { Calendar, Clock, MapPin, Navigation, FileText, Car, Dog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -195,7 +195,7 @@ export default function ScheduleRide() {
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center mb-2`}>
-                    <type.icon className="w-5 h-5 text-white" />
+                    {type.icon && <type.icon className="w-5 h-5 text-white" />}
                   </div>
                   <p className={`font-medium text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
                     {type.label}
