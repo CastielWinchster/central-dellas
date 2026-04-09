@@ -32,7 +32,6 @@ export default function ScheduleRide() {
     { 
       value: 'roza', 
       label: 'Rotta Roza', 
-      icon: Motorcycle, 
       color: 'from-[#F22998] to-[#8C0D60]',
     },
     { 
