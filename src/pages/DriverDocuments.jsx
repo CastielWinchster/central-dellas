@@ -10,7 +10,7 @@ import CNHCard from '../components/driver/docs/CNHCard';
 import RGCard from '../components/driver/docs/RGCard';
 import CRLVCard from '../components/driver/docs/CRLVCard';
 import SeguroCard from '../components/driver/docs/SeguroCard';
-import { uploadDocFile, saveDriverDocuments, getDriverDocuments } from '../components/firebase/driverDocService';
+import { uploadDocFile, saveDriverDocuments, getDriverDocuments } from '../components/utils/documentService';
 
 export default function DriverDocuments() {
   const [user, setUser] = useState(null);

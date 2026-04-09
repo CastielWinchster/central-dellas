@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuthUser } from '../components/AuthGuard';
-import { requestPermissionAndSaveToken, onMessageListener } from './components/firebase/pushService';
+
 import NotificationBell from './components/NotificationBell';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -34,53 +34,9 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [user]);
 
-  // Solicitar permissão de push notification após login
-  useEffect(() => {
-    if (!user) return;
-    const alreadyAsked = localStorage.getItem('push_permission_asked');
-    if (alreadyAsked) return;
 
-    // Aguarda 3s para não incomodar imediatamente
-    const timer = setTimeout(async () => {
-      try {
-        await requestPermissionAndSaveToken(user.id);
-        localStorage.setItem('push_permission_asked', 'true');
-      } catch (e) {
-        console.error('Erro ao registrar push:', e);
-      }
-    }, 3000);
 
-    return () => clearTimeout(timer);
-  }, [user?.id]);
 
-  // Listener para mensagens em foreground
-  useEffect(() => {
-    if (!user) return;
-    const unsubscribe = onMessageListener(async (payload) => {
-      const title = payload.notification?.title || 'Central Dellas';
-      const body = payload.notification?.body || '';
-      const data = payload.data || {};
-
-      // Salvar no inbox (NotificationBell irá atualizar via subscribe)
-      try {
-        await base44.asServiceRole.entities.Notification.create({
-          user_id: user.id,
-          title,
-          message: body,
-          type: data.type || 'system',
-          is_read: false,
-          is_persistent: true,
-          related_link: data.link || null
-        });
-      } catch (e) {
-        // Fallback: mostrar notificação nativa se não conseguir salvar
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(title, { body, icon: '/icon-192.png' });
-        }
-      }
-    });
-    return () => typeof unsubscribe === 'function' && unsubscribe();
-  }, [user?.id]);
 
   // Simplified navigation - only Home and Solicitar Corrida
   const passengerLinks = [
