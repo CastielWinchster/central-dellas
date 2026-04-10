@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
+import AcceptedRideModal from '../components/driver/AcceptedRideModal';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 
 export default function DriverDashboard() {
@@ -42,6 +43,7 @@ export default function DriverDashboard() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [acceptedRide, setAcceptedRide] = useState(null);
   const [passengerUser, setPassengerUser] = useState(null);
+  const [showAcceptedModal, setShowAcceptedModal] = useState(false);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -372,6 +374,7 @@ export default function DriverDashboard() {
         setAcceptedRide(acceptedRideData);
         setSelectedRide(acceptedRideData);
         setPassengerUser(offerPassenger);
+        setShowAcceptedModal(true);
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
@@ -772,6 +775,17 @@ export default function DriverDashboard() {
         rideStatus={acceptedRide?.status || 'accepted'}
       />
 
+
+      {/* Modal de corrida aceita */}
+      {showAcceptedModal && (
+        <AcceptedRideModal
+          acceptedRide={acceptedRide}
+          passengerUser={passengerUser}
+          onClose={() => setShowAcceptedModal(false)}
+          onStartRide={() => setShowAcceptedModal(false)}
+          onOpenChat={() => setIsChatOpen(true)}
+        />
+      )}
 
       {/* Ride Offer Modal */}
       {rideOffer && offerRide && (
