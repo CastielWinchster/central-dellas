@@ -25,7 +25,7 @@ export default function DriverDashboard() {
     rides: 0,
     earnings: 0,
   });
-  const [mapTopView, setMapTopView] = useState(false);
+
   const [selectedRide, setSelectedRide] = useState(null);
   const [pendingRide, setPendingRide] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({ lat: -23.5505, lng: -46.6333 });
@@ -576,19 +576,8 @@ export default function DriverDashboard() {
               destinationLocation={selectedRide ? { lat: selectedRide.dropoff_lat, lng: selectedRide.dropoff_lng } : null}
               showRoute={!!selectedRide}
               className="h-[460px]"
-              forcePitch={mapTopView ? 0 : undefined}
+              driverLocation={isOnline ? currentLocation : null}
             />
-            {/* Botão vista aérea */}
-            <button
-              onClick={() => setMapTopView(v => !v)}
-              className={`absolute top-4 right-4 z-10 px-3 py-2 rounded-xl text-xs font-semibold backdrop-blur-md border transition-all ${
-                mapTopView
-                  ? 'bg-[#F22998] border-[#F22998] text-white'
-                  : 'bg-[#0D0D0D]/80 border-[#F22998]/40 text-[#F22998]'
-              }`}
-            >
-              {mapTopView ? '🗺️ Vista 3D' : '🛰️ Vista Aérea'}
-            </button>
           </Card>
         </motion.div>
 

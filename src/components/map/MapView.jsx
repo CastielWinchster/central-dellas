@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl } from 'react-map-gl';
+import { loadGoogleMapsKey } from '@/components/utils/googlePlaces';
 import mapboxgl from 'mapbox-gl';
 import { Car, MapPin, Target, Navigation, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +16,22 @@ function calculateHeading(fromLat, fromLng, toLat, toLng) {
   const y = Math.sin(dLng) * Math.cos(lat2);
   const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+// Decodificador de Google Encoded Polyline
+function decodePolyline(str) {
+  const result = [];
+  let i = 0, lat = 0, lng = 0;
+  while (i < str.length) {
+    let b, s = 0, r = 0;
+    do { b = str.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
+    lat += (r & 1) ? ~(r >> 1) : (r >> 1);
+    s = 0; r = 0;
+    do { b = str.charCodeAt(i++) - 63; r |= (b & 0x1f) << s; s += 5; } while (b >= 0x20);
+    lng += (r & 1) ? ~(r >> 1) : (r >> 1);
+    result.push([lng / 1e5, lat / 1e5]);
+  }
+  return result;
 }
 
 const UserMarker = ({ heading = 0 }) => (
@@ -171,10 +188,10 @@ export default function MapView({
   destinationDraggable = false,
   onMapClick = null,
   onDestinationSelected = null,
-  forcePitch = undefined,
   showRealTimeDrivers = false,
   filterPets = false,
   passengerMarker = null,
+  driverLocation = null,
 }) {
   const [tokenLoaded, setTokenLoaded] = useState(!!MAPBOX_CONFIG.ACCESS_TOKEN);
 
@@ -188,8 +205,8 @@ export default function MapView({
   const [viewState, setViewState] = useState({
     longitude: center[0], latitude: center[1],
     zoom: MAPBOX_CONFIG.DEFAULT_ZOOM,
-    pitch: MAPBOX_CONFIG.DEFAULT_PITCH,
-    bearing: MAPBOX_CONFIG.DEFAULT_BEARING
+    pitch: 0,
+    bearing: 0
   });
 
   const [userLocation, setUserLocation] = useState(null);
@@ -209,6 +226,10 @@ export default function MapView({
   const routeAnimationRef = useRef(null);
   const dashAnimRef = useRef(null);
   const driverAnimationsRef = useRef({});
+  const [currentStreet, setCurrentStreet] = useState('');
+  const googleKeyRef = useRef(null);
+  const streetIntervalRef = useRef(null);
+  const driverLocationRef = useRef(driverLocation);
 
   // Polling de motoristas em tempo real
   useEffect(() => {
@@ -241,6 +262,34 @@ export default function MapView({
     return () => clearInterval(realTimeIntervalRef.current);
   }, [showRealTimeDrivers, filterPets]);
 
+  // Sync driverLocation ref
+  useEffect(() => { driverLocationRef.current = driverLocation; }, [driverLocation]);
+
+  // Street name via Google Reverse Geocoding (15s)
+  useEffect(() => {
+    if (!driverLocation?.lat) {
+      clearInterval(streetIntervalRef.current);
+      streetIntervalRef.current = null;
+      return;
+    }
+    const fetchStreet = async () => {
+      const loc = driverLocationRef.current;
+      if (!loc?.lat) return;
+      try {
+        if (!googleKeyRef.current) googleKeyRef.current = await loadGoogleMapsKey();
+        const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${loc.lat},${loc.lng}&key=${googleKeyRef.current}&result_type=route`);
+        const data = await res.json();
+        const street = data.results?.[0]?.address_components?.find(c => c.types.includes('route'))?.long_name;
+        if (street) setCurrentStreet(street);
+      } catch (e) {}
+    };
+    fetchStreet();
+    if (!streetIntervalRef.current) {
+      streetIntervalRef.current = setInterval(fetchStreet, 15000);
+    }
+    return () => { clearInterval(streetIntervalRef.current); streetIntervalRef.current = null; };
+  }, [!!driverLocation]);
+
   // Track user location
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -258,7 +307,7 @@ export default function MapView({
         if (followMode && mapRef.current) {
           mapRef.current.easeTo({
             center: newPos, zoom: Math.max(viewState.zoom, 16),
-            pitch: MAPBOX_CONFIG.DEFAULT_PITCH, bearing: userHeading,
+            pitch: 0, bearing: 0,
             duration: MAPBOX_CONFIG.ANIMATION_DURATION
           });
         }
@@ -314,52 +363,35 @@ export default function MapView({
     return () => { if (dashAnimRef.current) cancelAnimationFrame(dashAnimRef.current); };
   }, [routeData]);
 
-  // Calcular rota — Etapas 3, 4 e 5
+  // Calcular rota via Google Directions API
   useEffect(() => {
     if (showRoute && pickupLocation && destinationLocation) {
       const getRoute = async () => {
         try {
-          // Etapa 5: usar coordenadas exatas do geocoding (sem arredondamento)
-          const oLng = pickupLocation.lng;
-          const oLat = pickupLocation.lat;
-          const dLng = destinationLocation.lng;
-          const dLat = destinationLocation.lat;
+          const oLat = pickupLocation.lat, oLng = pickupLocation.lng;
+          const dLat = destinationLocation.lat, dLng = destinationLocation.lng;
 
-          // Etapa 3: alternatives=true, geometries=geojson, overview=full, profile=driving
-          const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${oLng},${oLat};${dLng},${dLat}?alternatives=true&geometries=geojson&overview=full&access_token=${MAPBOX_CONFIG.ACCESS_TOKEN}`;
-
+          if (!googleKeyRef.current) googleKeyRef.current = await loadGoogleMapsKey();
+          const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${oLat},${oLng}&destination=${dLat},${dLng}&mode=driving&region=BR&language=pt-BR&key=${googleKeyRef.current}`;
           const response = await fetch(url);
           const data = await response.json();
 
-          if (!data.routes || data.routes.length === 0) {
-            console.warn('[MapView] Nenhuma rota retornada');
+          if (data.status !== 'OK' || !data.routes?.length) {
+            console.warn('[MapView] Google Directions falhou:', data.status);
             return;
           }
 
-          // Etapa 4: logar todas as rotas e escolher a melhor (menor distância, desempate por duração)
-          console.log(`[MapView] ${data.routes.length} rotas retornadas:`);
-          data.routes.forEach((r, i) => {
-            console.log(`  Rota ${i}: dist=${(r.distance / 1000).toFixed(2)}km | dur=${Math.round(r.duration / 60)}min`);
-          });
+          const coords = decodePolyline(data.routes[0].overview_polyline.points);
+          console.log(`[MapView] Google Directions: ${coords.length} pontos`);
 
-          const bestRoute = data.routes.reduce((best, current) => {
-            if (current.distance < best.distance) return current;
-            if (current.distance === best.distance && current.duration < best.duration) return current;
-            return best;
-          });
-
-          const bestIdx = data.routes.indexOf(bestRoute);
-          console.log(`[MapView] Rota escolhida: índice ${bestIdx} | dist=${(bestRoute.distance / 1000).toFixed(2)}km | dur=${Math.round(bestRoute.duration / 60)}min`);
-
-          const route = { type: 'Feature', geometry: bestRoute.geometry };
+          const route = { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } };
           setRouteData(route);
           setRouteProgress(null);
-          animateRoute(bestRoute.geometry.coordinates);
+          animateRoute(coords);
 
-          if (mapRef.current) {
-            const coords = bestRoute.geometry.coordinates;
+          if (mapRef.current && coords.length > 1) {
             const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-            mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: MAPBOX_CONFIG.DEFAULT_PITCH });
+            mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: 0 });
           }
         } catch (error) {
           console.error('[MapView] Erro ao calcular rota:', error);
@@ -411,19 +443,13 @@ export default function MapView({
     if (newFollowMode && userLocation && mapRef.current) {
       mapRef.current.easeTo({
         center: userLocation, zoom: 16,
-        pitch: MAPBOX_CONFIG.DEFAULT_PITCH, bearing: userHeading,
+        pitch: 0, bearing: 0,
         duration: MAPBOX_CONFIG.ANIMATION_DURATION
       });
     }
   };
 
-  // Reagir a mudança de forcePitch
-  useEffect(() => {
-    if (!mapRef.current) return;
-    if (forcePitch !== undefined) {
-      mapRef.current.easeTo({ pitch: forcePitch, bearing: 0, duration: 600 });
-    }
-  }, [forcePitch]);
+
 
   const handleMapClick = useCallback(async (event) => {
     if (onMapClick) onMapClick(event.lngLat.lat, event.lngLat.lng);
@@ -482,6 +508,16 @@ export default function MapView({
         }
       `}</style>
 
+      {driverLocation?.lat && (
+        <button
+          onClick={() => mapRef.current?.flyTo({ center: [driverLocation.lng, driverLocation.lat], zoom: 17, speed: 1.5 })}
+          style={{ position: 'absolute', bottom: 76, right: 20, zIndex: 10, width: 48, height: 48, borderRadius: '50%', background: 'rgba(13,13,13,0.9)', border: '2px solid rgba(242,41,152,0.5)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+          title="Centralizar na minha posição"
+        >
+          <Navigation className="w-5 h-5" style={{ color: 'white' }} />
+        </button>
+      )}
+
       <button
         onClick={handleToggleFollow}
         className={`follow-btn ${followMode ? 'active' : ''}`}
@@ -490,10 +526,16 @@ export default function MapView({
         <Target className="w-5 h-5" style={{ color: 'white' }} />
       </button>
 
+      {currentStreet ? (
+        <div style={{ position: 'absolute', bottom: 80, left: 12, zIndex: 10, background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: 11, padding: '4px 10px', borderRadius: 999, backdropFilter: 'blur(6px)', maxWidth: '60%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          📍 {currentStreet}
+        </div>
+      ) : null}
+
       <Map
         ref={mapRef}
         {...viewState}
-        onMove={evt => setViewState(evt.viewState)}
+        onMove={evt => setViewState({...evt.viewState, pitch: 0})}
         onDragStart={handleMoveStart}
         onClick={handleMapClick}
         mapStyle={MAPBOX_CONFIG.MAP_STYLE}

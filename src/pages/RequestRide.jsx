@@ -710,37 +710,26 @@ export default function RequestRide() {
               {mapTopView ? '🗺️ Vista 3D' : '🛰️ Vista Aérea'}
             </button>
             
-            {/* Card flutuante com informações da rota */}
+            {/* Card flutuante compacto com informações da rota */}
             {routeDistance && routeDuration && step === 'options' && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-3 left-3 right-3 z-10"
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-white rounded-2xl shadow-lg px-4 py-2 flex items-center gap-3 w-auto max-w-[88%]"
               >
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg flex items-center justify-between px-3 py-2">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3 h-3 text-[#F22998] flex-shrink-0" />
-                    <div>
-                      <p className="text-[9px] text-gray-400 leading-none">Distância</p>
-                      <p className="font-bold text-gray-900 text-xs leading-tight">{routeDistance} km</p>
-                    </div>
-                  </div>
-                  <div className="w-px h-5 bg-gray-200" />
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-[#F22998] flex-shrink-0" />
-                    <div>
-                      <p className="text-[9px] text-gray-400 leading-none">Tempo</p>
-                      <p className="font-bold text-gray-900 text-xs leading-tight">{routeDuration} min</p>
-                    </div>
-                  </div>
-                  <div className="w-px h-5 bg-gray-200" />
-                  <div className="flex items-center gap-1.5">
-                    <CreditCard className="w-3 h-3 text-[#F22998] flex-shrink-0" />
-                    <div>
-                      <p className="text-[9px] text-gray-400 leading-none">Preço</p>
-                      <p className="font-bold text-[#F22998] text-xs leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
-                    </div>
-                  </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-400 leading-none">Distância</p>
+                  <p className="text-sm font-bold text-gray-900 leading-tight">{routeDistance} km</p>
+                </div>
+                <div className="w-px h-6 bg-gray-200" />
+                <div className="text-center">
+                  <p className="text-xs text-gray-400 leading-none">Tempo</p>
+                  <p className="text-sm font-bold text-gray-900 leading-tight">{routeDuration} min</p>
+                </div>
+                <div className="w-px h-6 bg-gray-200" />
+                <div className="text-center">
+                  <p className="text-xs text-gray-400 leading-none">Preço</p>
+                  <p className="text-sm font-bold text-[#F22998] leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
                 </div>
               </motion.div>
             )}
