@@ -365,20 +365,21 @@ export default function DriverDashboard() {
         offerId: offer.id
       });
       
-      if (response.data.success) {
+      const responseData = response?.data || response;
+      if (responseData.success) {
         toast.success('🎉 Corrida aceita! Navegue até a passageira');
-        const acceptedRideData = response.data.ride || ride;
+        const acceptedRideData = responseData?.ride || ride;
         setAcceptedRide(acceptedRideData);
         setSelectedRide(acceptedRideData);
         setPassengerUser(offerPassenger);
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
-      } else if (response.data.expired) {
+      } else if (responseData.expired) {
         toast.warning('Oferta expirada');
         setRideOffer(null);
       } else {
-        toast.error(response.data.error || 'Não foi possível aceitar');
+        toast.error(responseData.error || 'Não foi possível aceitar');
         setRideOffer(null);
       }
     } catch (error) {
@@ -635,14 +636,14 @@ export default function DriverDashboard() {
                   <div className="w-3 h-3 rounded-full bg-green-400 mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Origem</p>
-                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.pickup_text}</p>
+                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.pickup_text || acceptedRide.pickup_address}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
                   <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Destino</p>
-                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.dropoff_text}</p>
+                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.dropoff_text || acceptedRide.dropoff_address}</p>
                   </div>
                 </div>
               </div>
