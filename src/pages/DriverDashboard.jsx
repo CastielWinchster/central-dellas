@@ -20,7 +20,7 @@ import AvailableRidesList from '../components/driver/AvailableRidesList';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => localStorage.getItem('driver_is_online') === 'true');
   const [todayStats, setTodayStats] = useState({
     rides: 0,
     earnings: 0,
@@ -41,9 +41,12 @@ export default function DriverDashboard() {
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [acceptedRide, setAcceptedRide] = useState(null);
+  const [acceptedRide, setAcceptedRide] = useState(() => {
+    try { const s = localStorage.getItem('active_ride'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
   const [passengerUser, setPassengerUser] = useState(null);
   const [showAcceptedModal, setShowAcceptedModal] = useState(false);
+  const lastGpsUpdateRef = useRef(0);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -180,6 +183,8 @@ export default function DriverDashboard() {
         watchIdRef.current = navigator.geolocation.watchPosition(
           async (pos) => {
             const { latitude: lat, longitude: lng, accuracy: acc, heading: h, speed: s } = pos.coords;
+            // Ignorar leituras com precisão ruim
+            if (acc > 50) return;
             const newLocation = { lat, lng };
 
             if (lastLocationRef.current) {
@@ -194,6 +199,11 @@ export default function DriverDashboard() {
 
             setCurrentLocation(newLocation);
             lastLocationRef.current = newLocation;
+
+            // Throttle de 5s para writes no banco
+            const now = Date.now();
+            if (now - lastGpsUpdateRef.current < 5000) return;
+            lastGpsUpdateRef.current = now;
 
             const currentRecord = presenceRecordRef.current;
             if (currentRecord) {
@@ -211,10 +221,9 @@ export default function DriverDashboard() {
             }
           },
           (error) => {
-            // Erro no watchPosition — apenas loga, NÃO derruba o status online
             console.warn('Erro no watchPosition (não crítico):', error.message);
           },
-          { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
         );
       }
 
@@ -375,6 +384,7 @@ export default function DriverDashboard() {
         setSelectedRide(acceptedRideData);
         setPassengerUser(offerPassenger);
         setShowAcceptedModal(true);
+        localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
@@ -472,7 +482,11 @@ export default function DriverDashboard() {
                 </span>
                 <Switch
                   checked={isOnline}
-                  onCheckedChange={setIsOnline}
+                  onCheckedChange={(val) => {
+                    if (val) { localStorage.setItem('driver_is_online', 'true'); }
+                    else { localStorage.removeItem('driver_is_online'); }
+                    setIsOnline(val);
+                  }}
                   className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
                 />
               </div>
@@ -660,7 +674,11 @@ export default function DriverDashboard() {
                   💬 Chat
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    if (acceptedRide?.id) {
+                      try { await base44.entities.Ride.update(acceptedRide.id, { status: 'completed' }); } catch(e) {}
+                    }
+                    localStorage.removeItem('active_ride');
                     setAcceptedRide(null);
                     setSelectedRide(null);
                     setPassengerUser(null);
