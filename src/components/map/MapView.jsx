@@ -349,66 +349,54 @@ export default function MapView({
     });
   }, [nearbyDrivers]);
 
-  // Animação contínua do dasharray (fluxo na linha)
-  useEffect(() => {
-    if (!routeData) {
-      if (dashAnimRef.current) cancelAnimationFrame(dashAnimRef.current);
-      return;
-    }
-    const animate = () => {
-      setRouteAnimOffset(prev => (prev + 0.5) % 30);
-      dashAnimRef.current = requestAnimationFrame(animate);
-    };
-    dashAnimRef.current = requestAnimationFrame(animate);
-    return () => { if (dashAnimRef.current) cancelAnimationFrame(dashAnimRef.current); };
-  }, [routeData]);
 
-  // Calcular rota via Google Directions API
+
+  // Calcular rota
   useEffect(() => {
-    if (showRoute && pickupLocation && destinationLocation) {
+    const hasRoute = (showRoute || (pickupLocation && destinationLocation));
+    if (hasRoute && pickupLocation && destinationLocation) {
+      const oLat = pickupLocation.lat, oLng = pickupLocation.lng;
+      const dLat = destinationLocation.lat, dLng = destinationLocation.lng;
+
+      // Desenha linha reta imediatamente como fallback visual
+      const straightLine = {
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: [[oLng, oLat], [dLng, dLat]] }
+      };
+      setRouteProgress(straightLine);
+
+      // Ajusta o mapa para mostrar os dois pontos
+      if (mapRef.current) {
+        const bounds = new mapboxgl.LngLatBounds([[oLng, oLat], [dLng, dLat]]);
+        mapRef.current.fitBounds(bounds, { padding: 80, duration: 1000, pitch: 0 });
+      }
+
       const getRoute = async () => {
         try {
-          const oLat = pickupLocation.lat, oLng = pickupLocation.lng;
-          const dLat = destinationLocation.lat, dLng = destinationLocation.lng;
+          // Tenta OSRM primeiro (sem restrições de API key)
+          const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${dLng},${dLat}?geometries=geojson&overview=full`;
+          const osrmRes = await fetch(osrmUrl);
+          const osrmData = await osrmRes.json();
+          if (osrmData.routes?.[0]?.geometry?.coordinates?.length > 1) {
+            const coords = osrmData.routes[0].geometry.coordinates;
+            console.log(`[MapView] OSRM: ${coords.length} pontos`);
+            animateRoute(coords);
+            return;
+          }
 
+          // Fallback: Google Directions
           if (!googleKeyRef.current) googleKeyRef.current = await loadGoogleMapsKey();
           const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${oLat},${oLng}&destination=${dLat},${dLng}&mode=driving&region=BR&language=pt-BR&key=${googleKeyRef.current}`;
           const response = await fetch(url);
           const data = await response.json();
-
-          if (data.status !== 'OK' || !data.routes?.length) {
-            console.warn('[MapView] Google Directions falhou:', data.status, '— tentando OSRM fallback');
-            // Fallback: OSRM
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${dLng},${dLat}?geometries=geojson&overview=full`;
-            const osrmRes = await fetch(osrmUrl);
-            const osrmData = await osrmRes.json();
-            if (osrmData.routes?.[0]?.geometry?.coordinates) {
-              const coords = osrmData.routes[0].geometry.coordinates;
-              setRouteData({ type: 'Feature', geometry: { type: 'LineString', coordinates: coords } });
-              setRouteProgress(null);
-              animateRoute(coords);
-              if (mapRef.current && coords.length > 1) {
-                const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-                mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: 0 });
-              }
-            }
-            return;
+          if (data.status === 'OK' && data.routes?.length) {
+            const coords = decodePolyline(data.routes[0].overview_polyline.points);
+            console.log(`[MapView] Google Directions: ${coords.length} pontos`);
+            animateRoute(coords);
           }
-
-          const coords = decodePolyline(data.routes[0].overview_polyline.points);
-          console.log(`[MapView] Google Directions: ${coords.length} pontos`);
-
-          const route = { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } };
-          setRouteData(route);
-          setRouteProgress(null);
-          animateRoute(coords);
-
-          if (mapRef.current && coords.length > 1) {
-            const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-            mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: 0 });
-          }
+          // Se ambos falharem, linha reta já está visível
         } catch (error) {
-          console.error('[MapView] Erro ao calcular rota:', error);
+          console.warn('[MapView] Rota via API falhou, mantendo linha reta:', error.message);
         }
       };
       getRoute();
@@ -440,36 +428,7 @@ export default function MapView({
     animate();
   }, []);
 
-  // Imperative route drawing — mais confiável que Source/Layer declarativo
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const LAYERS = ['route-main', 'route-outline', 'route-glow'];
-    const SOURCE = 'route-imp';
 
-    const clearRoute = () => {
-      LAYERS.forEach(id => { try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {} });
-      try { if (map.getSource(SOURCE)) map.removeSource(SOURCE); } catch(e) {}
-    };
-
-    const drawRoute = () => {
-      if (!routeProgress?.geometry?.coordinates?.length) { clearRoute(); return; }
-      try {
-        if (map.getSource(SOURCE)) {
-          map.getSource(SOURCE).setData(routeProgress);
-        } else {
-          clearRoute();
-          map.addSource(SOURCE, { type: 'geojson', data: routeProgress });
-          map.addLayer({ id: 'route-glow', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#F22998', 'line-width': 14, 'line-opacity': 0.18, 'line-blur': 8 } });
-          map.addLayer({ id: 'route-outline', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#0a5fd8', 'line-width': 8, 'line-opacity': 0.4 } });
-          map.addLayer({ id: 'route-main', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#1A73E8', 'line-width': 5, 'line-opacity': 1 } });
-        }
-      } catch(e) { console.warn('[MapView] Route draw:', e.message); }
-    };
-
-    if (map.isStyleLoaded()) { drawRoute(); }
-    else { map.once('styledata', drawRoute); return () => map.off('styledata', drawRoute); }
-  }, [routeProgress]);
 
   const handleMoveStart = useCallback(() => {
     if (followMode) {
@@ -624,6 +583,21 @@ export default function MapView({
           >
             <DestinationMarker />
           </Marker>
+        )}
+
+        {/* Rota declarativa — react-map-gl gerencia lifecycle automaticamente */}
+        {routeProgress && (
+          <Source id="route-source" type="geojson" data={routeProgress}>
+            <Layer id="route-glow" type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': '#1A73E8', 'line-width': 12, 'line-opacity': 0.15, 'line-blur': 6 }} />
+            <Layer id="route-outline" type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': '#0a5fd8', 'line-width': 8, 'line-opacity': 0.4 }} />
+            <Layer id="route-main" type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': '#1A73E8', 'line-width': 5, 'line-opacity': 1 }} />
+          </Source>
         )}
 
         {/* Motoristas passados como prop */}
