@@ -426,6 +426,37 @@ export default function MapView({
     animate();
   }, []);
 
+  // Imperative route drawing — mais confiável que Source/Layer declarativo
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const LAYERS = ['route-main', 'route-outline', 'route-glow'];
+    const SOURCE = 'route-imp';
+
+    const clearRoute = () => {
+      LAYERS.forEach(id => { try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {} });
+      try { if (map.getSource(SOURCE)) map.removeSource(SOURCE); } catch(e) {}
+    };
+
+    const drawRoute = () => {
+      if (!routeProgress?.geometry?.coordinates?.length) { clearRoute(); return; }
+      try {
+        if (map.getSource(SOURCE)) {
+          map.getSource(SOURCE).setData(routeProgress);
+        } else {
+          clearRoute();
+          map.addSource(SOURCE, { type: 'geojson', data: routeProgress });
+          map.addLayer({ id: 'route-glow', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#F22998', 'line-width': 14, 'line-opacity': 0.18, 'line-blur': 8 } });
+          map.addLayer({ id: 'route-outline', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#0a5fd8', 'line-width': 8, 'line-opacity': 0.4 } });
+          map.addLayer({ id: 'route-main', type: 'line', source: SOURCE, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#1A73E8', 'line-width': 5, 'line-opacity': 1 } });
+        }
+      } catch(e) { console.warn('[MapView] Route draw:', e.message); }
+    };
+
+    if (map.isStyleLoaded()) { drawRoute(); }
+    else { map.once('styledata', drawRoute); return () => map.off('styledata', drawRoute); }
+  }, [routeProgress]);
+
   const handleMoveStart = useCallback(() => {
     if (followMode) {
       setFollowMode(false);
@@ -545,68 +576,6 @@ export default function MapView({
         antialias={true}
       >
         <NavigationControl position="top-left" showCompass={true} />
-
-        {/* Rota base — sombra/glow por baixo */}
-        {routeProgress && (
-          <Source type="geojson" data={routeProgress}>
-            <Layer
-              id="route-glow"
-              type="line"
-              paint={{
-                'line-color': '#F22998',
-                'line-width': 14,
-                'line-opacity': 0.18,
-                'line-blur': 6
-              }}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            />
-            <Layer
-              id="route-outline"
-              type="line"
-              paint={{
-                'line-color': '#8C0D60',
-                'line-width': 7,
-                'line-opacity': 0.5
-              }}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            />
-            <Layer
-              id="route-main"
-              type="line"
-              paint={{
-                'line-color': '#F22998',
-                'line-width': 5,
-                'line-opacity': 1
-              }}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            />
-            {/* Efeito de fluxo animado */}
-            <Layer
-              id="route-flow"
-              type="line"
-              paint={{
-                'line-color': '#ffffff',
-                'line-width': 3,
-                'line-opacity': 0.55,
-                'line-dasharray': [0, 6, 4, 6],
-                'line-offset': routeAnimOffset * 0
-              }}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            />
-          </Source>
-        )}
-
-        {/* Full route (fundo cinza sutil antes da animação) */}
-        {routeData && !routeProgress && (
-          <Source type="geojson" data={routeData}>
-            <Layer
-              id="route-bg"
-              type="line"
-              paint={{ 'line-color': '#333', 'line-width': 5, 'line-opacity': 0.4 }}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            />
-          </Source>
-        )}
 
         {/* User location */}
         {userLocation && (

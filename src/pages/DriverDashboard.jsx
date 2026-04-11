@@ -45,7 +45,10 @@ export default function DriverDashboard() {
     try { const s = localStorage.getItem('active_ride'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [passengerUser, setPassengerUser] = useState(null);
-  const [showAcceptedModal, setShowAcceptedModal] = useState(false);
+  const [showAcceptedModal, setShowAcceptedModal] = useState(() => {
+    // Reabrir modal se havia corrida ativa salva
+    try { return !!localStorage.getItem('active_ride'); } catch { return false; }
+  });
   const lastGpsUpdateRef = useRef(0);
 
   // Haversine local para ETA em tempo real
@@ -418,8 +421,35 @@ export default function DriverDashboard() {
   };
 
   const handleAcceptRide = async () => {
-    // Accept ride logic
     setPendingRide(null);
+  };
+
+  // Chamado pelo AvailableRidesList quando aceita via lista
+  const handleRideAcceptedFromList = async (acceptedRideData) => {
+    setAcceptedRide(acceptedRideData);
+    setSelectedRide(acceptedRideData);
+    localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
+    // Buscar passageira
+    try {
+      const passengers = await base44.entities.User.filter({ id: acceptedRideData.passenger_id });
+      setPassengerUser(passengers[0] || null);
+    } catch(e) {}
+    setShowAcceptedModal(true);
+    toast.success('🎉 Corrida aceita! Navegue até a passageira');
+  };
+
+  const handleCompleteRide = async () => {
+    const price = acceptedRide?.estimated_price || 0;
+    if (acceptedRide?.id) {
+      try { await base44.entities.Ride.update(acceptedRide.id, { status: 'completed' }); } catch(e) {}
+    }
+    localStorage.removeItem('active_ride');
+    setAcceptedRide(null);
+    setSelectedRide(null);
+    setPassengerUser(null);
+    setShowAcceptedModal(false);
+    setTodayStats(prev => ({ rides: prev.rides + 1, earnings: prev.earnings + price }));
+    toast.success(`✅ Corrida concluída! Você ganhou R$ ${Number(price).toFixed(2)}`);
   };
 
   const handleRejectRide = () => {
@@ -663,15 +693,7 @@ export default function DriverDashboard() {
                   💬 Chat
                 </button>
                 <button
-                  onClick={async () => {
-                    if (acceptedRide?.id) {
-                      try { await base44.entities.Ride.update(acceptedRide.id, { status: 'completed' }); } catch(e) {}
-                    }
-                    localStorage.removeItem('active_ride');
-                    setAcceptedRide(null);
-                    setSelectedRide(null);
-                    setPassengerUser(null);
-                  }}
+                  onClick={handleCompleteRide}
                   className="py-3 rounded-2xl border border-[#F2F2F2]/20 text-[#F2F2F2]/50 hover:bg-[#F2F2F2]/5 flex items-center justify-center gap-2 font-medium transition-colors"
                 >
                   ✓ Concluir
@@ -691,6 +713,7 @@ export default function DriverDashboard() {
             <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
               <AvailableRidesList
                 onRideSelect={setSelectedRide}
+                onRideAccepted={handleRideAcceptedFromList}
                 selectedRideId={selectedRide?.id}
                 driverLocation={currentLocation}
               />
@@ -784,13 +807,14 @@ export default function DriverDashboard() {
 
 
       {/* Modal de corrida aceita */}
-      {showAcceptedModal && (
+      {showAcceptedModal && acceptedRide && (
         <AcceptedRideModal
           acceptedRide={acceptedRide}
           passengerUser={passengerUser}
           onClose={() => setShowAcceptedModal(false)}
           onStartRide={() => setShowAcceptedModal(false)}
-          onOpenChat={() => setIsChatOpen(true)}
+          onOpenChat={() => { setIsChatOpen(true); setShowAcceptedModal(false); }}
+          onCancelRide={handleCompleteRide}
         />
       )}
 

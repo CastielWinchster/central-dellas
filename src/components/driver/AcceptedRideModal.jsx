@@ -10,7 +10,7 @@ function formatPaymentMethod(method) {
   return method;
 }
 
-export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose, onStartRide, onOpenChat }) {
+export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose, onStartRide, onOpenChat, onCancelRide }) {
   if (!acceptedRide) return null;
 
   return (
@@ -102,6 +102,14 @@ export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose
             >
               🗺️ Iniciar corrida
             </button>
+            {onCancelRide && (
+              <button
+                onClick={onCancelRide}
+                className="w-full py-3.5 rounded-2xl bg-red-600/20 hover:bg-red-600/30 text-red-400 font-semibold flex items-center justify-center gap-2 transition-colors"
+              >
+                ❌ Cancelar corrida
+              </button>
+            )}
             <button
               onClick={onClose}
               className="w-full py-2.5 rounded-2xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors"
