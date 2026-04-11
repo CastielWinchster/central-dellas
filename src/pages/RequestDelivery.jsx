@@ -251,14 +251,6 @@ export default function RequestDelivery() {
               className="h-full"
               forcePitch={mapTopView ? 0 : undefined}
             />
-            <button
-              onClick={() => setMapTopView(v => !v)}
-              className={`absolute top-3 right-3 z-10 px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md border transition-all ${
-                mapTopView ? 'bg-[#F22998] border-[#F22998] text-white' : 'bg-[#0D0D0D]/80 border-[#F22998]/40 text-[#F22998]'
-              }`}
-            >
-              {mapTopView ? '🗺️ Vista 3D' : '🛰️ Vista Aérea'}
-            </button>
 
             {/* Card resumo no mapa */}
             {routeDistance && routeDuration && (
