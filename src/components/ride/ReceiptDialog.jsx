@@ -13,8 +13,9 @@ import { ptBR } from 'date-fns/locale';
 export default function ReceiptDialog({ ride, isOpen, onClose }) {
   if (!ride) return null;
 
+  const finalPrice = Number(ride.final_price ?? ride.estimated_price ?? 0);
+
   const handleDownloadPDF = () => {
-    // Create a printable version
     const printWindow = window.open('', '_blank');
     const receiptHTML = `
       <!DOCTYPE html>
@@ -23,138 +24,29 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           <meta charset="UTF-8">
           <title>Recibo - Central Dellas</title>
           <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              padding: 40px;
-              background: #fff;
-              color: #0D0D0D;
-            }
-            .receipt {
-              max-width: 600px;
-              margin: 0 auto;
-              border: 2px solid #F22998;
-              border-radius: 20px;
-              padding: 40px;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 40px;
-              padding-bottom: 20px;
-              border-bottom: 2px solid #F2F2F2;
-            }
-            .logo {
-              font-size: 32px;
-              font-weight: bold;
-              background: linear-gradient(135deg, #BF3B79 0%, #F22998 100%);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              margin-bottom: 10px;
-            }
-            .subtitle {
-              color: #666;
-              font-size: 14px;
-            }
-            .section {
-              margin-bottom: 30px;
-            }
-            .section-title {
-              font-size: 12px;
-              color: #666;
-              text-transform: uppercase;
-              margin-bottom: 10px;
-              font-weight: 600;
-            }
-            .info-row {
-              display: flex;
-              justify-content: space-between;
-              padding: 12px 0;
-              border-bottom: 1px solid #F2F2F2;
-            }
-            .info-label {
-              color: #666;
-            }
-            .info-value {
-              font-weight: 600;
-              color: #0D0D0D;
-            }
-            .location {
-              padding: 15px;
-              background: #F2F2F2;
-              border-radius: 10px;
-              margin-bottom: 10px;
-            }
-            .location-type {
-              font-size: 12px;
-              color: #666;
-              margin-bottom: 5px;
-            }
-            .location-address {
-              font-weight: 500;
-              color: #0D0D0D;
-            }
-            .driver-info {
-              display: flex;
-              align-items: center;
-              gap: 15px;
-              padding: 15px;
-              background: #F2F2F2;
-              border-radius: 10px;
-            }
-            .driver-name {
-              font-weight: 600;
-              margin-bottom: 5px;
-            }
-            .driver-rating {
-              color: #666;
-              font-size: 14px;
-            }
-            .total {
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 3px solid #F22998;
-              text-align: right;
-            }
-            .total-label {
-              font-size: 18px;
-              color: #666;
-              margin-bottom: 5px;
-            }
-            .total-value {
-              font-size: 36px;
-              font-weight: bold;
-              color: #F22998;
-            }
-            .footer {
-              text-align: center;
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 2px solid #F2F2F2;
-              color: #666;
-              font-size: 12px;
-            }
-            .status-badge {
-              display: inline-block;
-              padding: 6px 16px;
-              background: #dcfce7;
-              color: #16a34a;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 600;
-              margin-top: 10px;
-            }
-            @media print {
-              body {
-                padding: 0;
-              }
-              .receipt {
-                border: none;
-              }
-            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; background: #fff; color: #0D0D0D; }
+            .receipt { max-width: 600px; margin: 0 auto; border: 2px solid #F22998; border-radius: 20px; padding: 40px; }
+            .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #F2F2F2; }
+            .logo { font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #BF3B79 0%, #F22998 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 14px; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+            .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F2F2F2; }
+            .info-label { color: #666; }
+            .info-value { font-weight: 600; color: #0D0D0D; }
+            .location { padding: 15px; background: #F2F2F2; border-radius: 10px; margin-bottom: 10px; }
+            .location-type { font-size: 12px; color: #666; margin-bottom: 5px; }
+            .location-address { font-weight: 500; color: #0D0D0D; }
+            .driver-info { display: flex; align-items: center; gap: 15px; padding: 15px; background: #F2F2F2; border-radius: 10px; }
+            .driver-name { font-weight: 600; margin-bottom: 5px; }
+            .driver-rating { color: #666; font-size: 14px; }
+            .total { margin-top: 30px; padding-top: 20px; border-top: 3px solid #F22998; text-align: right; }
+            .total-label { font-size: 18px; color: #666; margin-bottom: 5px; }
+            .total-value { font-size: 36px; font-weight: bold; color: #F22998; }
+            .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #F2F2F2; color: #666; font-size: 12px; }
+            .status-badge { display: inline-block; padding: 6px 16px; background: #dcfce7; color: #16a34a; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+            @media print { body { padding: 0; } .receipt { border: none; } }
           </style>
         </head>
         <body>
@@ -193,11 +85,11 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
               <div class="section-title">Trajeto</div>
               <div class="location">
                 <div class="location-type">🟢 Origem</div>
-                <div class="location-address">${ride.pickup_address}</div>
+                <div class="location-address">${ride.pickup_address || ride.pickup_text || ''}</div>
               </div>
               <div class="location">
                 <div class="location-type">🔴 Destino</div>
-                <div class="location-address">${ride.destination_address}</div>
+                <div class="location-address">${ride.destination_address || ride.dropoff_text || ''}</div>
               </div>
             </div>
 
@@ -221,17 +113,17 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
               </div>
               <div class="info-row">
                 <span class="info-label">Tarifa Base</span>
-                <span class="info-value">R$ ${(ride.final_price * 0.85).toFixed(2)}</span>
+                <span class="info-value">R$ ${(finalPrice * 0.85).toFixed(2)}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Taxa de Serviço</span>
-                <span class="info-value">R$ ${(ride.final_price * 0.15).toFixed(2)}</span>
+                <span class="info-value">R$ ${(finalPrice * 0.15).toFixed(2)}</span>
               </div>
             </div>
 
             <div class="total">
               <div class="total-label">Valor Total</div>
-              <div class="total-value">R$ ${ride.final_price.toFixed(2)}</div>
+              <div class="total-value">R$ ${finalPrice.toFixed(2)}</div>
             </div>
 
             <div class="footer">
@@ -246,22 +138,15 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
 
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
-    
-    // Wait for content to load, then print
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    printWindow.onload = () => { printWindow.print(); };
   };
 
   const handleShare = async () => {
-    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_address}\nPara: ${ride.destination_address}\nValor: R$ ${ride.final_price.toFixed(2)}\nData: ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}`;
+    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_address || ride.pickup_text || ''}\nPara: ${ride.destination_address || ride.dropoff_text || ''}\nValor: R$ ${finalPrice.toFixed(2)}\nData: ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}`;
     
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'Recibo - Central Dellas',
-          text: shareText
-        });
+        await navigator.share({ title: 'Recibo - Central Dellas', text: shareText });
       } catch (err) {
         console.log('Share cancelled');
       }
@@ -274,9 +159,9 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
   const handleWhatsAppShare = () => {
     const message = encodeURIComponent(
       `*Recibo Central Dellas* 🚗\n\n` +
-      `📍 *Origem:* ${ride.pickup_address}\n` +
-      `📍 *Destino:* ${ride.destination_address}\n\n` +
-      `💰 *Valor:* R$ ${ride.final_price.toFixed(2)}\n` +
+      `📍 *Origem:* ${ride.pickup_address || ride.pickup_text || ''}\n` +
+      `📍 *Destino:* ${ride.destination_address || ride.dropoff_text || ''}\n\n` +
+      `💰 *Valor:* R$ ${finalPrice.toFixed(2)}\n` +
       `📅 *Data:* ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}\n` +
       `⏱️ *Duração:* ${ride.estimated_duration || 15} min\n\n` +
       (ride.driver ? `👩‍✈️ *Motorista:* ${ride.driver.name} (⭐ ${ride.driver.rating})\n\n` : '') +
@@ -331,14 +216,14 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
                 <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-[#F2F2F2]/50 mb-1">Origem</p>
-                  <p className="text-[#F2F2F2]">{ride.pickup_address}</p>
+                  <p className="text-[#F2F2F2]">{ride.pickup_address || ride.pickup_text}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-[#F2F2F2]/50 mb-1">Destino</p>
-                  <p className="text-[#F2F2F2]">{ride.destination_address}</p>
+                  <p className="text-[#F2F2F2]">{ride.destination_address || ride.dropoff_text}</p>
                 </div>
               </div>
             </div>
@@ -408,15 +293,15 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-[#F2F2F2]/60">Tarifa Base</span>
-                <span className="text-[#F2F2F2]">R$ {(ride.final_price * 0.85).toFixed(2)}</span>
+                <span className="text-[#F2F2F2]">R$ {(finalPrice * 0.85).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-[#F2F2F2]/60">Taxa de Serviço</span>
-                <span className="text-[#F2F2F2]">R$ {(ride.final_price * 0.15).toFixed(2)}</span>
+                <span className="text-[#F2F2F2]">R$ {(finalPrice * 0.15).toFixed(2)}</span>
               </div>
               <div className="pt-3 mt-3 border-t border-[#F22998]/20 flex justify-between">
                 <span className="font-semibold text-[#F2F2F2]">Total</span>
-                <span className="text-2xl font-bold text-[#F22998]">R$ {ride.final_price.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-[#F22998]">R$ {finalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
