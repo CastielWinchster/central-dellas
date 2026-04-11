@@ -7,6 +7,7 @@ import {
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { toBrasiliaDate, toBrasiliaTime, toBrasiliaDateLong, toBrasiliaDateFull } from '../../utils/dateUtils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -65,11 +66,11 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
               </div>
               <div class="info-row">
                 <span class="info-label">Data</span>
-                <span class="info-value">${format(new Date(ride.created_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+                <span class="info-value">${toBrasiliaDateLong(ride.created_date)}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Horário</span>
-                <span class="info-value">${format(new Date(ride.created_date), 'HH:mm', { locale: ptBR })}</span>
+                <span class="info-value">${toBrasiliaTime(ride.created_date)}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Duração</span>
@@ -142,7 +143,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
   };
 
   const handleShare = async () => {
-    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_address || ride.pickup_text || ''}\nPara: ${ride.destination_address || ride.dropoff_text || ''}\nValor: R$ ${finalPrice.toFixed(2)}\nData: ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}`;
+    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_text || ride.pickup_address || ''}\nPara: ${ride.destination_address || ride.dropoff_text || ''}\nValor: R$ ${finalPrice.toFixed(2)}\nData: ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}`;
     
     if (navigator.share) {
       try {
@@ -237,10 +238,10 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
                 <span className="text-xs font-medium">Data</span>
               </div>
               <p className="text-[#F2F2F2] font-semibold">
-                {format(new Date(ride.created_date), "dd 'de' MMM", { locale: ptBR })}
+                {toBrasiliaDate(ride.created_date).split(',')[0]}
               </p>
               <p className="text-[#F2F2F2]/50 text-sm">
-                {format(new Date(ride.created_date), 'HH:mm', { locale: ptBR })}
+                {toBrasiliaTime(ride.created_date)}
               </p>
             </div>
 

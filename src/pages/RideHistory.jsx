@@ -11,12 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import ReceiptDialog from '../components/ride/ReceiptDialog';
 import { toast } from 'sonner';
+import { toBrasiliaDate, toBrasiliaDateFull } from '../utils/dateUtils';
 
 export default function RideHistory() {
   const [user, setUser] = useState(null);
@@ -24,6 +23,7 @@ export default function RideHistory() {
   const [selectedRideForReceipt, setSelectedRideForReceipt] = useState(null);
   const [periodFilter, setPeriodFilter] = useState('30');
   const [searchQuery, setSearchQuery] = useState('');
+  const [driverNames, setDriverNames] = useState({});
 
   useEffect(() => {
     const loadUser = async () => {
@@ -47,49 +47,25 @@ export default function RideHistory() {
     enabled: !!user?.id
   });
 
-  // Mock data for demonstration
-  const mockRides = [
-    {
-      id: '1',
-      status: 'completed',
-      pickup_address: 'Av. Paulista, 1000',
-      destination_address: 'Shopping Ibirapuera',
-      created_date: new Date(Date.now() - 86400000).toISOString(),
-      final_price: 28.50,
-      estimated_duration: 15,
-      driver: {
-        name: 'Maria Silva',
-        rating: 4.9,
-        photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200'
-      }
-    },
-    {
-      id: '2',
-      status: 'completed',
-      pickup_address: 'Rua Augusta, 500',
-      destination_address: 'Aeroporto Congonhas',
-      created_date: new Date(Date.now() - 172800000).toISOString(),
-      final_price: 45.00,
-      estimated_duration: 25,
-      driver: {
-        name: 'Ana Costa',
-        rating: 5.0,
-        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'
-      }
-    },
-    {
-      id: '3',
-      status: 'cancelled',
-      pickup_address: 'Shopping Eldorado',
-      destination_address: 'Vila Madalena',
-      created_date: new Date(Date.now() - 259200000).toISOString(),
-      final_price: 0,
-      estimated_duration: 20,
-      driver: null
-    }
-  ];
+  // Buscar nomes das motoristas para corridas com assigned_driver_id
+  useEffect(() => {
+    if (!rides.length) return;
+    const ridesWithDriver = rides.filter(r => r.assigned_driver_id && !driverNames[r.id]);
+    ridesWithDriver.forEach(async (ride) => {
+      try {
+        const res = await base44.functions.invoke('getDriverInfo', { driverId: ride.assigned_driver_id });
+        if (res.data?.name) {
+          setDriverNames(prev => ({ ...prev, [ride.id]: res.data.name }));
+        }
+      } catch (e) {}
+    });
+  }, [rides]);
 
-  const displayRides = rides.length > 0 ? rides : mockRides;
+  // Apenas corridas concluídas/canceladas com endereço válido
+  const displayRides = rides.filter(r =>
+    (r.status === 'completed' || r.status === 'cancelled') &&
+    (r.pickup_text || r.pickup_address)
+  );
 
   const statusColors = {
     completed: { bg: 'bg-green-500/20', text: 'text-green-400', label: 'Concluída' },
@@ -105,12 +81,10 @@ export default function RideHistory() {
 
   let filteredRides = displayRides;
   
-  // Filtrar por status
   if (selectedFilter !== 'all') {
     filteredRides = filteredRides.filter(ride => ride.status === selectedFilter);
   }
   
-  // Filtrar por período
   const now = new Date();
   const periodDays = parseInt(periodFilter);
   if (periodDays > 0) {
@@ -118,13 +92,12 @@ export default function RideHistory() {
     filteredRides = filteredRides.filter(ride => new Date(ride.created_date) >= cutoffDate);
   }
   
-  // Busca por texto
   if (searchQuery.length >= 2) {
     const query = searchQuery.toLowerCase();
     filteredRides = filteredRides.filter(ride => 
-      ride.pickup_address?.toLowerCase().includes(query) ||
-      ride.destination_address?.toLowerCase().includes(query) ||
-      ride.driver?.name?.toLowerCase().includes(query)
+      (ride.pickup_text || ride.pickup_address || '').toLowerCase().includes(query) ||
+      (ride.dropoff_text || ride.destination_address || '').toLowerCase().includes(query) ||
+      (driverNames[ride.id] || '').toLowerCase().includes(query)
     );
   }
   
@@ -132,11 +105,11 @@ export default function RideHistory() {
     const csv = [
       ['Data', 'Origem', 'Destino', 'Motorista', 'Valor', 'Status'].join(','),
       ...filteredRides.map(ride => [
-        format(new Date(ride.created_date), 'dd/MM/yyyy HH:mm'),
-        ride.pickup_address,
-        ride.destination_address,
-        ride.driver?.name || 'N/A',
-        `R$ ${ride.final_price?.toFixed(2) || '0.00'}`,
+        toBrasiliaDateFull(ride.created_date),
+        ride.pickup_text || ride.pickup_address || '',
+        ride.dropoff_text || ride.destination_address || '',
+        driverNames[ride.id] || ride.driver?.name || 'N/A',
+        `R$ ${(ride.final_price || ride.estimated_price || 0).toFixed(2)}`,
         ride.status
       ].join(','))
     ].join('\n');
@@ -145,11 +118,15 @@ export default function RideHistory() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `historico-corridas-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.download = `historico-corridas-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success('Histórico exportado!');
   };
+
+  const completedRides = displayRides.filter(r => r.status === 'completed');
+  const totalGasto = completedRides.reduce((sum, r) => sum + (r.final_price || r.estimated_price || 0), 0);
+  const totalMinutos = completedRides.reduce((sum, r) => sum + (r.estimated_duration || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-24 md:pb-10">
@@ -242,18 +219,18 @@ export default function RideHistory() {
           className="grid grid-cols-3 gap-4 mb-8"
         >
           <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
-            <p className="text-2xl font-bold text-[#F22998]">{displayRides.filter(r => r.status === 'completed').length}</p>
+            <p className="text-2xl font-bold text-[#F22998]">{completedRides.length}</p>
             <p className="text-sm text-[#F2F2F2]/50">Corridas</p>
           </Card>
           <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
             <p className="text-2xl font-bold text-[#F22998]">
-              R$ {displayRides.filter(r => r.status === 'completed').reduce((sum, r) => sum + (r.final_price || 0), 0).toFixed(2)}
+              R$ {totalGasto.toFixed(2)}
             </p>
             <p className="text-sm text-[#F2F2F2]/50">Total Gasto</p>
           </Card>
           <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
             <p className="text-2xl font-bold text-[#F22998]">
-              {displayRides.filter(r => r.status === 'completed').reduce((sum, r) => sum + (r.estimated_duration || 0), 0)} min
+              {totalMinutos} min
             </p>
             <p className="text-sm text-[#F2F2F2]/50">Tempo Total</p>
           </Card>
@@ -263,6 +240,10 @@ export default function RideHistory() {
         <div className="space-y-4">
           {filteredRides.map((ride, index) => {
             const status = statusColors[ride.status] || statusColors.completed;
+            const pickupAddr = ride.pickup_text || ride.pickup_address || 'Endereço não informado';
+            const dropoffAddr = ride.dropoff_text || ride.destination_address || 'Endereço não informado';
+            const driverName = ride.driver?.name || driverNames[ride.id];
+            const price = ride.final_price || ride.estimated_price;
             
             return (
               <motion.div
@@ -276,7 +257,7 @@ export default function RideHistory() {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#F2F2F2]/50" />
                       <span className="text-sm text-[#F2F2F2]/50">
-                        {format(new Date(ride.created_date), "dd 'de' MMMM, HH:mm", { locale: ptBR })}
+                        {toBrasiliaDate(ride.created_date)}
                       </span>
                     </div>
                     <Badge className={`${status.bg} ${status.text} border-0`}>
@@ -286,38 +267,44 @@ export default function RideHistory() {
 
                   <div className="space-y-3 mb-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-3 h-3 rounded-full bg-green-500 mt-1" />
-                      <p className="text-[#F2F2F2]">{ride.pickup_address}</p>
+                      <div className="w-3 h-3 rounded-full bg-green-500 mt-1 flex-shrink-0" />
+                      <p className="text-[#F2F2F2] text-sm">{pickupAddr}</p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1" />
-                      <p className="text-[#F2F2F2]">{ride.destination_address}</p>
+                      <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1 flex-shrink-0" />
+                      <p className="text-[#F2F2F2] text-sm">{dropoffAddr}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-[#F22998]/10">
-                    {ride.driver ? (
+                    {driverName ? (
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={ride.driver.photo}
-                          alt={ride.driver.name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-[#F22998]"
-                        />
+                        {ride.driver?.photo && (
+                          <img 
+                            src={ride.driver.photo}
+                            alt={driverName}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-[#F22998]"
+                          />
+                        )}
                         <div>
-                          <p className="text-sm font-medium text-[#F2F2F2]">{ride.driver.name}</p>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                            <span className="text-xs text-[#F2F2F2]/50">{ride.driver.rating}</span>
-                          </div>
+                          <p className="text-sm font-medium text-[#F2F2F2]">{driverName}</p>
+                          {ride.driver?.rating && (
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                              <span className="text-xs text-[#F2F2F2]/50">{ride.driver.rating}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ) : (
-                      <div className="text-[#F2F2F2]/50 text-sm">Sem motorista</div>
+                      <div className="text-[#F2F2F2]/50 text-sm">
+                        {ride.assigned_driver_id ? 'Carregando motorista...' : 'Corrida sem motorista atribuída'}
+                      </div>
                     )}
 
                     <div className="text-right">
-                      {ride.final_price > 0 && (
-                        <p className="text-xl font-bold text-[#F22998]">R$ {ride.final_price.toFixed(2)}</p>
+                      {price > 0 && (
+                        <p className="text-xl font-bold text-[#F22998]">R$ {Number(price).toFixed(2)}</p>
                       )}
                       {ride.estimated_duration && (
                         <p className="text-xs text-[#F2F2F2]/50">{ride.estimated_duration} min</p>
@@ -351,15 +338,15 @@ export default function RideHistory() {
             );
           })}
 
-          {filteredRides.length === 0 && (
+          {filteredRides.length === 0 && !isLoading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
               <Car className="w-16 h-16 text-[#F22998]/30 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-[#F2F2F2] mb-2">Nenhuma corrida encontrada</h3>
-              <p className="text-[#F2F2F2]/50">Suas corridas aparecerão aqui</p>
+              <h3 className="text-xl font-semibold text-[#F2F2F2] mb-2">Nenhuma corrida concluída ainda</h3>
+              <p className="text-[#F2F2F2]/50">Suas corridas aparecerão aqui após serem concluídas</p>
             </motion.div>
           )}
         </div>

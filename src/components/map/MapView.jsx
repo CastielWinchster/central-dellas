@@ -50,7 +50,7 @@ const UserMarker = ({ heading = 0 }) => (
 
 // Marcador animado de origem
 const PickupMarker = ({ animate }) => (
-  <div style={{ transform: 'translate(-50%, -100%)' }}>
+  <div>
     <style>{`
       @keyframes markerIn {
         0% { opacity: 0; transform: scale(0.3) translateY(10px); }
@@ -88,7 +88,7 @@ const PickupMarker = ({ animate }) => (
 
 // Marcador animado de destino
 const DestinationMarker = () => (
-  <div style={{ transform: 'translate(-50%, -100%)' }}>
+  <div>
     <style>{`
       @keyframes destIn {
         0% { opacity: 0; transform: scale(0.3) translateY(10px); }
@@ -377,7 +377,21 @@ export default function MapView({
           const data = await response.json();
 
           if (data.status !== 'OK' || !data.routes?.length) {
-            console.warn('[MapView] Google Directions falhou:', data.status);
+            console.warn('[MapView] Google Directions falhou:', data.status, '— tentando OSRM fallback');
+            // Fallback: OSRM
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${dLng},${dLat}?geometries=geojson&overview=full`;
+            const osrmRes = await fetch(osrmUrl);
+            const osrmData = await osrmRes.json();
+            if (osrmData.routes?.[0]?.geometry?.coordinates) {
+              const coords = osrmData.routes[0].geometry.coordinates;
+              setRouteData({ type: 'Feature', geometry: { type: 'LineString', coordinates: coords } });
+              setRouteProgress(null);
+              animateRoute(coords);
+              if (mapRef.current && coords.length > 1) {
+                const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+                mapRef.current.fitBounds(bounds, { padding: 80, duration: 1200, pitch: 0 });
+              }
+            }
             return;
           }
 
@@ -629,7 +643,7 @@ export default function MapView({
         {/* Marcador do passageiro (visível para o motorista) */}
         {passengerMarker && (
           <Marker longitude={passengerMarker.lng} latitude={passengerMarker.lat} anchor="bottom">
-            <div style={{ transform: 'translate(-50%, -100%)' }}>
+            <div>
               <div style={{
                 background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
                 borderRadius: '50% 50% 50% 0',
