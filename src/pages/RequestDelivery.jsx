@@ -25,6 +25,8 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Documentos, remédios, acessórios',
     weight: 'Até 5kg',
+    basePrice: 8.99,
+    pricePerKm: 3.00,
   },
   {
     id: 'medium',
@@ -32,6 +34,8 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Roupas, calçados, eletrônicos',
     weight: 'Até 15kg',
+    basePrice: 12.99,
+    pricePerKm: 3.50,
   },
   {
     id: 'large',
@@ -39,6 +43,8 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Eletrodomésticos, móveis peq., caixas grandes',
     weight: 'Até 30kg',
+    basePrice: 18.99,
+    pricePerKm: 4.00,
   },
 ];
 
