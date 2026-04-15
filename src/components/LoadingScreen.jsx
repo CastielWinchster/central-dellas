@@ -31,98 +31,68 @@ const CarSVG = () => (
   </svg>
 );
 
-// SVG da Moto — estilo naked/esportiva vista de lado
+// SVG da Moto — naked bike esportiva vista de lado
 const MotoSVG = () => (
-  <svg width="72" height="48" viewBox="0 0 72 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="80" height="48" viewBox="0 0 80 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="motoTank" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="motoBody" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor="#F22998" />
         <stop offset="100%" stopColor="#8C0D60" />
       </linearGradient>
-      <linearGradient id="motoFairing" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#BF3B79" />
-        <stop offset="100%" stopColor="#F22998" />
-      </linearGradient>
     </defs>
 
-    {/* Sombra */}
-    <ellipse cx="36" cy="46" rx="26" ry="2.5" fill="#F22998" opacity="0.15" />
+    {/* Roda traseira */}
+    <circle cx="16" cy="36" r="10" fill="#1a1a2e" stroke="#F22998" strokeWidth="2.5" />
+    <circle cx="16" cy="36" r="4" fill="#2a2a3e" />
+    <line x1="16" y1="26" x2="16" y2="46" stroke="#F22998" strokeWidth="1" />
+    <line x1="6"  y1="36" x2="26" y2="36" stroke="#F22998" strokeWidth="1" />
+    <line x1="9"  y1="29" x2="23" y2="43" stroke="#F22998" strokeWidth="1" />
+    <line x1="23" y1="29" x2="9"  y2="43" stroke="#F22998" strokeWidth="1" />
 
-    {/* Roda traseira — grande */}
-    <circle cx="14" cy="36" r="11" fill="#111" />
-    <circle cx="14" cy="36" r="8" fill="#1e1e2e" />
-    <circle cx="14" cy="36" r="4" fill="#2a2a3e" />
-    <circle cx="14" cy="36" r="2" fill="#F22998" />
-    {/* Raios roda traseira */}
-    <line x1="14" y1="25" x2="14" y2="47" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="3" y1="36" x2="25" y2="36" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="6" y1="28" x2="22" y2="44" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="22" y1="28" x2="6" y2="44" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
+    {/* Roda dianteira */}
+    <circle cx="64" cy="36" r="10" fill="#1a1a2e" stroke="#F22998" strokeWidth="2.5" />
+    <circle cx="64" cy="36" r="4" fill="#2a2a3e" />
+    <line x1="64" y1="26" x2="64" y2="46" stroke="#F22998" strokeWidth="1" />
+    <line x1="54" y1="36" x2="74" y2="36" stroke="#F22998" strokeWidth="1" />
+    <line x1="57" y1="29" x2="71" y2="43" stroke="#F22998" strokeWidth="1" />
+    <line x1="71" y1="29" x2="57" y2="43" stroke="#F22998" strokeWidth="1" />
 
-    {/* Roda dianteira — grande */}
-    <circle cx="58" cy="36" r="11" fill="#111" />
-    <circle cx="58" cy="36" r="8" fill="#1e1e2e" />
-    <circle cx="58" cy="36" r="4" fill="#2a2a3e" />
-    <circle cx="58" cy="36" r="2" fill="#F22998" />
-    {/* Raios roda dianteira */}
-    <line x1="58" y1="25" x2="58" y2="47" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="47" y1="36" x2="69" y2="36" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="50" y1="28" x2="66" y2="44" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
-    <line x1="66" y1="28" x2="50" y2="44" stroke="#F22998" strokeWidth="0.8" opacity="0.4" />
+    {/* Chassi */}
+    <line x1="16" y1="36" x2="40" y2="20" stroke="#BF3B79" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="40" y1="20" x2="58" y2="20" stroke="#BF3B79" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="58" y1="20" x2="64" y2="36" stroke="#BF3B79" strokeWidth="2"   strokeLinecap="round" />
+    <line x1="40" y1="20" x2="32" y2="36" stroke="#BF3B79" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="32" y1="36" x2="16" y2="36" stroke="#BF3B79" strokeWidth="1.5" strokeLinecap="round" />
 
-    {/* Suspensão dianteira (garfo) */}
-    <line x1="54" y1="25" x2="58" y2="36" stroke="#888" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="57" y1="25" x2="61" y2="36" stroke="#666" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Motor */}
+    <rect x="28" y="24" width="18" height="12" rx="3" fill="url(#motoBody)" opacity="0.9" />
 
-    {/* Suspensão traseira */}
-    <line x1="14" y1="28" x2="22" y2="22" stroke="#777" strokeWidth="2" strokeLinecap="round" />
-
-    {/* Chassi principal — linha do quadro */}
-    <path d="M14 28 L22 22 L36 18 L54 22 L58 28" stroke="#BF3B79" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-    {/* Tubo inferior do chassi */}
-    <path d="M22 22 L30 30 L14 30" stroke="#8C0D60" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-
-    {/* Tanque — forma oval esportiva */}
-    <path d="M28 14 C30 10, 42 10, 46 14 L48 20 L26 22 Z" fill="url(#motoTank)" />
-    {/* Brilho do tanque */}
-    <path d="M30 12 C33 10, 40 10, 43 12 L44 15 L30 15 Z" fill="white" opacity="0.15" />
-
-    {/* Carenagem lateral / motor */}
-    <path d="M26 22 L48 20 L50 28 L22 28 Z" fill="url(#motoFairing)" opacity="0.85" />
-    {/* Detalhe motor */}
-    <rect x="30" y="23" width="12" height="6" rx="1.5" fill="#0D0D0D" opacity="0.5" />
-
-    {/* Escapamento */}
-    <path d="M22 28 L16 30 L14 33" stroke="#888" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-    <ellipse cx="14" cy="33" rx="2" ry="1.2" fill="#555" />
+    {/* Tanque */}
+    <ellipse cx="44" cy="18" rx="10" ry="5" fill="url(#motoBody)" />
 
     {/* Assento */}
-    <path d="M28 14 L44 14 L46 16 L26 16 Z" fill="#1A1A1A" rx="2" />
-    <path d="M28 14 L44 14 L44 15 L28 15 Z" fill="#fff" opacity="0.08" />
+    <rect x="26" y="15" width="16" height="4" rx="2" fill="#8C0D60" />
 
-    {/* Piloto agachado */}
-    {/* Corpo inclinado */}
-    <ellipse cx="35" cy="10" rx="7" ry="5" fill="#BF3B79" transform="rotate(-15, 35, 10)" />
-    {/* Capacete aerodinâmico */}
-    <ellipse cx="38" cy="6" rx="5" ry="4.5" fill="#1A1A1A" />
-    <path d="M34 5 Q38 2 42 5" fill="#F22998" opacity="0.9" />
-    {/* Visor capacete */}
-    <path d="M35 6 Q38 4 41 6" stroke="#b3eaff" strokeWidth="1.5" fill="none" opacity="0.7" />
-    {/* Braços sobre guidão */}
-    <path d="M35 10 L50 18" stroke="#8C0D60" strokeWidth="2" strokeLinecap="round" />
-    {/* Pernas */}
-    <path d="M30 13 L26 22" stroke="#8C0D60" strokeWidth="2" strokeLinecap="round" />
+    {/* Carenagem / farol dianteiro */}
+    <polygon points="62,20 72,24 70,30 60,28" fill="url(#motoBody)" opacity="0.85" />
+    <ellipse cx="70" cy="25" rx="3" ry="4" fill="#fffde7" opacity="0.9" />
 
-    {/* Guidão — baixo e esportivo */}
-    <path d="M50 16 L56 14" stroke="#ccc" strokeWidth="2.5" strokeLinecap="round" />
-    <circle cx="56" cy="13.5" r="1.5" fill="#888" />
+    {/* Guidão */}
+    <line x1="60" y1="18" x2="68" y2="14" stroke="#BF3B79" strokeWidth="2" strokeLinecap="round" />
 
-    {/* Farol dianteiro aerodinâmico */}
-    <path d="M63 30 L68 28 L68 34 L63 33 Z" fill="#fffde7" opacity="0.95" />
-    <path d="M63 30 L68 28 L68 31 L63 31 Z" fill="white" opacity="0.4" />
+    {/* Escapamento */}
+    <path d="M16 38 Q10 42 8 44" stroke="#BF3B79" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+    {/* Piloto — capacete + corpo agachado */}
+    <ellipse cx="42" cy="12" rx="8" ry="5" fill="#BF3B79" transform="rotate(-10,42,12)" />
+    <circle cx="46" cy="8" r="5" fill="#1A1A1A" />
+    <path d="M42 7 Q46 4 50 7" fill="#F22998" opacity="0.9" />
+    <path d="M43 8 Q46 6 49 8" stroke="#b3eaff" strokeWidth="1.2" fill="none" opacity="0.65" />
+    <line x1="42" y1="12" x2="60" y2="19" stroke="#8C0D60" strokeWidth="2" strokeLinecap="round" />
+    <line x1="38" y1="14" x2="32" y2="24" stroke="#8C0D60" strokeWidth="2" strokeLinecap="round" />
 
     {/* Lanterna traseira */}
-    <rect x="4" y="30" width="4" height="3" rx="1" fill="#ff3030" opacity="0.85" />
+    <rect x="5" y="30" width="4" height="3" rx="1" fill="#ff3030" opacity="0.85" />
   </svg>
 );
 
