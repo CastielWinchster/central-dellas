@@ -49,12 +49,10 @@
  */
 import AdminPanel from './pages/AdminPanel';
 import BlockedUsers from './pages/BlockedUsers';
-import CustomLogin from './pages/CustomLogin';
 import CustomSignup from './pages/CustomSignup';
 import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverDocuments from './pages/DriverDocuments';
-import DriverLogin from './pages/DriverLogin';
 import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
 import DriverRegistration from './pages/DriverRegistration';
@@ -67,7 +65,6 @@ import PassengerChat from './pages/PassengerChat';
 import PassengerDashboard from './pages/PassengerDashboard';
 import PassengerHelp from './pages/PassengerHelp';
 import PassengerHome from './pages/PassengerHome';
-import PassengerLogin from './pages/PassengerLogin';
 import PassengerNotifications from './pages/PassengerNotifications';
 import PassengerOptions from './pages/PassengerOptions';
 import PassengerProfile from './pages/PassengerProfile';
@@ -87,12 +84,10 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AdminPanel": AdminPanel,
     "BlockedUsers": BlockedUsers,
-    "CustomLogin": CustomLogin,
     "CustomSignup": CustomSignup,
     "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverDocuments": DriverDocuments,
-    "DriverLogin": DriverLogin,
     "DriverOptions": DriverOptions,
     "DriverProfile": DriverProfile,
     "DriverRegistration": DriverRegistration,
@@ -105,7 +100,6 @@ export const PAGES = {
     "PassengerDashboard": PassengerDashboard,
     "PassengerHelp": PassengerHelp,
     "PassengerHome": PassengerHome,
-    "PassengerLogin": PassengerLogin,
     "PassengerNotifications": PassengerNotifications,
     "PassengerOptions": PassengerOptions,
     "PassengerProfile": PassengerProfile,

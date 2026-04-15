@@ -19,7 +19,7 @@ const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsH
 const ChatFloatingButton = lazy(() => import('./components/chat/ChatFloatingButton'));
 
 // Rotas públicas que não exigem autenticação
-const PUBLIC_ROUTES = ['PassengerHome', 'CustomLogin', 'CustomSignup', 'Download'];
+const PUBLIC_ROUTES = ['PassengerHome', 'CustomSignup', 'Download'];
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ function LayoutContent({ children, currentPageName }) {
     { 
       name: 'Opções', 
       icon: Settings, 
-      page: user ? 'PassengerOptions' : 'PassengerLogin'
+      page: 'PassengerOptions'
     },
     { name: 'Baixar App', icon: DownloadIcon, page: 'Download' }
   ];
@@ -57,10 +57,10 @@ function LayoutContent({ children, currentPageName }) {
 
   const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
-  // Redirect para login se não estiver autenticado e não estiver em rota pública
+  // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
   useEffect(() => {
     if (!loading && !user && !PUBLIC_ROUTES.includes(currentPageName)) {
-      navigate(createPageUrl('CustomLogin'));
+      base44.auth.redirectToLogin();
     }
   }, [loading, user, currentPageName, navigate]);
 
@@ -204,16 +204,12 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               ) : (
                 <div className="hidden md:flex gap-2">
-                  <Link to={createPageUrl('CustomLogin')}>
-                    <Button className="btn-gradient px-6 py-2 rounded-full text-white font-medium">
-                      Entrar
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('CustomSignup')}>
-                    <Button variant="outline" className="border-[#F22998]/30 text-[#F22998] px-6 py-2 rounded-full font-medium">
-                      Cadastrar
-                    </Button>
-                  </Link>
+                  <Button
+                    onClick={() => base44.auth.redirectToLogin()}
+                    className="btn-gradient px-6 py-2 rounded-full text-white font-medium"
+                  >
+                    Entrar
+                  </Button>
                 </div>
               )}
 
@@ -278,8 +274,7 @@ function LayoutContent({ children, currentPageName }) {
               {user && (
                 <button
                   onClick={async () => {
-                    await base44.auth.signOut();
-                    window.location.href = createPageUrl('CustomLogin');
+                    base44.auth.logout();
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
                 >
