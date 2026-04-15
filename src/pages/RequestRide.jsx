@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   MapPin, Navigation, Search, Clock, CreditCard, 
   Car, Shield, ChevronRight, Loader2, Star,
-  X, Check, Phone, Dog, Crosshair, Package
+  X, Check, Phone, Dog, Crosshair, Package, ChevronDown
 } from 'lucide-react';
 import RideChat from '../components/chat/RideChat';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import {
 } from '@/components/utils/geocoding';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 import { calculateEtaWithGoogle } from '@/components/utils/googlePlaces';
+import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon } from '@/utils/pricing';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -35,8 +36,14 @@ export default function RequestRide() {
   const [pickupMarkerDraggable, setPickupMarkerDraggable] = useState(false);
   const [destinationMarkerDraggable, setDestinationMarkerDraggable] = useState(false);
   const [selectedRideType, setSelectedRideType] = useState('standard');
-  // Preços base por tipo
-  const RIDE_PRICES = { standard: { base: 9.99, perKm: 4.50 }, rotta_roza: { base: 6.99, perKm: 2.50 } };
+  const [isFirstMotoRide, setIsFirstMotoRide] = useState(false);
+  // Pagamento unificado
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [showPaymentPicker, setShowPaymentPicker] = useState(false);
+  // Cupom
+  const [couponCode, setCouponCode] = useState('');
+  const [couponResult, setCouponResult] = useState(null);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState('pix');
   const [acceptsPets, setAcceptsPets] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
@@ -168,6 +175,14 @@ export default function RequestRide() {
         // Carregar favoritos e recentes
         const favRec = await loadFavoritesAndRecents(userData.id, base44);
         setFavoritesAndRecents(favRec);
+
+        // Verificar se é a primeira corrida de moto
+        const pastMotoRides = await base44.entities.Ride.filter({
+          passenger_id: userData.id,
+          ride_type: 'rotta_roza',
+          status: 'completed'
+        });
+        setIsFirstMotoRide(pastMotoRides.length === 0);
       } catch (e) {
         if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
           base44.auth.redirectToLogin();
@@ -403,6 +418,18 @@ export default function RequestRide() {
     </svg>
   );
 
+  // Calcular preço para um tipo e distância
+  const computePrice = (distKm, rideType, dest) => {
+    const fixed = (rideType === 'rotta_roza') ? getFixedPrice(dest, 'moto') : null;
+    let price = fixed ?? calculateCityPrice(distKm, rideType);
+    if (rideType === 'rotta_roza') price = applyFirstMotoDiscount(price, isFirstMotoRide);
+    if (appliedCoupon) {
+      const r = applyCoupon(price, appliedCoupon.code, [appliedCoupon]);
+      price = r.price;
+    }
+    return price;
+  };
+
   // Calcular distância e preço da rota — usa Google Distance Matrix com fallback OSRM
   const calculateRouteAndPrice = async (origin, destination) => {
     try {
@@ -432,29 +459,53 @@ export default function RequestRide() {
       setRouteDistance(distanceKm);
       setRouteDuration(durationMin);
 
-      // Preços: standard R$9,99 + R$4,50/km | rotta_roza R$6,99 + R$2,50/km
+      const destText = destination?.text || '';
       setRideTypes(prevTypes =>
         prevTypes.map(type => {
-          const basePrice = type.id === 'standard' ? 9.99 : 6.99;
-          const pricePerKm = type.id === 'standard' ? 4.50 : 2.50;
-          const calculatedPrice = (basePrice + distanceKm * pricePerKm).toFixed(2);
-          return { ...type, price: calculatedPrice, time: `${durationMin} min` };
+          const price = computePrice(distanceKm, type.id, destText);
+          return { ...type, price: price.toFixed(2), time: `${durationMin} min` };
         })
       );
 
-      const basePrice = selectedRideType === 'standard' ? 9.99 : 6.99;
-      const pricePerKm = selectedRideType === 'standard' ? 4.50 : 2.50;
-      setEstimatedPrice((basePrice + distanceKm * pricePerKm).toFixed(2));
+      const price = computePrice(distanceKm, selectedRideType, destText);
+      setEstimatedPrice(price.toFixed(2));
       setEstimatedTime(`${durationMin} min`);
     } catch (error) {
       console.error('Erro ao calcular rota:', error);
     }
   };
 
+  // Aplicar cupom
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      const coupons = await base44.entities.PromoCode.filter({ code: couponCode.toUpperCase(), is_active: true });
+      const result = applyCoupon(parseFloat(estimatedPrice ?? '0'), couponCode, coupons);
+      setCouponResult(result);
+      if (result.valid) {
+        setAppliedCoupon(result.coupon);
+        setEstimatedPrice(result.price.toFixed(2));
+        toast.success(`Cupom aplicado! -R$ ${result.discount.toFixed(2)}`);
+      } else {
+        setAppliedCoupon(null);
+        toast.error('Cupom inválido ou expirado');
+      }
+    } catch (e) {
+      console.error('Erro ao validar cupom:', e);
+      setCouponResult({ valid: false });
+    }
+  };
+
   const [rideTypes, setRideTypes] = useState([
     { id: 'standard', name: 'Della Standard', iconType: 'car', price: '9.99', time: '5 min', description: 'Econômico e confortável', badge: null },
-    { id: 'rotta_roza', name: 'Rotta Roza', iconType: 'moto', price: '6.99', time: '3 min', description: 'Moto rápida e econômica', badge: '⚡ Mais Rápido' },
+    { id: 'rotta_roza', name: 'Rotta Roza', iconType: 'moto', price: '9.99', time: '3 min', description: 'Moto rápida e econômica', badge: '⚡ Mais Rápido' },
   ]);
+
+  const paymentOptions = [
+    { id: 'pix',   label: 'Pix',              icon: '💜' },
+    { id: 'card',  label: 'Cartão de Crédito', icon: '💳' },
+    { id: 'cash',  label: 'Dinheiro',          icon: '💵' },
+  ];
 
   const paymentMethods = [
     { id: 'pix', name: 'Pix', icon: '💜' },
@@ -537,7 +588,10 @@ export default function RequestRide() {
         estimatedPrice,
         estimatedDuration: parseInt(routeDuration),
         rideType: selectedRideType,
-        hasPet: acceptsPets
+        hasPet: acceptsPets,
+        paymentMethod: paymentMethod || selectedPayment,
+        firstMotoDiscount: (selectedRideType === 'rotta_roza' && isFirstMotoRide) ? 2.00 : 0,
+        couponCode: appliedCoupon?.code || null,
       });
       
       if (response.data.success) {
@@ -906,23 +960,31 @@ export default function RequestRide() {
                           }`}
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                              selectedRideType === type.id
-                                ? 'bg-gradient-to-br from-[#BF3B79] to-[#F22998]'
-                                : 'bg-[#F22998]/20'
-                            }`}>
-                              {type.iconType === 'moto' ? (
-                                <MotoIcon className={`w-6 h-6 ${selectedRideType === type.id ? 'text-white' : 'text-[#F22998]'}`} />
+                            {/* Logo da empresa */}
+                            <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center bg-black flex-shrink-0">
+                              {type.id === 'standard' ? (
+                                <img
+                                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/50cfce50f_central2.png"
+                                  alt="Central Dellas"
+                                  className="w-full h-full object-contain p-1"
+                                />
                               ) : (
-                                <Car className={`w-6 h-6 ${selectedRideType === type.id ? 'text-white' : 'text-[#F22998]'}`} />
+                                <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+                                  <span className="text-white font-black text-sm tracking-tight">RR</span>
+                                </div>
                               )}
                             </div>
                             <div className="text-left">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <p className="font-semibold text-[#F2F2F2]">{type.name}</p>
                                 {type.badge && (
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: '#F59E0B22', color: '#F59E0B' }}>
                                     {type.badge}
+                                  </span>
+                                )}
+                                {type.id === 'rotta_roza' && isFirstMotoRide && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400">
+                                    🎉 R$ 2,00 OFF 1ª moto!
                                   </span>
                                 )}
                               </div>
@@ -959,24 +1021,88 @@ export default function RequestRide() {
                     </div>
                   </Card>
 
-                  {/* Payment Methods */}
+                  {/* Payment Methods — seletor unificado */}
                   <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
                     <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Forma de Pagamento</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {paymentMethods.map((method) => (
-                        <button
-                          key={method.id}
-                          onClick={() => setSelectedPayment(method.id)}
-                          className={`p-4 rounded-xl border-2 transition-all ${
-                            selectedPayment === method.id
-                              ? 'border-[#F22998] bg-[#F22998]/10'
-                              : 'border-transparent bg-[#0D0D0D] hover:border-[#F22998]/30'
-                          }`}
+
+                    {/* Botão principal do seletor */}
+                    <button
+                      onClick={() => setShowPaymentPicker(v => !v)}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                        paymentMethod
+                          ? 'border-[#F22998] bg-[#F22998]/10'
+                          : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#F22998]/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">
+                          {paymentMethod ? paymentOptions.find(o => o.id === paymentMethod)?.icon : '💳'}
+                        </span>
+                        <span className="text-sm font-medium text-[#F2F2F2]">
+                          {paymentMethod
+                            ? paymentOptions.find(o => o.id === paymentMethod)?.label
+                            : 'Escolher forma de pagamento'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {paymentMethod && <Check className="w-4 h-4 text-[#F22998]" />}
+                        <ChevronDown className={`w-4 h-4 text-[#F2F2F2]/50 transition-transform ${showPaymentPicker ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+
+                    {/* Dropdown de opções */}
+                    <AnimatePresence>
+                      {showPaymentPicker && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className="mt-2 rounded-2xl overflow-hidden border border-[#F22998]/20"
                         >
-                          <span className="text-2xl mb-2 block">{method.icon}</span>
-                          <p className="text-sm font-medium text-[#F2F2F2]">{method.name}</p>
+                          {paymentOptions.map((opt) => (
+                            <button
+                              key={opt.id}
+                              onClick={() => { setPaymentMethod(opt.id); setSelectedPayment(opt.id); setShowPaymentPicker(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
+                                paymentMethod === opt.id
+                                  ? 'bg-[#F22998]/15 text-[#F22998]'
+                                  : 'bg-[#0D0D0D] text-[#F2F2F2] hover:bg-[#F22998]/10'
+                              }`}
+                            >
+                              <span className="text-xl">{opt.icon}</span>
+                              <span className="text-sm font-medium flex-1 text-left">{opt.label}</span>
+                              {paymentMethod === opt.id && <Check className="w-4 h-4" />}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Campo de cupom */}
+                    <div className="mt-4">
+                      <p className="text-sm text-[#F2F2F2]/50 mb-2">Cupom de desconto</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Digite seu cupom"
+                          value={couponCode}
+                          onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); }}
+                          className="flex-1 bg-[#0D0D0D] text-[#F2F2F2] rounded-xl px-4 py-2 text-sm border border-[#F2F2F2]/10 focus:border-[#F22998]/50 outline-none placeholder-[#F2F2F2]/30"
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          className="bg-[#F22998] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#BF3B79] transition-colors"
+                        >
+                          Aplicar
                         </button>
-                      ))}
+                      </div>
+                      {couponResult && (
+                        <p className={`text-xs mt-1.5 ${couponResult.valid ? 'text-green-400' : 'text-red-400'}`}>
+                          {couponResult.valid
+                            ? `✅ Cupom aplicado! -R$ ${couponResult.discount.toFixed(2)}`
+                            : '❌ Cupom inválido ou expirado'}
+                        </p>
+                      )}
                     </div>
                   </Card>
 

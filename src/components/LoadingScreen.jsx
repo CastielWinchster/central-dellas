@@ -134,7 +134,7 @@ export default function LoadingScreen({ isLoading = true, onFinish }) {
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #0D0D0D 0%, #1a0a1a 50%, #0D0D0D 100%)',
+            background: '#000000',
           }}
         >
           {/* Brilho central difuso */}
