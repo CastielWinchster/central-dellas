@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { 
-  User, FileText, Shield, Bell, 
-  Settings, HelpCircle, LogOut, ChevronRight, Camera,
+  User, Shield, LogOut, ChevronRight, Camera,
   DollarSign, Car, Package, Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,17 +85,6 @@ export default function DriverOptions() {
       ]
     },
     {
-      title: '📋 DOCUMENTOS',
-      items: [
-        { 
-          icon: FileText, 
-          label: 'Documentos do Motorista', 
-          description: 'CNH, RG, CRLV e Seguro',
-          page: 'DriverDocuments'
-        }
-      ]
-    },
-    {
       title: '🚗 MEU VEÍCULO',
       items: [
         { 
@@ -124,17 +112,7 @@ export default function DriverOptions() {
         }
       ]
     },
-    {
-      title: '❓ SUPORTE',
-      items: [
-        { 
-          icon: HelpCircle, 
-          label: 'Central de Ajuda', 
-          description: 'FAQ e suporte',
-          page: 'DriverHelp'
-        }
-      ]
-    }
+
   ];
 
   if (!user) {
