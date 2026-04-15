@@ -211,30 +211,7 @@ export default function RideHistory() {
           ))}
         </motion.div>
 
-        {/* Stats Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-3 gap-4 mb-8"
-        >
-          <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
-            <p className="text-2xl font-bold text-[#F22998]">{completedRides.length}</p>
-            <p className="text-sm text-[#F2F2F2]/50">Corridas</p>
-          </Card>
-          <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
-            <p className="text-2xl font-bold text-[#F22998]">
-              R$ {totalGasto.toFixed(2)}
-            </p>
-            <p className="text-sm text-[#F2F2F2]/50">Total Gasto</p>
-          </Card>
-          <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 text-center">
-            <p className="text-2xl font-bold text-[#F22998]">
-              {totalMinutos} min
-            </p>
-            <p className="text-sm text-[#F2F2F2]/50">Tempo Total</p>
-          </Card>
-        </motion.div>
+
 
         {/* Rides List */}
         <div className="space-y-4">

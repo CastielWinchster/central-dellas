@@ -369,10 +369,6 @@ export default function RequestDelivery() {
                           <p className="font-bold text-[#F2F2F2] text-sm">{size.label.toUpperCase()}</p>
                           <p className="text-[10px] text-[#F2F2F2]/50 leading-tight">{size.description}</p>
                           <p className="text-xs text-[#F22998] font-semibold">{size.weight}</p>
-                          <div className="mt-1 pt-2 border-t border-[#F2F2F2]/10">
-                            <p className="text-xs font-bold text-[#F2F2F2]">R$ {size.basePrice.toFixed(2)}</p>
-                            <p className="text-[10px] text-[#F2F2F2]/40">+ R$ {size.pricePerKm.toFixed(2)}/km</p>
-                          </div>
                         </motion.button>
                       ))}
                     </div>

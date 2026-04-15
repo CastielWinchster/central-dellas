@@ -779,16 +779,10 @@ export default function RequestRide() {
 
             {/* Aviso para ajustar pin */}
             {(pickupMarkerDraggable || destinationMarkerDraggable) && step === 'address' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-500/95 backdrop-blur-sm rounded-2xl shadow-2xl px-4 py-2 z-10"
-              >
-                <p className="text-xs text-white font-medium flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  Arraste o pin {pickupMarkerDraggable ? 'verde' : 'rosa'} para ajustar a localização exata
-                </p>
-              </motion.div>
+              <div className="absolute bottom-3 left-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 max-w-[55%]">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                Arraste o pin {pickupMarkerDraggable ? 'verde' : 'rosa'} para ajustar a localização exata
+              </div>
             )}
           </motion.div>
 

@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Camera, Mic, Image, Plus, User } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { toBrasiliaTime } from '@/utils/dateUtils';
 
 const ACTIVE_STATUSES = ['accepted', 'on_the_way', 'in_progress', 'assigned'];
 const POLL_INTERVAL = 2500;
@@ -93,7 +92,7 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
 
   const formatTime = (dateStr) => {
     try {
-      return format(new Date(dateStr), 'HH:mm', { locale: ptBR });
+      return toBrasiliaTime(dateStr);
     } catch { return ''; }
   };
 

@@ -113,17 +113,23 @@ const SpeedLines = ({ count = 5, opacity = 0.4 }) => (
 
 export default function LoadingScreen({ isLoading = true, onFinish }) {
   const [exiting, setExiting] = useState(false);
+  const [minTimePassed, setMinTimePassed] = useState(false);
+
+  // Tempo mínimo de 2 segundos
+  useEffect(() => {
+    const t = setTimeout(() => setMinTimePassed(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
-    if (!isLoading && !exiting) {
+    if (!isLoading && minTimePassed && !exiting) {
       setExiting(true);
-      // Pequeno delay para a animação de saída completar
       const t = setTimeout(() => {
         if (onFinish) onFinish();
       }, 600);
       return () => clearTimeout(t);
     }
-  }, [isLoading]);
+  }, [isLoading, minTimePassed]);
 
   return (
     <AnimatePresence>
@@ -183,78 +189,31 @@ export default function LoadingScreen({ isLoading = true, onFinish }) {
             {/* Linhas de velocidade de fundo */}
             <SpeedLines count={4} opacity={0.25} />
 
-            {/* MOTO — vai na frente, mais rápida */}
-            <motion.div
+            {/* CARRO — vai na frente */}
+            <div
               className="absolute"
-              style={{ bottom: '28px' }}
-              animate={exiting
-                ? { x: ['20%', '150%'] }
-                : { x: ['-10%', '110%', '-10%'] }
-              }
-              transition={exiting
-                ? { duration: 0.5, ease: 'easeIn' }
-                : {
-                    duration: 2.2,
-                    repeat: Infinity,
-                    ease: [0.4, 0, 0.6, 1],
-                    times: [0, 0.5, 1],
-                  }
-              }
+              style={{
+                bottom: '28px',
+                animation: 'vehicle-car 2.8s linear infinite',
+                willChange: 'transform',
+                filter: 'drop-shadow(0 0 8px rgba(242,41,152,0.6))',
+              }}
             >
-              {/* Linhas de velocidade da moto */}
-              <motion.div
-                className="absolute right-full top-1/2 -translate-y-1/2 flex gap-1 pr-1"
-                animate={{ opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 0.3, repeat: Infinity }}
-              >
-                {[16, 10, 6].map((w, i) => (
-                  <div key={i} className="h-[2px] rounded-full" style={{ width: w, background: 'rgba(242,41,152,0.6)' }} />
-                ))}
-              </motion.div>
-              <motion.div
-                animate={{ rotate: [-1, 1, -1] }}
-                transition={{ duration: 0.3, repeat: Infinity }}
-              >
-                <MotoSVG />
-              </motion.div>
-            </motion.div>
+              <CarSVG />
+            </div>
 
-            {/* CARRO — vem atrás, levemente atrasado */}
-            <motion.div
+            {/* MOTO — atrás do carro, começa mais longe */}
+            <div
               className="absolute"
-              style={{ bottom: '28px' }}
-              animate={exiting
-                ? { x: ['-5%', '130%'] }
-                : { x: ['-30%', '90%', '-30%'] }
-              }
-              transition={exiting
-                ? { duration: 0.55, ease: 'easeIn', delay: 0.05 }
-                : {
-                    duration: 2.2,
-                    repeat: Infinity,
-                    ease: [0.4, 0, 0.6, 1],
-                    times: [0, 0.5, 1],
-                    delay: 0.18,
-                  }
-              }
+              style={{
+                bottom: '32px',
+                animation: 'vehicle-moto 2.8s linear infinite',
+                willChange: 'transform',
+                filter: 'drop-shadow(0 0 6px rgba(242,41,152,0.5))',
+              }}
             >
-              {/* Linhas de velocidade do carro */}
-              <motion.div
-                className="absolute right-full top-1/2 -translate-y-1/2 flex gap-1 pr-1"
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{ duration: 0.35, repeat: Infinity }}
-              >
-                {[22, 14, 8].map((w, i) => (
-                  <div key={i} className="h-[2px] rounded-full" style={{ width: w, background: 'rgba(191,59,121,0.6)' }} />
-                ))}
-              </motion.div>
-              <motion.div
-                animate={{ rotate: [-0.5, 0.5, -0.5] }}
-                transition={{ duration: 0.35, repeat: Infinity }}
-              >
-                <CarSVG />
-              </motion.div>
-            </motion.div>
+              <MotoSVG />
+            </div>
           </div>
 
           {/* Texto e pontos de loading */}
