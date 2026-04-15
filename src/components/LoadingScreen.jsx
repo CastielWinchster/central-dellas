@@ -78,7 +78,8 @@ const MotoSVG = () => (
   </svg>
 );
 
-// Linhas de velocidade
+// Linhas de velocidade (larguras fixas para evitar Math.random() no render)
+const SPEED_LINE_WIDTHS = [60, 120, 80, 100, 70, 90, 110, 65];
 const SpeedLines = ({ count = 5, opacity = 0.4 }) => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
     {Array.from({ length: count }).map((_, i) => (
@@ -88,7 +89,7 @@ const SpeedLines = ({ count = 5, opacity = 0.4 }) => (
         style={{
           top: `${30 + i * 12}%`,
           background: 'linear-gradient(90deg, transparent, #F22998, transparent)',
-          width: `${60 + Math.random() * 80}px`,
+          width: `${SPEED_LINE_WIDTHS[i % SPEED_LINE_WIDTHS.length]}px`,
           opacity,
         }}
         animate={{ x: ['-100vw', '100vw'] }}
