@@ -78,26 +78,33 @@ const MotoSVG = () => (
   </svg>
 );
 
-// Linhas de velocidade (larguras fixas para evitar Math.random() no render)
-const SPEED_LINE_WIDTHS = [60, 120, 80, 100, 70, 90, 110, 65];
+// Linhas de velocidade — array estático para evitar problemas com framer-motion
+const SPEED_LINES = [
+  { top: '30%', width: 60, duration: 0.80, delay: 0.00 },
+  { top: '42%', width: 120, duration: 0.95, delay: 0.12 },
+  { top: '54%', width: 80, duration: 1.10, delay: 0.24 },
+  { top: '66%', width: 100, duration: 1.25, delay: 0.36 },
+  { top: '78%', width: 70, duration: 1.40, delay: 0.48 },
+];
+
 const SpeedLines = ({ count = 5, opacity = 0.4 }) => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: count }).map((_, i) => (
+    {SPEED_LINES.slice(0, count).map((line, i) => (
       <motion.div
         key={i}
         className="absolute h-[2px] rounded-full"
         style={{
-          top: `${30 + i * 12}%`,
+          top: line.top,
           background: 'linear-gradient(90deg, transparent, #F22998, transparent)',
-          width: `${SPEED_LINE_WIDTHS[i % SPEED_LINE_WIDTHS.length]}px`,
+          width: `${line.width}px`,
           opacity,
         }}
         animate={{ x: ['-100vw', '100vw'] }}
         transition={{
-          duration: 0.8 + i * 0.15,
+          duration: line.duration,
           repeat: Infinity,
           ease: 'linear',
-          delay: i * 0.12,
+          delay: line.delay,
         }}
       />
     ))}
