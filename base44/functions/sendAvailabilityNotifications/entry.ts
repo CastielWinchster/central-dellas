@@ -85,6 +85,41 @@ Deno.serve(async (req) => {
             }
         }
         
+        // ── Notificar motoristas sobre corridas pendentes ──
+        try {
+            const pendingRides = await base44.asServiceRole.entities.Ride.filter({
+                status: 'requested',
+            });
+
+            if (pendingRides.length > 0 && availableDrivers.length > 0) {
+                const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+                for (const driver of availableDrivers) {
+                    // Anti-spam: verificar se já foi notificada nos últimos 2 minutos
+                    const recentNotifs = await base44.asServiceRole.entities.Notification.filter({
+                        user_id: driver.driver_id ?? driver.user_id,
+                        type: 'ride',
+                    });
+                    const lastNotif = recentNotifs[0]?.created_date;
+                    if (lastNotif && new Date(lastNotif) > twoMinutesAgo) continue;
+
+                    await base44.asServiceRole.entities.Notification.create({
+                        user_id: driver.driver_id ?? driver.user_id,
+                        title: '🚗 Nova corrida disponível!',
+                        message: pendingRides.length === 1
+                            ? 'Há uma corrida aguardando. Aceite agora!'
+                            : `Há ${pendingRides.length} corridas aguardando. Aceite agora!`,
+                        type: 'ride',
+                        is_read: false,
+                        is_persistent: false,
+                    });
+                    notificationsSent++;
+                }
+            }
+        } catch (driverNotifyErr) {
+            console.warn('[sendAvailabilityNotifications] Erro ao notificar motoristas:', driverNotifyErr.message);
+        }
+
         return Response.json({ 
             success: true, 
             notificationsSent,

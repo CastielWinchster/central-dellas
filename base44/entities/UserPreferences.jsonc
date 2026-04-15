@@ -1,0 +1,86 @@
+{
+  "name": "UserPreferences",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "travel_with_pet": {
+      "type": "boolean",
+      "default": false,
+      "description": "Viaja com pet"
+    },
+    "accessibility_needs": {
+      "type": "boolean",
+      "default": false,
+      "description": "Necessita acessibilidade"
+    },
+    "prefer_silence": {
+      "type": "boolean",
+      "default": false,
+      "description": "Prefere sil\u00eancio"
+    },
+    "prefer_ac": {
+      "type": "boolean",
+      "default": false,
+      "description": "Prefere ar condicionado"
+    },
+    "has_luggage": {
+      "type": "boolean",
+      "default": false,
+      "description": "Viaja com bagagem"
+    },
+    "share_location_during_rides_only": {
+      "type": "boolean",
+      "default": true,
+      "description": "Compartilhar localiza\u00e7\u00e3o apenas durante corridas"
+    },
+    "save_location_history": {
+      "type": "boolean",
+      "default": true,
+      "description": "Salvar hist\u00f3rico de locais"
+    },
+    "hide_photo_from_drivers": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ocultar foto do perfil para motoristas"
+    },
+    "larger_font": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fonte maior"
+    },
+    "high_contrast": {
+      "type": "boolean",
+      "default": false,
+      "description": "Alto contraste"
+    },
+    "push_subscription": {
+      "type": "string",
+      "description": "JSON serializado da Web Push subscription do dispositivo"
+    },
+    "push_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Web Push ativado para este usu\u00e1rio"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "user_id": "{{user.id}}"
+    },
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_id": "{{user.id}}"
+    }
+  }
+}

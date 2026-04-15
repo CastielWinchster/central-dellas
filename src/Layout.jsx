@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { useAuthUser } from '../components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications, subscribeToPush } from '@/hooks/useNotifications';
 import NotificationToast from './components/NotificationToast';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -29,12 +29,10 @@ function LayoutContent({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast } = useNotifications(user?.id);
 
-  // Solicitar permissão de notificação nativa uma única vez após login
+  // Inscrever no Web Push (solicita permissão + salva subscription no backend)
   useEffect(() => {
     if (!user) return;
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      setTimeout(() => { Notification.requestPermission(); }, 3000);
-    }
+    setTimeout(() => subscribeToPush(), 3000);
   }, [user?.id]);
 
   useEffect(() => {

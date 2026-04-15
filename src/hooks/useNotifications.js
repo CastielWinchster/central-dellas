@@ -43,12 +43,47 @@ function vibrate(type = 'default') {
   else                         navigator.vibrate([150, 100, 150]);
 }
 
+// Helper: converte chave VAPID base64 para Uint8Array
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+// Inscrever usuário no Web Push e salvar subscription no backend
+export async function subscribeToPush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+    if (!VAPID_PUBLIC) {
+      console.warn('[Push] VITE_VAPID_PUBLIC_KEY não configurada — push em segundo plano desativado');
+      return;
+    }
+
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+    });
+
+    // Enviar subscription ao backend via SDK
+    await base44.functions.invoke('savePushToken', { subscription });
+    console.log('[Push] Inscrito com sucesso');
+  } catch (err) {
+    console.warn('[Push] Falha na inscrição:', err.message);
+  }
+}
+
 export function useNotifications(userId) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount]     = useState(0);
   const [toastQueue, setToastQueue]       = useState([]);
-  const lastNotifIdRef  = useRef(null);
-  const initialLoadRef  = useRef(true);
 
   const pushToast = useCallback((notification) => {
     const toast = { ...notification, toastId: Date.now() };
@@ -78,7 +113,7 @@ export function useNotifications(userId) {
   }, [pushToast]);
 
   const loadNotifications = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) return [];
     try {
       const data = await base44.entities.Notification.filter(
         { user_id: userId },
@@ -87,28 +122,37 @@ export function useNotifications(userId) {
       );
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.is_read).length);
-      if (data.length > 0) lastNotifIdRef.current = data[0].id;
-      initialLoadRef.current = false;
+      return data;
     } catch (e) {
-      console.error('useNotifications loadNotifications:', e);
+      console.error('[useNotifications]', e);
+      return [];
     }
   }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
-    loadNotifications();
 
+    const seenIds = new Set();
+    let initialized = false;
+
+    // 1. Ativar subscribe IMEDIATAMENTE — antes do load inicial
     const unsub = base44.entities.Notification.subscribe((event) => {
       if (event.type === 'create' && event.data?.user_id === userId) {
         const newNotif = event.data;
-        if (!initialLoadRef.current && newNotif.id !== lastNotifIdRef.current) {
-          lastNotifIdRef.current = newNotif.id;
-          setNotifications(prev => [newNotif, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          handleNewNotification(newNotif);
-        }
+        if (!initialized || seenIds.has(newNotif.id)) return;
+        seenIds.add(newNotif.id);
+        setNotifications(prev => [newNotif, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        handleNewNotification(newNotif);
       }
     });
+
+    // 2. Carregar histórico depois — marcar IDs já vistos
+    loadNotifications().then((data) => {
+      if (Array.isArray(data)) data.forEach(n => seenIds.add(n.id));
+      initialized = true;
+    });
+
     return unsub;
   }, [userId, loadNotifications, handleNewNotification]);
 

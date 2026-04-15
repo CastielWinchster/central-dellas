@@ -188,6 +188,24 @@ Deno.serve(async (req) => {
       offer_expires_at: expiresAt.toISOString()
     });
 
+    // Notificar motoristas próximas sobre nova corrida disponível
+    try {
+      const notifyPromises = nearbyDrivers.map(driver =>
+        base44.asServiceRole.entities.Notification.create({
+          user_id: driver.driver_id,
+          title: '🚗 Nova corrida disponível!',
+          message: `${pickupText || 'Novo passageiro'} → ${dropoffText || 'destino'}`,
+          type: 'ride',
+          is_read: false,
+          is_persistent: false,
+        })
+      );
+      await Promise.allSettled(notifyPromises);
+      console.log(`[dispatchRide] ${nearbyDrivers.length} motoristas notificadas`);
+    } catch (notifyErr) {
+      console.warn('[dispatchRide] Falha ao notificar motoristas:', notifyErr.message);
+    }
+
     return Response.json({
       success: true,
       ride: {
