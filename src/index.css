@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes drive-across {
+  0%   { transform: translateX(-120px); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateX(calc(100vw + 120px)); opacity: 0; }
+}
+
+@keyframes road-dash {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-80px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
