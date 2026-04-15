@@ -2,18 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes vehicle-car {
-  0%   { transform: translateX(-180px); opacity: 0; }
+@keyframes cd-car {
+  0%   { transform: translateX(25vw); opacity: 0; }
   8%   { opacity: 1; }
-  92%  { opacity: 1; }
-  100% { transform: translateX(calc(100vw + 180px)); opacity: 0; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(110vw); opacity: 0; }
 }
 
-@keyframes vehicle-moto {
-  0%   { transform: translateX(-320px); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateX(calc(100vw + 80px)); opacity: 0; }
+@keyframes cd-moto {
+  0%   { transform: translateX(10vw); opacity: 0; }
+  8%   { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(95vw); opacity: 0; }
 }
 
 @keyframes road-dash {
