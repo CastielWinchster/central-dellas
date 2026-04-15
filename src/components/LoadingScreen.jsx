@@ -202,17 +202,37 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
           </motion.div>
 
           {/* Pista de corrida */}
-          <div className="relative w-full max-w-sm h-[120px] z-10">
-            {/* Linha da pista */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '384px',
+              height: '70px',
+              overflow: 'hidden',
+              zIndex: 10,
+            }}
+          >
+            {/* Linha sólida da pista — na base */}
             <div
-              className="absolute bottom-8 left-0 right-0 h-[3px] rounded-full"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(242,41,152,0.3), rgba(242,41,152,0.5), rgba(242,41,152,0.3), transparent)' }}
+              style={{
+                position: 'absolute',
+                bottom: '0px',
+                left: 0,
+                right: 0,
+                height: '3px',
+                borderRadius: '9999px',
+                background: 'linear-gradient(90deg, transparent, rgba(242,41,152,0.3), rgba(242,41,152,0.5), rgba(242,41,152,0.3), transparent)',
+              }}
             />
 
-            {/* Tracejado central animado */}
+            {/* Tracejado animado — logo acima da linha sólida */}
             <motion.div
-              className="absolute bottom-[26px] left-0 right-0 h-[2px]"
               style={{
+                position: 'absolute',
+                bottom: '4px',
+                left: 0,
+                right: 0,
+                height: '2px',
                 backgroundImage: 'repeating-linear-gradient(90deg, rgba(242,41,152,0.25) 0px, rgba(242,41,152,0.25) 20px, transparent 20px, transparent 40px)',
               }}
               animate={{ backgroundPosition: ['0px', '40px'] }}
@@ -222,11 +242,12 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
             {/* Linhas de velocidade de fundo */}
             <SpeedLines count={4} opacity={0.25} />
 
-            {/* CARRO — na frente, parte de 25vw */}
+            {/* CARRO — rodas tocam a base (bottom: 3px = cima da linha da pista) */}
             <div
-              className="absolute"
               style={{
-                bottom: '28px',
+                position: 'absolute',
+                bottom: '3px',
+                left: 0,
                 animation: 'cd-car 2.8s linear infinite',
                 willChange: 'transform',
                 filter: 'drop-shadow(0 0 8px rgba(242,41,152,0.6))',
@@ -235,11 +256,12 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
               <CarSVG />
             </div>
 
-            {/* MOTO — atrás do carro, parte de 10vw com delay 0.8s */}
+            {/* MOTO — rodas tocam a base */}
             <div
-              className="absolute"
               style={{
-                bottom: '26px',
+                position: 'absolute',
+                bottom: '3px',
+                left: 0,
                 animation: 'cd-moto 2.8s linear infinite',
                 animationDelay: '0.8s',
                 willChange: 'transform',
