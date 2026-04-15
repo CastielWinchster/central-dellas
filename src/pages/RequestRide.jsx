@@ -887,7 +887,7 @@ export default function RequestRide() {
                       ) : (
                         <>
                           <Search className="w-5 h-5 mr-2" />
-                          Buscar Motoristas
+                          Próximo
                         </>
                       )}
                     </Button>
