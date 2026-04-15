@@ -751,16 +751,6 @@ export default function DriverDashboard() {
                       <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
                     </button>
                   </Link>
-                  
-                  <Link to={createPageUrl('MyReviews')}>
-                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <Star className="w-5 h-5 text-[#F22998]" />
-                        <span className="text-[#F2F2F2]">Minhas Avaliações</span>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
-                    </button>
-                  </Link>
                 </div>
               </Card>
             </motion.div>
