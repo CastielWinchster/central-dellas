@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { useAuthUser } from '../components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationToast from './components/NotificationToast';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
@@ -25,6 +27,15 @@ function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const { user, isLoading: loading } = useAuthUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast } = useNotifications(user?.id);
+
+  // Solicitar permissão de notificação nativa uma única vez após login
+  useEffect(() => {
+    if (!user) return;
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      setTimeout(() => { Notification.requestPermission(); }, 3000);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     // Apply theme to document
@@ -191,7 +202,13 @@ function LayoutContent({ children, currentPageName }) {
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
-                  <NotificationBell userId={user.id} />
+                  <NotificationBell
+                    userId={user.id}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    markAsRead={markAsRead}
+                    markAllAsRead={markAllAsRead}
+                  />
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
@@ -301,6 +318,9 @@ function LayoutContent({ children, currentPageName }) {
       <Suspense fallback={null}>
         <ChatbotFloat />
       </Suspense>
+
+      {/* Toast de notificações em tempo real */}
+      <NotificationToast toasts={toastQueue} onDismiss={dismissToast} />
 
       {/* Bottom Navigation - Mobile */}
       {user && (

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Bell } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, Car, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,64 +9,56 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { useNotifications } from '@/hooks/useNotifications';
+import { toBrasiliaTime } from '@/utils/dateUtils';
 
-export default function NotificationBell({ userId }) {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+const TYPE_ICON = {
+  ride:    <Car size={16} className="text-[#F22998]" />,
+  message: <MessageCircle size={16} className="text-blue-400" />,
+  coupon:  <span className="text-sm">🎟️</span>,
+  event:   <span className="text-sm">📅</span>,
+  system:  <span className="text-sm">⚙️</span>,
+  default: <Bell size={16} className="text-[#F2F2F2]/60" />,
+};
+
+export default function NotificationBell({
+  userId,
+  // Props opcionais — se fornecidos externamente (ex: via Layout), usa-os
+  notifications: extNotifications,
+  unreadCount: extUnreadCount,
+  markAsRead: extMarkAsRead,
+  markAllAsRead: extMarkAllAsRead,
+}) {
   const [open, setOpen] = useState(false);
+  const [badgePop, setBadgePop] = useState(false);
+  const prevCountRef = useRef(0);
 
+  // Se props externas não fornecidas, usa hook interno
+  const internal = useNotifications(extNotifications !== undefined ? null : userId);
+
+  const notifications  = extNotifications  ?? internal.notifications;
+  const unreadCount    = extUnreadCount    ?? internal.unreadCount;
+  const markAsRead     = extMarkAsRead     ?? internal.markAsRead;
+  const markAllAsRead  = extMarkAllAsRead  ?? internal.markAllAsRead;
+
+  // Animação do badge ao receber nova notificação
   useEffect(() => {
-    if (!userId) return;
-    
-    loadNotifications();
-
-    // Subscribe to new notifications
-    const unsubscribe = base44.entities.Notification.subscribe((event) => {
-      if (event.type === 'create' && event.data.user_id === userId) {
-        loadNotifications();
-      }
-    });
-
-    return unsubscribe;
-  }, [userId]);
-
-  const loadNotifications = async () => {
-    try {
-      const userNotifications = await base44.entities.Notification.filter(
-        { user_id: userId },
-        '-created_date',
-        10
-      );
-      setNotifications(userNotifications);
-      setUnreadCount(userNotifications.filter(n => !n.is_read).length);
-    } catch (error) {
-      console.error('Error loading notifications:', error);
+    if (unreadCount > prevCountRef.current) {
+      setBadgePop(true);
+      setTimeout(() => setBadgePop(false), 400);
     }
-  };
+    prevCountRef.current = unreadCount;
+  }, [unreadCount]);
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await base44.entities.Notification.update(notificationId, { is_read: true });
-      loadNotifications();
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const unreadNotifications = notifications.filter(n => !n.is_read);
-      await Promise.all(
-        unreadNotifications.map(n => base44.entities.Notification.update(n.id, { is_read: true }))
-      );
-      loadNotifications();
-    } catch (error) {
-      console.error('Error marking all as read:', error);
+  const handleOpen = (isOpen) => {
+    setOpen(isOpen);
+    if (isOpen && unreadCount > 0) {
+      markAllAsRead();
     }
   };
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpen}>
       <DropdownMenuTrigger asChild>
         <button className="relative p-2 rounded-lg hover:bg-[#F22998]/10 transition-colors">
           <Bell className="w-6 h-6 text-[#F2F2F2]" />
@@ -75,15 +66,15 @@ export default function NotificationBell({ userId }) {
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-[#F22998] text-white text-xs rounded-full flex items-center justify-center font-bold"
+              className={`absolute -top-1 -right-1 w-5 h-5 bg-[#F22998] text-white text-xs rounded-full flex items-center justify-center font-bold ${badgePop ? 'badge-pop' : ''}`}
             >
-              {unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </motion.span>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="end" 
+      <DropdownMenuContent
+        align="end"
         className="w-96 bg-[#0D0D0D] border-[#F22998]/30 p-0 max-h-[500px] overflow-hidden"
       >
         <div className="p-4 border-b border-[#F22998]/20 flex items-center justify-between">
@@ -99,45 +90,50 @@ export default function NotificationBell({ userId }) {
             </Button>
           )}
         </div>
-        
+
         <div className="overflow-y-auto max-h-[400px]">
           {notifications.length > 0 ? (
             <AnimatePresence>
-              {notifications.map((notification) => (
-                <motion.div
-                  key={notification.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  onClick={() => {
-                    markAsRead(notification.id);
-                    setOpen(false);
-                  }}
-                  className={`p-4 border-b border-[#F22998]/10 cursor-pointer transition-colors hover:bg-[#F22998]/5 ${
-                    !notification.is_read ? 'bg-[#F22998]/10' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="text-2xl">{notification.icon}</div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-1">
-                        <p className="font-medium text-[#F2F2F2] text-sm">
+              {notifications.map((notification) => {
+                const icon = TYPE_ICON[notification.type] || TYPE_ICON.default;
+                return (
+                  <motion.div
+                    key={notification.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    onClick={() => {
+                      markAsRead(notification.id);
+                      setOpen(false);
+                    }}
+                    className={`p-4 border-b border-[#F22998]/10 cursor-pointer transition-colors hover:bg-[#F22998]/5 ${
+                      !notification.is_read ? 'bg-[#F22998]/10' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Ponto rosa para não lidas */}
+                      <div className="flex-shrink-0 mt-1">
+                        {!notification.is_read
+                          ? <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+                          : <div className="w-2 h-2" />
+                        }
+                      </div>
+                      <div className="flex-shrink-0 mt-0.5">{icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[#F2F2F2] text-sm truncate">
                           {notification.title}
                         </p>
-                        {!notification.is_read && (
-                          <div className="w-2 h-2 rounded-full bg-[#F22998] mt-1" />
-                        )}
+                        <p className="text-[#F2F2F2]/70 text-xs mt-0.5 line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-[#F2F2F2]/40 text-xs mt-1">
+                          {toBrasiliaTime(notification.created_date)}
+                        </p>
                       </div>
-                      <p className="text-[#F2F2F2]/70 text-xs mb-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-[#F2F2F2]/40 text-xs">
-                        {new Date(notification.created_date).toLocaleString('pt-BR')}
-                      </p>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           ) : (
             <div className="p-8 text-center">

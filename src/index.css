@@ -16,6 +16,23 @@
   100% { transform: translateX(110vw); opacity: 0; }
 }
 
+@keyframes badge-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.5); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.badge-pop {
+  animation: badge-pop 0.4s ease-out;
+}
+.toast-container {
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast-container > * {
+  pointer-events: auto;
+}
+
 @keyframes road-dash {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-80px); }
