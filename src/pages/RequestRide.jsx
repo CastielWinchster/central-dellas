@@ -498,7 +498,7 @@ export default function RequestRide() {
 
   const [rideTypes, setRideTypes] = useState([
     { id: 'standard', name: 'Della Standard', iconType: 'car', price: '9.99', time: '5 min', description: 'Econômico e confortável', badge: null },
-    { id: 'rotta_roza', name: 'Rotta Roza', iconType: 'moto', price: '9.99', time: '3 min', description: 'Moto rápida e econômica', badge: '⚡ Mais Rápido' },
+    { id: 'rotta_roza', name: 'Rotta Roza', iconType: 'moto', price: '9.99', time: '3 min', description: 'Moto rápida e econômica', badge: null },
   ]);
 
   const paymentOptions = [
@@ -969,9 +969,11 @@ export default function RequestRide() {
                                   className="w-full h-full object-contain p-1"
                                 />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
-                                  <span className="text-white font-black text-sm tracking-tight">RR</span>
-                                </div>
+                                <img
+                                  src="https://media.base44.com/images/public/6966ea008a15739746d55f4e/4a806ee12_Rota.png"
+                                  alt="Rotta Roza"
+                                  className="w-full h-full object-contain"
+                                />
                               )}
                             </div>
                             <div className="text-left">
