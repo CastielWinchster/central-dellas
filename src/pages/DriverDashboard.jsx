@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
 import AcceptedRideModal from '../components/driver/AcceptedRideModal';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
+import AvailableDeliveriesList from '../components/driver/AvailableDeliveriesList';
 
 export default function DriverDashboard() {
   const [user, setUser] = useState(null);
@@ -41,6 +42,7 @@ export default function DriverDashboard() {
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeDriverTab, setActiveDriverTab] = useState('rides'); // 'rides' | 'deliveries'
   const [acceptedRide, setAcceptedRide] = useState(() => {
     try { const s = localStorage.getItem('active_ride'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
@@ -703,7 +705,7 @@ export default function DriverDashboard() {
           </motion.div>
         )}
 
-        {/* Corridas disponíveis — só quando online e sem corrida aceita */}
+        {/* Corridas/Entregas disponíveis — só quando online e sem corrida aceita */}
         {isOnline && !acceptedRide && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -711,12 +713,46 @@ export default function DriverDashboard() {
             className="mb-6"
           >
             <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
-              <AvailableRidesList
-                onRideSelect={setSelectedRide}
-                onRideAccepted={handleRideAcceptedFromList}
-                selectedRideId={selectedRide?.id}
-                driverLocation={currentLocation}
-              />
+              {/* Abas */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setActiveDriverTab('rides')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    activeDriverTab === 'rides'
+                      ? 'bg-pink-600 text-white'
+                      : 'bg-gray-800 text-gray-400'
+                  }`}
+                >
+                  Passageiras Disponíveis
+                </button>
+                <button
+                  onClick={() => setActiveDriverTab('deliveries')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    activeDriverTab === 'deliveries'
+                      ? 'bg-pink-600 text-white'
+                      : 'bg-gray-800 text-gray-400'
+                  }`}
+                >
+                  Entregas
+                </button>
+              </div>
+
+              {/* Conteúdo da aba */}
+              {activeDriverTab === 'rides' ? (
+                <AvailableRidesList
+                  onRideSelect={setSelectedRide}
+                  onRideAccepted={handleRideAcceptedFromList}
+                  selectedRideId={selectedRide?.id}
+                  driverLocation={currentLocation}
+                />
+              ) : (
+                <AvailableDeliveriesList
+                  onRideSelect={setSelectedRide}
+                  onRideAccepted={handleRideAcceptedFromList}
+                  selectedRideId={selectedRide?.id}
+                  driverLocation={currentLocation}
+                />
+              )}
             </Card>
           </motion.div>
         )}
