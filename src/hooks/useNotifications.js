@@ -135,11 +135,33 @@ export function useNotifications(userId) {
     const seenIds = new Set();
     let initialized = false;
 
-    // 1. Ativar subscribe IMEDIATAMENTE — antes do load inicial
+    // 1. Carregar histórico PRIMEIRO para popular seenIds
+    const loadInitial = async () => {
+      try {
+        const data = await base44.entities.Notification.filter(
+          { user_id: userId },
+          '-created_date',
+          30
+        );
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.is_read).length);
+        // CRÍTICO: marcar todos os IDs já existentes como vistos ANTES de inicializar
+        data.forEach(n => seenIds.add(n.id));
+      } catch (e) {
+        console.error('[useNotifications]', e);
+      } finally {
+        initialized = true;
+      }
+    };
+
+    loadInitial();
+
+    // 2. Subscribe — só processa eventos APÓS load inicial E se não for duplicata
     const unsub = base44.entities.Notification.subscribe((event) => {
+      if (!initialized) return;
       if (event.type === 'create' && event.data?.user_id === userId) {
         const newNotif = event.data;
-        if (!initialized || seenIds.has(newNotif.id)) return;
+        if (seenIds.has(newNotif.id)) return; // ignorar duplicata
         seenIds.add(newNotif.id);
         setNotifications(prev => [newNotif, ...prev]);
         setUnreadCount(prev => prev + 1);
@@ -147,14 +169,8 @@ export function useNotifications(userId) {
       }
     });
 
-    // 2. Carregar histórico depois — marcar IDs já vistos
-    loadNotifications().then((data) => {
-      if (Array.isArray(data)) data.forEach(n => seenIds.add(n.id));
-      initialized = true;
-    });
-
     return unsub;
-  }, [userId, loadNotifications, handleNewNotification]);
+  }, [userId, handleNewNotification]);
 
   const markAsRead = useCallback(async (notifId) => {
     await base44.entities.Notification.update(notifId, { is_read: true });

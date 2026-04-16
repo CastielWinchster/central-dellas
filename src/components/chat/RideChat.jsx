@@ -32,15 +32,29 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
 
     // Carregar histórico
     base44.functions.invoke('listRideMessages', { rideId, limit: 100 }).then(res => {
-      if (res.data?.messages) setMessages(res.data.messages);
+      if (res.data?.messages) {
+        // Deduplicar histórico por ID
+        const unique = Array.from(new Map(res.data.messages.map(m => [m.id, m])).values());
+        setMessages(unique);
+      }
     }).catch(e => console.error('[RideChat] Erro ao carregar histórico:', e));
 
-    // Subscribe em tempo real
+    // Subscribe em tempo real — usa Set para deduplicação extra
+    const seenMsgIds = new Set();
     const unsub = base44.entities.RideMessage.subscribe((event) => {
       if (event.type === 'create' && event.data?.ride_id === rideId) {
+        const msg = event.data;
+        if (seenMsgIds.has(msg.id)) return;
+        seenMsgIds.add(msg.id);
         setMessages(prev => {
-          if (prev.some(m => m.id === event.data.id)) return prev;
-          return [...prev, event.data];
+          // Substituir mensagem temp OU adicionar nova (sem duplicar)
+          if (prev.some(m => m.id === msg.id)) return prev;
+          // Tentar substituir mensagem otimista (temp) pelo real
+          const hasTempToReplace = prev.some(m => m._temp && m.sender_id === msg.sender_id);
+          if (hasTempToReplace) {
+            return prev.map(m => (m._temp && m.sender_id === msg.sender_id) ? msg : m);
+          }
+          return [...prev, msg];
         });
         scrollToBottom();
       }
@@ -71,10 +85,8 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
     setSending(true);
 
     try {
-      const res = await base44.functions.invoke('sendRideMessage', { rideId, text: trimmed });
-      if (res.data?.message) {
-        setMessages(prev => prev.map(m => m.id === tempMsg.id ? res.data.message : m));
-      }
+      await base44.functions.invoke('sendRideMessage', { rideId, text: trimmed });
+      // O subscribe em tempo real substitui a mensagem temp pela real automaticamente
     } catch (e) {
       console.error('[RideChat] Erro ao enviar:', e);
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
