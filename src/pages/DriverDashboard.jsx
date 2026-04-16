@@ -723,7 +723,7 @@ export default function DriverDashboard() {
                       : 'bg-gray-800 text-gray-400'
                   }`}
                 >
-                  Passageiras Disponíveis
+                  Passageiros Disponíveis
                 </button>
                 <button
                   onClick={() => setActiveDriverTab('deliveries')}
