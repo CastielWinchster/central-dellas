@@ -579,18 +579,6 @@ export default function RequestDelivery() {
                           </div>
                         )}
                       </div>
-                      <div className="border-t border-[#F2F2F2]/10 pt-3">
-                        <p className="text-xs text-[#F2F2F2]/50">Cálculo do preço</p>
-                        <p className="text-xs text-[#F2F2F2]/40">
-                          R$ {BASE_PRICE.toFixed(2)} (mínimo) + {routeDistance} km × R$ {PRICE_PER_KM.toFixed(2)}/km
-                        </p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <p className="text-2xl font-bold text-[#F22998]">R$ {estimatedPrice}</p>
-                          <span className="text-xs text-[#F2F2F2]/50 border border-[#F2F2F2]/20 rounded-lg px-2 py-1">
-                            📏 {routeDistance} km • ⏱ {routeDuration} min
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   </Card>
 
