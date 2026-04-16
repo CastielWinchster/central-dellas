@@ -308,9 +308,9 @@ export default function RequestDelivery() {
             />
             {/* Aviso de arrastar pinos */}
             {(pickupDraggable || destinationDraggable) && (
-              <div className="absolute bottom-3 left-3 right-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2">
+              <div className="absolute bottom-3 left-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2" style={{ maxWidth: '55%' }}>
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-white" />
-                <span>Arraste o pin {pickupDraggable && destinationDraggable ? 'verde (coleta) ou rosa (entrega)' : pickupDraggable ? 'verde' : 'rosa'} para ajustar a posição exata</span>
+                <span>Arraste o pin {pickupDraggable && destinationDraggable ? 'verde (coleta) ou rosa (entrega)' : pickupDraggable ? 'verde' : 'rosa'} para ajustar</span>
               </div>
             )}
 
@@ -319,8 +319,7 @@ export default function RequestDelivery() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-3 left-1/2 -translate-x-1/2 z-10"
-                style={{ whiteSpace: 'nowrap' }}
+                className="absolute top-3 left-0 right-0 flex justify-center z-10 px-3"
               >
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center gap-4 px-4 py-2.5">
                   <div className="flex items-center gap-1.5">
