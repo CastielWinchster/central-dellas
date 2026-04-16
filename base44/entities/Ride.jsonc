@@ -70,12 +70,21 @@
     "ride_type": {
       "type": "string",
       "default": "standard",
-      "description": "Tipo de corrida"
+      "description": "Tipo de corrida: standard, rotta_roza, delivery"
     },
     "has_pet": {
       "type": "boolean",
       "default": false,
       "description": "Passageira est\u00e1 com pet"
+    },
+    "package_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "description": "Tamanho do pacote (apenas para entregas delivery)"
     },
     "is_test": {
       "type": "boolean",

@@ -36,17 +36,22 @@ Deno.serve(async (req) => {
     const {
       pickupLat,
       pickupLng,
-      pickupText,
+      pickupText,  pickup_text,
       dropoffLat,
       dropoffLng,
-      dropoffText,
+      dropoffText, dropoff_text,
       estimatedPrice,
       estimatedDuration,
-      rideType,
-      hasPet
+      rideType = 'standard',
+      hasPet,
+      packageSize,
     } = body;
 
-    if (!pickupLat || !pickupLng || !pickupText || !dropoffLat || !dropoffLng || !dropoffText) {
+    // Aceitar tanto pickupText quanto pickup_text (compatibilidade)
+    const resolvedPickupText = pickupText || pickup_text;
+    const resolvedDropoffText = dropoffText || dropoff_text;
+
+    if (!pickupLat || !pickupLng || !resolvedPickupText || !dropoffLat || !dropoffLng || !resolvedDropoffText) {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
 
@@ -58,16 +63,17 @@ Deno.serve(async (req) => {
         passenger_id: user.id,
         pickup_lat: pickupLat,
         pickup_lng: pickupLng,
-        pickup_text: pickupText,
+        pickup_text: resolvedPickupText,
         dropoff_lat: dropoffLat,
         dropoff_lng: dropoffLng,
-        dropoff_text: dropoffText,
+        dropoff_text: resolvedDropoffText,
         status: 'requested',
         search_radius_km: 5,
         estimated_price: estimatedPrice,
         estimated_duration: estimatedDuration,
-        ride_type: rideType || 'standard',
-        has_pet: hasPet || false
+        ride_type: rideType,
+        has_pet: hasPet || false,
+        package_size: packageSize || null,
       });
     } catch (e) {
       console.error('[dispatchRide] Erro ao criar Ride:', e.message);
@@ -193,8 +199,8 @@ Deno.serve(async (req) => {
       const notifyPromises = nearbyDrivers.map(driver =>
         base44.asServiceRole.entities.Notification.create({
           user_id: driver.driver_id,
-          title: '🚗 Nova corrida disponível!',
-          message: `${pickupText || 'Novo passageiro'} → ${dropoffText || 'destino'}`,
+          title: rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!',
+        message: `${resolvedPickupText || 'Origem'} → ${resolvedDropoffText || 'destino'}`,
           type: 'ride',
           is_read: false,
           is_persistent: false,

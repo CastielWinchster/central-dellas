@@ -177,11 +177,40 @@ export default function RequestDelivery() {
   };
 
   const handleConfirm = async () => {
+    if (!pickupLocation?.lat || !destinationLocation?.lat || !selectedSize || !selectedPayment) {
+      toast.error('Preencha todas as informações');
+      return;
+    }
+
     setConfirming(true);
-    await new Promise(r => setTimeout(r, 1500));
-    toast.success('📦 Entrega solicitada com sucesso!');
-    setConfirming(false);
-    navigate('/RequestRide');
+    try {
+      const result = await base44.functions.invoke('dispatchRide', {
+        pickupLat: pickupLocation.lat,
+        pickupLng: pickupLocation.lng,
+        pickup_text: pickup,
+        dropoffLat: destinationLocation.lat,
+        dropoffLng: destinationLocation.lng,
+        dropoff_text: destination,
+        rideType: 'delivery',
+        packageSize: selectedSize,
+        estimatedPrice: parseFloat(estimatedPrice || '0'),
+        estimatedDuration: routeDuration || 0,
+        paymentMethod: selectedPayment,
+      });
+
+      if (result?.data?.success || result?.data?.ride?.id) {
+        const rideId = result?.data?.ride?.id;
+        toast.success('📦 Entrega solicitada! Procurando motorista...');
+        navigate('/RequestRide');
+      } else {
+        toast.error(result?.data?.error || 'Erro ao criar pedido de entrega');
+      }
+    } catch (error) {
+      console.error('[RequestDelivery]', error);
+      toast.error(error.message || 'Erro ao criar pedido');
+    } finally {
+      setConfirming(false);
+    }
   };
 
   const canProceedStep1 = pickupLocation?.lat && destinationLocation?.lat;
