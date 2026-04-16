@@ -42,7 +42,12 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
         radiusKm: PROXIMITY_KM,
       });
 
-      const fetched = response.data?.rides || [];
+      const raw = response.data?.rides || [];
+
+      // Deduplicar por ride.id
+      const seen = new Map();
+      raw.forEach(r => { if (!seen.has(r.id)) seen.set(r.id, r); });
+      const fetched = Array.from(seen.values());
 
       const enriched = fetched.map(ride => {
         const distKm = ride.distance ?? (loc

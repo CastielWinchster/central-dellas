@@ -1,50 +1,53 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // useCallback mantido para scrollToBottom
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Camera, Mic, Image, Plus, User } from 'lucide-react';
-import { toBrasiliaTime } from '@/utils/dateUtils';
+import { X, Send, Camera, Mic, Image, User } from 'lucide-react';
 
 const ACTIVE_STATUSES = ['accepted', 'on_the_way', 'in_progress', 'assigned'];
-const POLL_INTERVAL = 2500;
 
 export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onClose, rideStatus }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
-  const pollRef = useRef(null);
   const inputRef = useRef(null);
 
   const isActive = ACTIVE_STATUSES.includes(rideStatus);
 
-  const fetchMessages = useCallback(async () => {
-    if (!rideId) return;
-    try {
-      const res = await base44.functions.invoke('listRideMessages', { rideId, limit: 100 });
-      if (res.data?.messages) {
-        setMessages(res.data.messages);
-      }
-    } catch (e) {
-      console.error('[RideChat] Erro ao buscar mensagens:', e);
-    }
-  }, [rideId]);
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   // Scroll automático para o fim
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottom();
   }, [messages]);
 
-  // Polling enquanto aberto e corrida ativa
+  // Carregar histórico inicial + subscribe em tempo real
   useEffect(() => {
-    if (!isOpen || !isActive) {
-      clearInterval(pollRef.current);
+    if (!rideId || !isOpen || !isActive) {
       if (!isActive && isOpen) onClose();
       return;
     }
-    fetchMessages();
-    pollRef.current = setInterval(fetchMessages, POLL_INTERVAL);
-    return () => clearInterval(pollRef.current);
-  }, [isOpen, isActive, fetchMessages]);
+
+    // Carregar histórico
+    base44.functions.invoke('listRideMessages', { rideId, limit: 100 }).then(res => {
+      if (res.data?.messages) setMessages(res.data.messages);
+    }).catch(e => console.error('[RideChat] Erro ao carregar histórico:', e));
+
+    // Subscribe em tempo real
+    const unsub = base44.entities.RideMessage.subscribe((event) => {
+      if (event.type === 'create' && event.data?.ride_id === rideId) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === event.data.id)) return prev;
+          return [...prev, event.data];
+        });
+        scrollToBottom();
+      }
+    });
+
+    return unsub;
+  }, [rideId, isOpen, isActive]);
 
   // Focar no input ao abrir
   useEffect(() => {
@@ -72,8 +75,6 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
       if (res.data?.message) {
         setMessages(prev => prev.map(m => m.id === tempMsg.id ? res.data.message : m));
       }
-      // Re-fetch imediatamente para garantir sincronização
-      await fetchMessages();
     } catch (e) {
       console.error('[RideChat] Erro ao enviar:', e);
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
@@ -88,12 +89,6 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const formatTime = (dateStr) => {
-    try {
-      return toBrasiliaTime(dateStr);
-    } catch { return ''; }
   };
 
   if (!isOpen) return null;
@@ -151,30 +146,21 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
               </div>
             )}
 
-            {messages.map((msg, idx) => {
+            {messages.map((msg) => {
               const isMine = msg.sender_id === currentUserId;
-              const showTime = idx === 0 || formatTime(msg.created_date) !== formatTime(messages[idx - 1]?.created_date);
-
               return (
-                <div key={msg.id}>
-                  {showTime && (
-                    <p className="text-center text-[10px] text-white/30 my-2">{formatTime(msg.created_date)}</p>
-                  )}
-                  <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[75%] px-4 py-2.5 text-sm text-white leading-relaxed ${
-                        isMine
-                          ? 'rounded-2xl rounded-br-sm'
-                          : 'rounded-2xl rounded-bl-sm'
-                      } ${msg._temp ? 'opacity-70' : ''}`}
-                      style={{
-                        background: isMine
-                          ? 'linear-gradient(135deg, #BF3B79 0%, #F22998 100%)'
-                          : '#3D1A4A',
-                      }}
-                    >
-                      {msg.text}
-                    </div>
+                <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`max-w-[75%] px-4 py-2.5 text-sm text-white leading-relaxed ${
+                      isMine ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm'
+                    } ${msg._temp ? 'opacity-70' : ''}`}
+                    style={{
+                      background: isMine
+                        ? 'linear-gradient(135deg, #BF3B79 0%, #F22998 100%)'
+                        : '#3D1A4A',
+                    }}
+                  >
+                    {msg.text}
                   </div>
                 </div>
               );
