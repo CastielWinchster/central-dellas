@@ -18,6 +18,9 @@ import {
 } from '@/components/utils/geocoding';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 
+const BASE_PRICE = 12.00;
+const PRICE_PER_KM = 1.20;
+
 const PACKAGE_SIZES = [
   {
     id: 'small',
@@ -25,8 +28,6 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Documentos, remédios, acessórios',
     weight: 'Até 5kg',
-    basePrice: 8.99,
-    pricePerKm: 3.00,
   },
   {
     id: 'medium',
@@ -34,8 +35,6 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Roupas, calçados, eletrônicos',
     weight: 'Até 15kg',
-    basePrice: 12.99,
-    pricePerKm: 3.50,
   },
   {
     id: 'large',
@@ -43,8 +42,6 @@ const PACKAGE_SIZES = [
     emoji: '📦',
     description: 'Eletrodomésticos, móveis peq., caixas grandes',
     weight: 'Até 30kg',
-    basePrice: 18.99,
-    pricePerKm: 4.00,
   },
 ];
 
@@ -69,6 +66,10 @@ export default function RequestDelivery() {
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
+
+  // Drag pins
+  const [pickupDraggable, setPickupDraggable] = useState(false);
+  const [destinationDraggable, setDestinationDraggable] = useState(false);
 
   // Etapa 2: Tamanho
   const [selectedSize, setSelectedSize] = useState(null);
@@ -145,10 +146,12 @@ export default function RequestDelivery() {
       const addr = rev ? formatAddressDisplay(rev) : suggestion.name || '';
       setPickup(addr);
       setPickupLocation({ lat, lng, text: addr });
+      setPickupDraggable(true);
       if (destinationLocation) calculateRoute({ lat, lng }, destinationLocation);
     } catch (_) {
       setPickup(suggestion.name || '');
       setPickupLocation({ lat, lng, text: suggestion.name || '' });
+      setPickupDraggable(true);
     }
     setActiveField(null);
   };
@@ -161,19 +164,40 @@ export default function RequestDelivery() {
       const addr = rev ? formatAddressDisplay(rev) : suggestion.name || '';
       setDestination(addr);
       setDestinationLocation({ lat, lng, text: addr });
+      setDestinationDraggable(true);
       if (pickupLocation) calculateRoute(pickupLocation, { lat, lng });
     } catch (_) {
       setDestination(suggestion.name || '');
       setDestinationLocation({ lat, lng, text: suggestion.name || '' });
+      setDestinationDraggable(true);
     }
     setActiveField(null);
   };
 
+  const handlePickupDragEnd = async (lat, lng) => {
+    try {
+      const rev = await reverseGeocode(lat, lng);
+      const addr = rev ? formatAddressDisplay(rev) : pickup;
+      setPickup(addr);
+      setPickupLocation({ lat, lng, text: addr });
+      if (destinationLocation) calculateRoute({ lat, lng }, destinationLocation);
+    } catch (_) {}
+  };
+
+  const handleDestinationDragEnd = async (lat, lng) => {
+    try {
+      const rev = await reverseGeocode(lat, lng);
+      const addr = rev ? formatAddressDisplay(rev) : destination;
+      setDestination(addr);
+      setDestinationLocation({ lat, lng, text: addr });
+      if (pickupLocation) calculateRoute(pickupLocation, { lat, lng });
+    } catch (_) {}
+  };
+
   const getEstimatedPrice = () => {
-    if (!selectedSize || !routeDistance) return null;
-    const size = PACKAGE_SIZES.find(s => s.id === selectedSize);
-    if (!size) return null;
-    return (size.basePrice + parseFloat(routeDistance) * size.pricePerKm).toFixed(2);
+    if (!routeDistance) return null;
+    const price = BASE_PRICE + parseFloat(routeDistance) * PRICE_PER_KM;
+    return price.toFixed(2);
   };
 
   const handleConfirm = async () => {
@@ -277,8 +301,18 @@ export default function RequestDelivery() {
               destinationLocation={destinationLocation}
               showRoute={!!pickupLocation && !!destinationLocation}
               className="h-full"
-              forcePitch={mapTopView ? 0 : undefined}
+              pickupDraggable={pickupDraggable}
+              destinationDraggable={destinationDraggable}
+              onPickupDragEnd={handlePickupDragEnd}
+              onDestinationDragEnd={handleDestinationDragEnd}
             />
+            {/* Aviso de arrastar pinos */}
+            {(pickupDraggable || destinationDraggable) && (
+              <div className="absolute bottom-3 left-3 right-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-white" />
+                <span>Arraste o pin {pickupDraggable && destinationDraggable ? 'verde (coleta) ou rosa (entrega)' : pickupDraggable ? 'verde' : 'rosa'} para ajustar a posição exata</span>
+              </div>
+            )}
 
             {/* Card resumo no mapa */}
             {routeDistance && routeDuration && (
@@ -402,12 +436,15 @@ export default function RequestDelivery() {
                       ))}
                     </div>
 
-                    {selectedSize && routeDistance && (
+                    {routeDistance && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/20">
-                        <p className="text-sm text-[#F2F2F2]/70">Estimativa para {selectedSizeObj?.label}:</p>
+                        <p className="text-sm text-[#F2F2F2]/70">Estimativa de frete:</p>
                         <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {estimatedPrice}</p>
                         <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
-                          R$ {selectedSizeObj?.basePrice.toFixed(2)} + ({routeDistance} km × R$ {selectedSizeObj?.pricePerKm.toFixed(2)})
+                          R$ {BASE_PRICE.toFixed(2)} (mínimo) + {routeDistance} km × R$ {PRICE_PER_KM.toFixed(2)}/km
+                        </p>
+                        <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
+                          Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
                         </p>
                       </motion.div>
                     )}
@@ -546,9 +583,14 @@ export default function RequestDelivery() {
                       <div className="border-t border-[#F2F2F2]/10 pt-3">
                         <p className="text-xs text-[#F2F2F2]/50">Cálculo do preço</p>
                         <p className="text-xs text-[#F2F2F2]/40">
-                          R$ {selectedSizeObj?.basePrice.toFixed(2)} + ({routeDistance} km × R$ {selectedSizeObj?.pricePerKm.toFixed(2)})
+                          R$ {BASE_PRICE.toFixed(2)} (mínimo) + {routeDistance} km × R$ {PRICE_PER_KM.toFixed(2)}/km
                         </p>
-                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {estimatedPrice}</p>
+                        <div className="flex items-center gap-4 mt-1">
+                          <p className="text-2xl font-bold text-[#F22998]">R$ {estimatedPrice}</p>
+                          <span className="text-xs text-[#F2F2F2]/50 border border-[#F2F2F2]/20 rounded-lg px-2 py-1">
+                            📏 {routeDistance} km • ⏱ {routeDuration} min
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </Card>

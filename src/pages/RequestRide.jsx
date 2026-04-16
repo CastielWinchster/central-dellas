@@ -747,10 +747,9 @@ export default function RequestRide() {
               filterPets={acceptsPets}
               onPickupDragEnd={handlePickupDragEnd}
               onDestinationDragEnd={handleDestinationDragEnd}
-              pickupDraggable={pickupMarkerDraggable}
-              destinationDraggable={destinationMarkerDraggable}
+              pickupDraggable={!!pickupLocation?.lat}
+              destinationDraggable={!!destinationLocation?.lat}
               onMapClick={step === 'address' ? handleMapClick : null}
-              forcePitch={mapTopView ? 0 : undefined}
             />
             
             {/* Card flutuante compacto com informações da rota */}
@@ -777,11 +776,11 @@ export default function RequestRide() {
               </motion.div>
             )}
 
-            {/* Aviso para ajustar pin */}
-            {(pickupMarkerDraggable || destinationMarkerDraggable) && step === 'address' && (
-              <div className="absolute bottom-3 left-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 max-w-[55%]">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                Arraste o pin {pickupMarkerDraggable ? 'verde' : 'rosa'} para ajustar a localização exata
+            {/* Aviso para ajustar pin — sempre visível quando ambos os pinos existem */}
+            {(pickupLocation?.lat && destinationLocation?.lat) && step === 'address' && (
+              <div className="absolute bottom-3 left-3 right-3 z-10 bg-blue-600 text-white text-xs px-3 py-2 rounded-xl shadow-lg flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-white" />
+                Arraste o pin verde (origem) ou rosa (destino) para ajustar a posição exata
               </div>
             )}
           </motion.div>
