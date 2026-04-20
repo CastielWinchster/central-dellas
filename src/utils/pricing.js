@@ -69,6 +69,79 @@ export function applyFirstMotoDiscount(price, isFirstMotoRide) {
   return Math.max(0, Math.round((price - 2.00) * 100) / 100);
 }
 
+// ── TARIFAS INTERMUNICIPAIS ─────────────────────────────────────────────────
+
+// Tabela de tarifas por distância entre cidades
+const INTERCITY_FARES = [
+  { min: 10, max: 15, base: 30.00 },
+  { min: 15, max: 20, base: 60.00 },
+  { min: 20, max: 25, base: 70.00 },
+  { min: 25, max: 30, base: 75.00 },
+  { min: 30, max: 35, base: 80.00 },
+];
+
+const INTERCITY_KM_RATE = 3.00; // R$/km dentro da cidade destino
+
+/**
+ * Calcula preço de corridas intermunicipais (saindo de Orlândia)
+ * @returns {number|null} Preço total ou null se distância >= 35km (bloqueado)
+ */
+export function calculateIntercityPrice(distanceBetweenCities, distanceInDestinationCity) {
+  console.log('[Pricing] Intermunicipal:', { distanceBetweenCities, distanceInDestinationCity });
+
+  const tier = INTERCITY_FARES.find(t => distanceBetweenCities >= t.min && distanceBetweenCities < t.max);
+
+  if (!tier) {
+    // < 10km = corrida urbana / >= 35km = bloqueado
+    return null;
+  }
+
+  const destinationFare = distanceInDestinationCity * INTERCITY_KM_RATE;
+  const total = tier.base + destinationFare;
+
+  console.log('[Pricing] Base:', tier.base, '+ dest fare:', destinationFare, '= total:', total);
+  return Math.round(total * 100) / 100;
+}
+
+/**
+ * Verifica se uma corrida é intermunicipal (sai de Orlândia para outra cidade)
+ */
+export function isIntercityRide(pickupCity, dropoffCity) {
+  if (!pickupCity || !dropoffCity) return false;
+  const origin = pickupCity.toLowerCase().trim();
+  const destination = dropoffCity.toLowerCase().trim();
+  const isOriginOrlandia = origin.includes('orlândia') || origin.includes('orlandia');
+  return isOriginOrlandia && !destination.includes('orlândia') && !destination.includes('orlandia');
+}
+
+/**
+ * Extrai cidade de um endereço completo com múltiplas estratégias
+ */
+export function extractCityFromAddress(address) {
+  if (!address) return '';
+
+  // Estratégia 1: cidades conhecidas da região
+  const knownCities = [
+    'Orlândia', 'Orlandia', 'Sales Oliveira', 'Ribeirão Preto', 'Ribeirao Preto',
+    'Morro Agudo', 'São Joaquim da Barra', 'Sao Joaquim da Barra', 'Guará', 'Guara',
+    'Altinópolis', 'Altinopolis', 'Batatais', 'Ituverava', 'Aramina', 'Brodowski',
+  ];
+  for (const city of knownCities) {
+    if (new RegExp(city, 'i').test(address)) return city;
+  }
+
+  // Estratégia 2: penúltimo segmento antes de UF
+  const parts = address.split(',').map(s => s.trim());
+  if (parts.length >= 2) {
+    const candidate = parts[parts.length - 2].replace(/\d+/g, '').replace(/[-]/g, '').trim();
+    if (candidate.length > 2) return candidate;
+  }
+
+  return '';
+}
+
+// ── CUPOM ───────────────────────────────────────────────────────────────────
+
 // Aplicar cupom de desconto
 export function applyCoupon(price, couponCode, availableCoupons) {
   const coupon = availableCoupons?.find(

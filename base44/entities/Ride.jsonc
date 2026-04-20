@@ -18,6 +18,10 @@
       "type": "string",
       "description": "Endere\u00e7o de origem formatado"
     },
+    "pickup_city": {
+      "type": "string",
+      "description": "Cidade de origem"
+    },
     "dropoff_lat": {
       "type": "number",
       "description": "Latitude de destino"
@@ -29,6 +33,10 @@
     "dropoff_text": {
       "type": "string",
       "description": "Endere\u00e7o de destino formatado"
+    },
+    "dropoff_city": {
+      "type": "string",
+      "description": "Cidade de destino"
     },
     "status": {
       "type": "string",
@@ -85,6 +93,16 @@
         "large"
       ],
       "description": "Tamanho do pacote (apenas para entregas delivery)"
+    },
+    "is_intercity": {
+      "type": "boolean",
+      "default": false,
+      "description": "Corrida intermunicipal (sai de Orl\u00e2ndia para outra cidade)"
+    },
+    "intercity_base_distance": {
+      "type": "number",
+      "default": 0,
+      "description": "Dist\u00e2ncia entre as cidades em km"
     },
     "is_test": {
       "type": "boolean",

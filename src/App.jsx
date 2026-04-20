@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { saveState } from '@/utils/stateManager';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -20,7 +21,23 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
+function useAppVisibilityPersist() {
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) saveState('app_last_active', Date.now());
+    };
+    const handleUnload = () => saveState('app_last_active', Date.now());
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handleUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handleUnload);
+    };
+  }, []);
+}
+
 const AuthenticatedApp = () => {
+  useAppVisibilityPersist();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const [loadingDone, setLoadingDone] = useState(false);
 

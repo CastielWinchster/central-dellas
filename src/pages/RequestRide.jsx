@@ -23,28 +23,35 @@ import {
 } from '@/components/utils/geocoding';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 import { calculateEtaWithGoogle } from '@/components/utils/googlePlaces';
-import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon } from '@/utils/pricing';
+import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon, calculateIntercityPrice, isIntercityRide, extractCityFromAddress } from '@/utils/pricing';
+import ContactWhatsAppModal from '@/components/ContactWhatsAppModal';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { clearState } from '@/utils/stateManager';
 
 export default function RequestRide() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [step, setStep] = useState('address');
-  const [pickup, setPickup] = useState('');
-  const [destination, setDestination] = useState('');
-  const [pickupLocation, setPickupLocation] = useState(null); // { lat, lng, text, userProvidedNumber }
-  const [destinationLocation, setDestinationLocation] = useState(null); // { lat, lng, text, userProvidedNumber }
+  const [pickup, setPickup] = usePersistedState('rr_pickup', '');
+  const [destination, setDestination] = usePersistedState('rr_destination', '');
+  const [pickupLocation, setPickupLocation] = usePersistedState('rr_pickupLocation', null);
+  const [destinationLocation, setDestinationLocation] = usePersistedState('rr_destinationLocation', null);
   const [pickupMarkerDraggable, setPickupMarkerDraggable] = useState(false);
   const [destinationMarkerDraggable, setDestinationMarkerDraggable] = useState(false);
-  const [selectedRideType, setSelectedRideType] = useState('standard');
+  const [selectedRideType, setSelectedRideType] = usePersistedState('rr_rideType', 'standard');
   const [isFirstMotoRide, setIsFirstMotoRide] = useState(false);
   // Pagamento unificado
-  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [paymentMethod, setPaymentMethod] = usePersistedState('rr_paymentMethod', null);
   const [showPaymentPicker, setShowPaymentPicker] = useState(false);
   // Cupom
-  const [couponCode, setCouponCode] = useState('');
+  const [couponCode, setCouponCode] = usePersistedState('rr_couponCode', '');
   const [couponResult, setCouponResult] = useState(null);
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [selectedPayment, setSelectedPayment] = useState('pix');
+  const [appliedCoupon, setAppliedCoupon] = usePersistedState('rr_appliedCoupon', null);
+  const [selectedPayment, setSelectedPayment] = usePersistedState('rr_selectedPayment', 'pix');
+  // Intermunicipal
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [blockedDistance, setBlockedDistance] = useState(0);
+  const [isIntercity, setIsIntercity] = useState(false);
   const [acceptsPets, setAcceptsPets] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
@@ -440,7 +447,6 @@ export default function RequestRide() {
       if (google) {
         distanceKm = google.distanceKm;
         durationMin = google.durationMin;
-        console.log(`[RouteCalc] Google: ${distanceKm}km, ${durationMin}min`);
       } else {
         // Fallback: OSRM
         const response = await fetch(
@@ -450,7 +456,6 @@ export default function RequestRide() {
         if (data.routes && data.routes[0]) {
           distanceKm = parseFloat((data.routes[0].distance / 1000).toFixed(1));
           durationMin = Math.ceil(data.routes[0].duration / 60);
-          console.log(`[RouteCalc] OSRM fallback: ${distanceKm}km, ${durationMin}min`);
         }
       }
 
@@ -459,16 +464,32 @@ export default function RequestRide() {
       setRouteDistance(distanceKm);
       setRouteDuration(durationMin);
 
-      const destText = destination?.text || '';
-      setRideTypes(prevTypes =>
-        prevTypes.map(type => {
-          const price = computePrice(distanceKm, type.id, destText);
-          return { ...type, price: price.toFixed(2), time: `${durationMin} min` };
-        })
-      );
+      // Detectar se é corrida intermunicipal
+      const pickupCity = extractCityFromAddress(origin.text || '');
+      const dropoffCity = extractCityFromAddress(destination.text || '');
+      const intercity = isIntercityRide(pickupCity, dropoffCity);
+      setIsIntercity(intercity);
 
-      const price = computePrice(distanceKm, selectedRideType, destText);
-      setEstimatedPrice(price.toFixed(2));
+      const destText = destination?.text || '';
+
+      if (intercity) {
+        // Para corridas intermunicipais, estimar km dentro da cidade destino como ~10% da total (min 2km)
+        const distInDest = Math.max(distanceKm * 0.1, 2);
+        const intercityPrice = calculateIntercityPrice(distanceKm, distInDest);
+        const price = intercityPrice !== null ? intercityPrice : computePrice(distanceKm, selectedRideType, destText);
+        setRideTypes(prevTypes => prevTypes.map(type => ({ ...type, price: price.toFixed(2), time: `${durationMin} min` })));
+        setEstimatedPrice(price.toFixed(2));
+      } else {
+        setRideTypes(prevTypes =>
+          prevTypes.map(type => {
+            const price = computePrice(distanceKm, type.id, destText);
+            return { ...type, price: price.toFixed(2), time: `${durationMin} min` };
+          })
+        );
+        const price = computePrice(distanceKm, selectedRideType, destText);
+        setEstimatedPrice(price.toFixed(2));
+      }
+
       setEstimatedTime(`${durationMin} min`);
     } catch (error) {
       console.error('Erro ao calcular rota:', error);
@@ -574,6 +595,13 @@ export default function RequestRide() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   const handleConfirmRide = async () => {
+    // Verificar se é intermunicipal e distância >= 35km
+    if (isIntercity && routeDistance >= 35) {
+      setBlockedDistance(routeDistance);
+      setShowContactModal(true);
+      return;
+    }
+
     setStep('searching');
     setSearchingDrivers(true);
     
@@ -597,6 +625,10 @@ export default function RequestRide() {
       if (response.data.success) {
         setCurrentRide(response.data.ride);
         startRidePolling(response.data.ride.id);
+        // Limpar estados persistidos após corrida confirmada
+        ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
+         'rr_rideType', 'rr_paymentMethod', 'rr_couponCode', 'rr_appliedCoupon', 'rr_selectedPayment']
+          .forEach(k => clearState(k));
       } else {
         toast.error(response.data.error || 'Erro ao buscar motoristas');
         setStep('options');
@@ -722,6 +754,11 @@ export default function RequestRide() {
 
   return (
     <div className="min-h-screen pb-24 md:pb-10">
+      <ContactWhatsAppModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        distance={blockedDistance}
+      />
       <PassengerRideChat
         currentRide={currentRide}
         user={user}
@@ -1103,6 +1140,12 @@ export default function RequestRide() {
 
                   {/* Summary and Confirm */}
                   <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]/30 rounded-3xl">
+                    {isIntercity && (
+                      <div className="mb-3 pb-3 border-b border-[#F22998]/20">
+                        <p className="text-xs text-[#F22998] font-semibold">🚗 Corrida Intermunicipal</p>
+                        <p className="text-xs text-[#F2F2F2]/50 mt-0.5">Tarifa mínima + R$ 3,00/km na cidade destino</p>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="text-[#F2F2F2]/60 text-sm">Valor estimado</p>
