@@ -1,0 +1,65 @@
+{
+  "name": "CustomRoutePrice",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "pickup_city": {
+      "type": "string",
+      "description": "Cidade de origem"
+    },
+    "dropoff_city": {
+      "type": "string",
+      "description": "Cidade de destino"
+    },
+    "pickup_lat": {
+      "type": "number",
+      "description": "Latitude de origem"
+    },
+    "pickup_lng": {
+      "type": "number",
+      "description": "Longitude de origem"
+    },
+    "dropoff_lat": {
+      "type": "number",
+      "description": "Latitude de destino"
+    },
+    "dropoff_lng": {
+      "type": "number",
+      "description": "Longitude de destino"
+    },
+    "custom_price": {
+      "type": "number",
+      "description": "Pre\u00e7o negociado com a Central"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Dist\u00e2ncia em km"
+    },
+    "last_used_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que foi usado"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 1,
+      "description": "Quantas vezes foi usado"
+    }
+  },
+  "required": [
+    "user_id",
+    "pickup_city",
+    "dropoff_city",
+    "custom_price",
+    "distance_km"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

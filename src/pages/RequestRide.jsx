@@ -52,6 +52,9 @@ export default function RequestRide() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [blockedDistance, setBlockedDistance] = useState(0);
   const [isIntercity, setIsIntercity] = useState(false);
+  const [intercityPickupCity, setIntercityPickupCity] = useState('');
+  const [intercityDropoffCity, setIntercityDropoffCity] = useState('');
+  const [savedRoutePrice, setSavedRoutePrice] = useState(null);
   const [acceptsPets, setAcceptsPets] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState(null);
@@ -478,13 +481,24 @@ export default function RequestRide() {
       const destText = destination?.text || '';
 
       if (intercity) {
-        // Corridas >= 35km: não calcular preço, abrir modal imediatamente
+        setIntercityPickupCity(pickupCity);
+        setIntercityDropoffCity(dropoffCity);
+        // Corridas >= 35km: verificar preço salvo e abrir modal
         if (distanceKm >= 35) {
           setEstimatedPrice(null);
           setIsIntercity(true);
           setBlockedDistance(distanceKm);
-          setShowContactModal(true);
           setEstimatedTime(`${durationMin} min`);
+          // Buscar preço salvo para esta rota
+          try {
+            const saved = await base44.entities.CustomRoutePrice.filter({
+              user_id: user?.id,
+              pickup_city: pickupCity,
+              dropoff_city: dropoffCity
+            }, '-last_used_date', 1);
+            setSavedRoutePrice(saved.length > 0 ? saved[0] : null);
+          } catch (e) { setSavedRoutePrice(null); }
+          setShowContactModal(true);
           return;
         }
         const distInDest = Math.max(distanceKm * 0.1, 2);
@@ -773,6 +787,56 @@ export default function RequestRide() {
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         distance={blockedDistance}
+        pickupCity={intercityPickupCity}
+        dropoffCity={intercityDropoffCity}
+        savedPrice={savedRoutePrice}
+        onPriceSubmit={async (price, usingSaved = false) => {
+          // Salvar ou atualizar preço personalizado
+          try {
+            if (savedRoutePrice && usingSaved) {
+              // Apenas atualizar uso
+              await base44.entities.CustomRoutePrice.update(savedRoutePrice.id, {
+                last_used_date: new Date().toISOString(),
+                usage_count: (savedRoutePrice.usage_count || 1) + 1
+              });
+            } else {
+              // Salvar novo preço
+              const existing = await base44.entities.CustomRoutePrice.filter({
+                user_id: user?.id,
+                pickup_city: intercityPickupCity,
+                dropoff_city: intercityDropoffCity
+              }, '-last_used_date', 1);
+              if (existing.length > 0) {
+                await base44.entities.CustomRoutePrice.update(existing[0].id, {
+                  custom_price: price,
+                  distance_km: blockedDistance,
+                  last_used_date: new Date().toISOString(),
+                  usage_count: (existing[0].usage_count || 1) + 1
+                });
+              } else {
+                await base44.entities.CustomRoutePrice.create({
+                  user_id: user?.id,
+                  pickup_city: intercityPickupCity,
+                  dropoff_city: intercityDropoffCity,
+                  pickup_lat: pickupLocation?.lat,
+                  pickup_lng: pickupLocation?.lng,
+                  dropoff_lat: destinationLocation?.lat,
+                  dropoff_lng: destinationLocation?.lng,
+                  custom_price: price,
+                  distance_km: blockedDistance,
+                  last_used_date: new Date().toISOString(),
+                  usage_count: 1
+                });
+              }
+            }
+          } catch (e) { console.error('[CustomRoutePrice] Erro ao salvar:', e); }
+
+          // Usar preço negociado e confirmar corrida
+          setEstimatedPrice(price.toFixed(2));
+          setShowContactModal(false);
+          setStep('options');
+          toast.success(`✅ Preço de R$ ${price.toFixed(2).replace('.', ',')} aplicado!`);
+        }}
       />
       <PassengerRideChat
         currentRide={currentRide}
