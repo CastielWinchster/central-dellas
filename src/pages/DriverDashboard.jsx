@@ -374,11 +374,12 @@ export default function DriverDashboard() {
     };
   }, [isOnline, user]);
   
-  const handleAcceptOffer = async (offer, ride) => {
+  const handleAcceptOffer = async (offer, ride, driverConfirmedPrice) => {
     try {
       const response = await base44.functions.invoke('acceptRideOffer', {
         rideId: ride.id,
-        offerId: offer.id
+        offerId: offer.id,
+        driverConfirmedPrice: driverConfirmedPrice ?? null,
       });
       
       const responseData = response?.data || response;

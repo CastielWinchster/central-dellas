@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Navigation, Clock, DollarSign, X, Check, AlertCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import PriceValidationModal from './PriceValidationModal';
 
 // ETA motorista→passageira baseado na distância da oferta (a 30 km/h urbano)
 function calcOfferEta(distanceKm) {
@@ -15,6 +16,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
+  const [showPriceValidation, setShowPriceValidation] = useState(false);
   const eta = calcOfferEta(offer.distance_km);
   
   // Countdown
@@ -33,11 +35,19 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
     return () => clearInterval(interval);
   }, [offer.expires_at, onClose]);
   
-  const handleAccept = async () => {
+  const handleAcceptClick = () => {
+    // Abrir modal de validação de preço ANTES de aceitar
+    setShowPriceValidation(true);
+  };
+
+  const handlePriceValidated = async (confirmedPrice) => {
+    setShowPriceValidation(false);
     setAccepting(true);
-    await onAccept(offer, ride);
+    await onAccept(offer, ride, confirmedPrice);
     setAccepting(false);
   };
+
+  const handleAccept = handleAcceptClick;
   
   const handleReject = async () => {
     setRejecting(true);
@@ -46,6 +56,15 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
   };
   
   return (
+    <>
+    {showPriceValidation && (
+      <PriceValidationModal
+        ride={ride}
+        offer={offer}
+        onValidated={handlePriceValidated}
+        onCancel={() => setShowPriceValidation(false)}
+      />
+    )}
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -188,5 +207,6 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
         </motion.div>
       </motion.div>
     </AnimatePresence>
+    </>
   );
 }

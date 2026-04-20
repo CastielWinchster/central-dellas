@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
     console.log(`[acceptRideOffer] Motorista: ${driver.id} (${driver.email})`);
 
-    const { rideId, offerId } = await req.json();
+    const { rideId, offerId, driverConfirmedPrice } = await req.json();
 
     if (!rideId) {
       return Response.json({ error: 'rideId é obrigatório' }, { status: 400 });
@@ -71,11 +71,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ✅ UPDATE PRINCIPAL: status = 'accepted' + assigned_driver_id = driver.id
-    console.log(`[acceptRideOffer] Atualizando corrida ${ride.id} → accepted, driver: ${driver.id}`);
+    // ✅ UPDATE PRINCIPAL: status = 'accepted' + assigned_driver_id + preço confirmado
+    console.log(`[acceptRideOffer] Atualizando corrida ${ride.id} → accepted, driver: ${driver.id}, price: ${driverConfirmedPrice}`);
     await base44.asServiceRole.entities.Ride.update(ride.id, {
       status: 'accepted',
-      assigned_driver_id: driver.id
+      assigned_driver_id: driver.id,
+      ...(driverConfirmedPrice != null ? {
+        driver_confirmed_price: driverConfirmedPrice,
+        price_validated_at: now.toISOString(),
+      } : {})
     });
     console.log(`[acceptRideOffer] Corrida atualizada com sucesso`);
 

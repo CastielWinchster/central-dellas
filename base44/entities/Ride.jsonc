@@ -69,7 +69,30 @@
     },
     "estimated_price": {
       "type": "number",
-      "description": "Pre\u00e7o estimado"
+      "description": "Pre\u00e7o estimado pelo sistema"
+    },
+    "agreed_price": {
+      "type": "number",
+      "description": "Pre\u00e7o combinado/negociado (corridas >35km)"
+    },
+    "driver_confirmed_price": {
+      "type": "number",
+      "description": "Valor digitado pela motorista ao aceitar"
+    },
+    "price_validation_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Tentativas de valida\u00e7\u00e3o do valor pela motorista"
+    },
+    "price_validated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hor\u00e1rio da valida\u00e7\u00e3o do pre\u00e7o"
+    },
+    "is_custom_price": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o pre\u00e7o foi negociado manualmente (>35km)"
     },
     "estimated_duration": {
       "type": "number",

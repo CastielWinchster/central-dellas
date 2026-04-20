@@ -635,6 +635,7 @@ export default function RequestRide() {
     setSearchingDrivers(true);
     
     try {
+      const isCustomPriceRide = isIntercity && routeDistance >= 35;
       const response = await base44.functions.invoke('dispatchRide', {
         pickupLat: pickupLocation.lat,
         pickupLng: pickupLocation.lng,
@@ -642,7 +643,9 @@ export default function RequestRide() {
         dropoffLat: destinationLocation.lat,
         dropoffLng: destinationLocation.lng,
         dropoffText: destination,
-        estimatedPrice,
+        estimatedPrice: parseFloat(estimatedPrice),
+        agreedPrice: isCustomPriceRide ? parseFloat(estimatedPrice) : null,
+        isCustomPrice: isCustomPriceRide,
         estimatedDuration: parseInt(routeDuration),
         rideType: selectedRideType,
         hasPet: acceptsPets,

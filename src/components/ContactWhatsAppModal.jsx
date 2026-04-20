@@ -39,13 +39,17 @@ export default function ContactWhatsAppModal({
     setCustomPrice(decimal.replace('.', ','));
   };
 
-  const handleSubmitPrice = () => {
+  const handleSubmitPrice = async () => {
     const price = parseFloat(customPrice.replace(',', '.'));
     if (!customPrice || isNaN(price)) { toast.error('Digite um valor válido'); return; }
     if (price < 50) { toast.error('Valor mínimo: R$ 50,00'); return; }
     if (price > 1500) { toast.error('Valor muito alto. Confirme com a Central.'); return; }
     setLoading(true);
-    if (onPriceSubmit) onPriceSubmit(price);
+    try {
+      if (onPriceSubmit) await onPriceSubmit(price);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUseSavedPrice = () => {
