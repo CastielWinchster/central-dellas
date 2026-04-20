@@ -728,6 +728,8 @@ export default function RequestRide() {
               vehicle: info.vehicle || null,
               eta: null,
             });
+            // Navegar para tela dedicada de corrida ativa
+            navigate(`/ActiveRidePassenger?id=${rideId}`);
             setStep('driver_found');
             console.log('[Polling] Motorista carregada:', ride.assigned_driver_id, info.name);
           } catch (driverError) {

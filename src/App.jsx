@@ -11,6 +11,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import RequestDelivery from './pages/RequestDelivery';
 import DriverVehicle from './pages/DriverVehicle';
+import ActiveRidePassenger from './pages/ActiveRidePassenger';
+import ActiveRideDriver from './pages/ActiveRideDriver';
 import LoadingScreen from './components/LoadingScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -86,6 +88,8 @@ const AuthenticatedApp = () => {
           <DriverVehicle />
         </LayoutWrapper>
       } />
+      <Route path="/ActiveRidePassenger" element={<ActiveRidePassenger />} />
+      <Route path="/ActiveRideDriver" element={<ActiveRideDriver />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

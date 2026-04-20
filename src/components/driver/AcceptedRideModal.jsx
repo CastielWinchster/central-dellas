@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, X, User, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function formatPaymentMethod(method) {
   if (!method) return 'Não informado';
@@ -11,6 +12,7 @@ function formatPaymentMethod(method) {
 }
 
 export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose, onStartRide, onOpenChat, onCancelRide }) {
+  const navigate = useNavigate();
   if (!acceptedRide) return null;
 
   return (
@@ -97,7 +99,10 @@ export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose
               💬 Conversar com passageiro
             </button>
             <button
-              onClick={onStartRide}
+              onClick={() => {
+                onStartRide?.();
+                navigate(`/ActiveRideDriver?id=${acceptedRide.id}`);
+              }}
               className="w-full py-3.5 rounded-2xl bg-green-600 hover:bg-green-500 text-white font-semibold flex items-center justify-center gap-2 transition-colors"
             >
               🗺️ Iniciar corrida
