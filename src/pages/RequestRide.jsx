@@ -794,16 +794,14 @@ export default function RequestRide() {
         dropoffCity={intercityDropoffCity}
         savedPrice={savedRoutePrice}
         onPriceSubmit={async (price, usingSaved = false) => {
-          // Salvar ou atualizar preço personalizado
+          // 1. Salvar ou atualizar preço personalizado
           try {
             if (savedRoutePrice && usingSaved) {
-              // Apenas atualizar uso
               await base44.entities.CustomRoutePrice.update(savedRoutePrice.id, {
                 last_used_date: new Date().toISOString(),
                 usage_count: (savedRoutePrice.usage_count || 1) + 1
               });
             } else {
-              // Salvar novo preço
               const existing = await base44.entities.CustomRoutePrice.filter({
                 user_id: user?.id,
                 pickup_city: intercityPickupCity,
@@ -834,11 +832,50 @@ export default function RequestRide() {
             }
           } catch (e) { console.error('[CustomRoutePrice] Erro ao salvar:', e); }
 
-          // Usar preço negociado e confirmar corrida
-          setEstimatedPrice(price.toFixed(2));
+          // 2. Fechar modal e ir para searching
           setShowContactModal(false);
-          setStep('options');
-          toast.success(`✅ Preço de R$ ${price.toFixed(2).replace('.', ',')} aplicado!`);
+          setStep('searching');
+          setSearchingDrivers(true);
+
+          console.log('[handlePriceSubmit] Criando corrida com preço negociado:', price);
+
+          try {
+            const response = await base44.functions.invoke('dispatchRide', {
+              pickupLat: pickupLocation.lat,
+              pickupLng: pickupLocation.lng,
+              pickupText: pickup,
+              dropoffLat: destinationLocation.lat,
+              dropoffLng: destinationLocation.lng,
+              dropoffText: destination,
+              estimatedPrice: price,
+              agreedPrice: price,
+              isCustomPrice: true,
+              estimatedDuration: parseInt(routeDuration) || 60,
+              rideType: selectedRideType,
+              hasPet: acceptsPets,
+              paymentMethod: paymentMethod || selectedPayment,
+            });
+
+            console.log('[handlePriceSubmit] Resposta dispatchRide:', response.data);
+
+            if (response.data?.success) {
+              setCurrentRide(response.data.ride);
+              startRidePolling(response.data.ride.id);
+              toast.success('✅ Corrida solicitada! Buscando motorista...');
+              ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
+               'rr_rideType', 'rr_paymentMethod', 'rr_couponCode', 'rr_appliedCoupon', 'rr_selectedPayment']
+                .forEach(k => clearState(k));
+            } else {
+              toast.error(response.data?.error || 'Erro ao buscar motoristas');
+              setStep('options');
+            }
+          } catch (error) {
+            console.error('[handlePriceSubmit] Erro ao criar corrida:', error);
+            toast.error('Erro ao solicitar corrida. Tente novamente.');
+            setStep('options');
+          } finally {
+            setSearchingDrivers(false);
+          }
         }}
       />
       <PassengerRideChat
