@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import RideChat from '../components/chat/RideChat';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -20,6 +20,7 @@ import AvailableRidesList from '../components/driver/AvailableRidesList';
 import AvailableDeliveriesList from '../components/driver/AvailableDeliveriesList';
 
 export default function DriverDashboard() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isOnline, setIsOnline] = useState(() => localStorage.getItem('driver_is_online') === 'true');
   const [todayStats, setTodayStats] = useState({
@@ -839,7 +840,7 @@ export default function DriverDashboard() {
           acceptedRide={acceptedRide}
           passengerUser={passengerUser}
           onClose={() => setShowAcceptedModal(false)}
-          onStartRide={() => setShowAcceptedModal(false)}
+          onStartRide={() => { setShowAcceptedModal(false); navigate(`/ActiveRideDriver?id=${acceptedRide?.id}`); }}
           onOpenChat={() => { setIsChatOpen(true); setShowAcceptedModal(false); }}
           onCancelRide={handleCompleteRide}
         />

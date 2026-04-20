@@ -729,9 +729,8 @@ export default function RequestRide() {
               eta: null,
             });
             // Navegar para tela dedicada de corrida ativa
-            navigate(`/ActiveRidePassenger?id=${rideId}`);
-            setStep('driver_found');
             console.log('[Polling] Motorista carregada:', ride.assigned_driver_id, info.name);
+            navigate(`/ActiveRidePassenger?id=${rideId}`);
           } catch (driverError) {
             console.error('[Polling] Erro ao buscar dados da motorista:', driverError);
             setDriver({
@@ -743,7 +742,7 @@ export default function RequestRide() {
               vehicle: null,
               eta: null,
             });
-            setStep('driver_found');
+            navigate(`/ActiveRidePassenger?id=${rideId}`);
           }
 
         } else if (rideData.status === 'expired' || rideData.status === 'cancelled') {
