@@ -478,6 +478,15 @@ export default function RequestRide() {
       const destText = destination?.text || '';
 
       if (intercity) {
+        // Corridas >= 35km: não calcular preço, abrir modal imediatamente
+        if (distanceKm >= 35) {
+          setEstimatedPrice(null);
+          setIsIntercity(true);
+          setBlockedDistance(distanceKm);
+          setShowContactModal(true);
+          setEstimatedTime(`${durationMin} min`);
+          return;
+        }
         const distInDest = Math.max(distanceKm * 0.1, 2);
         const intercityPrice = calculateIntercityPrice(distanceKm, distInDest);
         console.log('[RequestRide] Preço intermunicipal:', intercityPrice);
@@ -811,11 +820,15 @@ export default function RequestRide() {
                   <p className="text-xs text-gray-400 leading-none">Tempo</p>
                   <p className="text-sm font-bold text-gray-900 leading-tight">{routeDuration} min</p>
                 </div>
-                <div className="w-px h-6 bg-gray-200" />
-                <div className="text-center">
-                  <p className="text-xs text-gray-400 leading-none">Preço</p>
-                  <p className="text-sm font-bold text-[#F22998] leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
-                </div>
+                {estimatedPrice !== null && (
+                  <>
+                    <div className="w-px h-6 bg-gray-200" />
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400 leading-none">Preço</p>
+                      <p className="text-sm font-bold text-[#F22998] leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
+                    </div>
+                  </>
+                )}
               </motion.div>
             )}
 
@@ -1146,22 +1159,40 @@ export default function RequestRide() {
 
                   {/* Summary and Confirm */}
                   <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]/30 rounded-3xl">
-                    {isIntercity && (
-                      <div className="mb-3 pb-3 border-b border-[#F22998]/20">
-                        <p className="text-xs text-[#F22998] font-semibold">🚗 Corrida Intermunicipal</p>
-                        <p className="text-xs text-[#F2F2F2]/50 mt-0.5">Tarifa mínima + R$ 3,00/km na cidade destino</p>
+                    {isIntercity && estimatedPrice === null ? (
+                      <div className="mb-4 p-4 rounded-2xl bg-orange-900/30 border border-orange-600/50">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">📞</span>
+                          <span className="text-orange-400 font-semibold">Corrida de Longa Distância</span>
+                        </div>
+                        <p className="text-sm text-[#F2F2F2]/70">
+                          Para corridas acima de <span className="text-orange-400 font-semibold">35 km</span>, entre em contato para um orçamento personalizado.
+                        </p>
+                        <div className="mt-3 text-center">
+                          <p className="text-xs text-[#F2F2F2]/50">Distância estimada</p>
+                          <p className="text-xl font-bold text-orange-400">{Math.round(routeDistance)} km</p>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        {isIntercity && (
+                          <div className="mb-3 pb-3 border-b border-[#F22998]/20">
+                            <p className="text-xs text-[#F22998] font-semibold">🚗 Corrida Intermunicipal</p>
+                            <p className="text-xs text-[#F2F2F2]/50 mt-0.5">Tarifa mínima + R$ 3,00/km na cidade destino</p>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <p className="text-[#F2F2F2]/60 text-sm">Valor estimado</p>
+                            <p className="text-3xl font-bold text-[#F2F2F2]">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[#F2F2F2]/60 text-sm">Tempo estimado</p>
+                            <p className="text-xl font-semibold text-[#F22998]">{estimatedTime}</p>
+                          </div>
+                        </div>
+                      </>
                     )}
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-[#F2F2F2]/60 text-sm">Valor estimado</p>
-                        <p className="text-3xl font-bold text-[#F2F2F2]">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[#F2F2F2]/60 text-sm">Tempo estimado</p>
-                        <p className="text-xl font-semibold text-[#F22998]">{estimatedTime}</p>
-                      </div>
-                    </div>
                     
                     <Button 
                       onClick={handleConfirmRide}

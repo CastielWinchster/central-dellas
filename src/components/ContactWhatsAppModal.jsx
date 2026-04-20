@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MessageCircle, Phone } from 'lucide-react';
 
-const WHATSAPP_NUMBER = '5516991234567'; // ← Substituir pelo número real da CentralDellas
+const WHATSAPP_NUMBER = '5516994465137';
 
 export default function ContactWhatsAppModal({ isOpen, onClose, distance }) {
   const message = encodeURIComponent(
