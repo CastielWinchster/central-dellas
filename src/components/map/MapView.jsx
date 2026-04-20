@@ -197,6 +197,7 @@ export default function MapView({
 
   useEffect(() => {
     if (MAPBOX_CONFIG.ACCESS_TOKEN) { setTokenLoaded(true); return; }
+    setMapLoaded(false);
     loadMapboxToken(base44).then(() => setTokenLoaded(true)).catch(e => {
       console.error('Erro ao carregar token Mapbox:', e);
     });
@@ -209,6 +210,7 @@ export default function MapView({
     bearing: 0
   });
 
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [userHeading, setUserHeading] = useState(0);
   const [routeData, setRouteData] = useState(null);
@@ -542,6 +544,7 @@ export default function MapView({
         onMove={evt => setViewState({...evt.viewState, pitch: 0})}
         onDragStart={handleMoveStart}
         onClick={handleMapClick}
+        onLoad={() => setMapLoaded(true)}
         mapStyle={MAPBOX_CONFIG.MAP_STYLE}
         mapboxAccessToken={MAPBOX_CONFIG.ACCESS_TOKEN}
         style={{ width: '100%', height: '100%' }}
@@ -585,8 +588,8 @@ export default function MapView({
           </Marker>
         )}
 
-        {/* Rota declarativa — react-map-gl gerencia lifecycle automaticamente */}
-        {routeProgress && (
+        {/* Rota declarativa — só renderiza após o mapa carregar completamente */}
+        {mapLoaded && routeProgress && (
           <Source id="route-source" type="geojson" data={routeProgress}>
             <Layer id="route-glow" type="line"
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
