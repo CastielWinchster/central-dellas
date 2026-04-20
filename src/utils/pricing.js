@@ -140,6 +140,34 @@ export function extractCityFromAddress(address) {
   return '';
 }
 
+/**
+ * Obtém cidade via geocodificação reversa usando o token Mapbox já carregado
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {Promise<string>}
+ */
+export async function getCityFromCoordinates(lat, lng) {
+  try {
+    // Importar dinamicamente para evitar dependência circular
+    const { MAPBOX_CONFIG } = await import('@/components/utils/mapboxConfig');
+    const token = MAPBOX_CONFIG.ACCESS_TOKEN;
+    if (!token) {
+      console.warn('[getCityFromCoordinates] Token Mapbox não carregado');
+      return '';
+    }
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&types=place&language=pt&limit=1`
+    );
+    const data = await res.json();
+    const city = data.features?.[0]?.text || '';
+    console.log(`[getCityFromCoordinates] (${lat},${lng}) → "${city}"`);
+    return city;
+  } catch (e) {
+    console.error('[getCityFromCoordinates]', e);
+    return '';
+  }
+}
+
 // ── CUPOM ───────────────────────────────────────────────────────────────────
 
 // Aplicar cupom de desconto

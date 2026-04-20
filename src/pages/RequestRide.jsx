@@ -23,7 +23,7 @@ import {
 } from '@/components/utils/geocoding';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 import { calculateEtaWithGoogle } from '@/components/utils/googlePlaces';
-import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon, calculateIntercityPrice, isIntercityRide, extractCityFromAddress } from '@/utils/pricing';
+import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon, calculateIntercityPrice, isIntercityRide, getCityFromCoordinates } from '@/utils/pricing';
 import ContactWhatsAppModal from '@/components/ContactWhatsAppModal';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { clearState } from '@/utils/stateManager';
@@ -464,18 +464,23 @@ export default function RequestRide() {
       setRouteDistance(distanceKm);
       setRouteDuration(durationMin);
 
-      // Detectar se é corrida intermunicipal
-      const pickupCity = extractCityFromAddress(origin.text || '');
-      const dropoffCity = extractCityFromAddress(destination.text || '');
+      // Detectar se é corrida intermunicipal via geocodificação reversa (coordenadas)
+      const [pickupCity, dropoffCity] = await Promise.all([
+        getCityFromCoordinates(origin.lat, origin.lng),
+        getCityFromCoordinates(destination.lat, destination.lng),
+      ]);
+      console.log('[RequestRide] Cidades detectadas:', { pickupCity, dropoffCity });
+
       const intercity = isIntercityRide(pickupCity, dropoffCity);
+      console.log('[RequestRide] É intermunicipal?', intercity);
       setIsIntercity(intercity);
 
       const destText = destination?.text || '';
 
       if (intercity) {
-        // Para corridas intermunicipais, estimar km dentro da cidade destino como ~10% da total (min 2km)
         const distInDest = Math.max(distanceKm * 0.1, 2);
         const intercityPrice = calculateIntercityPrice(distanceKm, distInDest);
+        console.log('[RequestRide] Preço intermunicipal:', intercityPrice);
         const price = intercityPrice !== null ? intercityPrice : computePrice(distanceKm, selectedRideType, destText);
         setRideTypes(prevTypes => prevTypes.map(type => ({ ...type, price: price.toFixed(2), time: `${durationMin} min` })));
         setEstimatedPrice(price.toFixed(2));
@@ -487,6 +492,7 @@ export default function RequestRide() {
           })
         );
         const price = computePrice(distanceKm, selectedRideType, destText);
+        console.log('[RequestRide] Preço urbano:', price);
         setEstimatedPrice(price.toFixed(2));
       }
 
