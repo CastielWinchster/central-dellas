@@ -40,14 +40,13 @@ export default function MigrationIncentivePopup() {
     // Só mostrar se houver cupom ativo
     if (!promoData) return;
 
-    // Verificar se já viu o popup hoje
-    const lastShown = localStorage.getItem('migrationPopupLastShown');
-    const today = new Date().toDateString();
+    // Verificar se o usuário já dispensou este cupom específico
+    const dismissedKey = `promoPopupDismissed_${promoData.code}`;
+    const alreadyDismissed = localStorage.getItem(dismissedKey);
     
-    if (lastShown !== today) {
+    if (!alreadyDismissed) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-        localStorage.setItem('migrationPopupLastShown', today);
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -104,7 +103,7 @@ Baixe agora: ${window.location.origin}`;
 
               {/* Close button */}
               <button
-                onClick={() => setShowPopup(false)}
+                onClick={() => { localStorage.setItem(`promoPopupDismissed_${promoData?.code}`, '1'); setShowPopup(false); }}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F22998]/10 transition-colors"
               >
                 <X className="w-5 h-5 text-[#F2F2F2]/60" />
@@ -158,7 +157,7 @@ Baixe agora: ${window.location.origin}`;
                     Compartilhar
                   </Button>
                   <Button
-                    onClick={() => setShowPopup(false)}
+                    onClick={() => { localStorage.setItem(`promoPopupDismissed_${promoData?.code}`, '1'); setShowPopup(false); }}
                     variant="outline"
                     className="flex-1 border-[#F22998]/30 text-[#F2F2F2] hover:bg-white hover:text-black hover:shadow-[0_0_20px_rgba(242,41,152,0.6)] active:shadow-[0_0_30px_rgba(242,41,152,0.8)] transition-all"
                   >
