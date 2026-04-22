@@ -228,6 +228,7 @@ export default function MapView({
   const routeAnimationRef = useRef(null);
   const dashAnimRef = useRef(null);
   const driverAnimationsRef = useRef({});
+  const hasInitialFitRef = useRef(false);
   const [currentStreet, setCurrentStreet] = useState('');
   const googleKeyRef = useRef(null);
   const streetIntervalRef = useRef(null);
@@ -363,10 +364,11 @@ export default function MapView({
       // Ajusta o mapa para mostrar os dois pontos enquanto busca a rota real
       setRouteProgress(null);
 
-      // Ajusta o mapa para mostrar os dois pontos
-      if (mapRef.current) {
+      // fitBounds apenas na primeira vez (evita mapa tremendo com updates de GPS)
+      if (!hasInitialFitRef.current && mapRef.current) {
         const bounds = new mapboxgl.LngLatBounds([[oLng, oLat], [dLng, dLat]]);
         mapRef.current.fitBounds(bounds, { padding: 80, duration: 1000, pitch: 0 });
+        hasInitialFitRef.current = true;
       }
 
       const getRoute = async () => {

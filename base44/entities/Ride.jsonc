@@ -135,6 +135,17 @@
     "test_seed_key": {
       "type": "string",
       "description": "Chave \u00fanica para identificar corridas de teste"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "pix",
+        "card",
+        "cash",
+        "credit_card",
+        "debit_card"
+      ],
+      "description": "M\u00e9todo de pagamento escolhido pela passageira"
     }
   },
   "required": [

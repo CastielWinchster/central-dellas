@@ -35,9 +35,12 @@ Deno.serve(async (req) => {
       rating: driver?.rating ?? null,
       totalRides: driver?.total_rides ?? null,
       vehicle: vehicle ? {
-        model: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim(),
+        brand: vehicle.brand || null,
+        model: vehicle.model || null,
         color: vehicle.color || null,
         plate: vehicle.plate || null,
+        year: vehicle.year || null,
+        photo_url: vehicle.photo_url || null,
       } : null,
     });
 

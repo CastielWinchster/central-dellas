@@ -227,10 +227,12 @@ export default function ActiveRideDriver() {
           <div className="bg-[#0D0D0D] rounded-xl p-3">
             <p className="text-xs text-gray-400 mb-1">Pagamento</p>
             <p className="text-white text-xs font-medium">
-              {ride.payment_method === 'pix' && '💜 Pix'}
-              {ride.payment_method === 'card' && '💳 Cartão'}
-              {ride.payment_method === 'cash' && '💵 Dinheiro'}
-              {!ride.payment_method && 'N/A'}
+              {(() => {
+                const pm = ride.payment_method || ride.paymentMethod;
+                if (!pm) return 'Não inf.';
+                const labels = { pix: '💜 Pix', card: '💳 Cartão', cash: '💵 Dinheiro', credit_card: '💳 Crédito', debit_card: '💳 Débito' };
+                return labels[pm] || pm;
+              })()}
             </p>
           </div>
           <div className="bg-[#0D0D0D] rounded-xl p-3">

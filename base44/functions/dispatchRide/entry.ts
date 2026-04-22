@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       hasPet,
       packageSize,
       couponCode,
+      paymentMethod,
     } = body;
 
     // Aceitar tanto pickupText quanto pickup_text (compatibilidade)
@@ -79,6 +80,7 @@ Deno.serve(async (req) => {
         ride_type: rideType,
         has_pet: hasPet || false,
         package_size: packageSize || null,
+        payment_method: paymentMethod || null,
       });
     } catch (e) {
       console.error('[dispatchRide] Erro ao criar Ride:', e.message);

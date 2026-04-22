@@ -211,14 +211,20 @@ export default function ActiveRidePassenger() {
             {vehicle.photo_url && (
               <img
                 src={vehicle.photo_url}
-                alt={`${vehicle.brand} ${vehicle.model}`}
-                className="w-full h-32 object-cover"
+                alt={`${vehicle.brand || ''} ${vehicle.model || ''}`.trim()}
+                className="w-full h-36 object-cover"
               />
             )}
             <div className="flex items-center justify-between px-4 py-3">
               <div>
-                <p className="text-white font-semibold">{vehicle.brand} {vehicle.model}</p>
-                <p className="text-gray-400 text-sm">{vehicle.color} • {vehicle.year}</p>
+                <p className="text-white font-semibold">
+                  {vehicle.brand && vehicle.model
+                    ? `${vehicle.brand} ${vehicle.model}`
+                    : vehicle.model || 'Veículo'}
+                </p>
+                <p className="text-gray-400 text-sm">
+                  {[vehicle.color, vehicle.year].filter(Boolean).join(' • ')}
+                </p>
               </div>
               <div className="bg-[#1a1a2e] px-4 py-2 rounded-lg border border-[#F22998]/30">
                 <p className="text-[#F22998] font-bold text-sm tracking-wider">{vehicle.plate}</p>
