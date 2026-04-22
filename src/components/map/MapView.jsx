@@ -360,12 +360,8 @@ export default function MapView({
       const oLat = pickupLocation.lat, oLng = pickupLocation.lng;
       const dLat = destinationLocation.lat, dLng = destinationLocation.lng;
 
-      // Desenha linha reta imediatamente como fallback visual
-      const straightLine = {
-        type: 'Feature',
-        geometry: { type: 'LineString', coordinates: [[oLng, oLat], [dLng, dLat]] }
-      };
-      setRouteProgress(straightLine);
+      // Ajusta o mapa para mostrar os dois pontos enquanto busca a rota real
+      setRouteProgress(null);
 
       // Ajusta o mapa para mostrar os dois pontos
       if (mapRef.current) {

@@ -10,7 +10,7 @@ function isNocturnal() {
 // Tarifa base por tipo de corrida
 const BASE_FARES = {
   standard:   { day: 9.99,  night: 14.99 },
-  rotta_roza: { day: 9.99,  night: 14.99 },
+  rotta_roza: { day: 10.00, night: 10.00 }, // fixo R$10 dentro da cidade
   sales:      { day: 25.00, night: 25.00 },
 };
 
@@ -23,6 +23,9 @@ function getPricePerKm(distanceKm) {
 
 // Cálculo principal para corridas dentro da cidade
 export function calculateCityPrice(distanceKm, rideType = 'standard') {
+  // Rotta Roza tem preço fixo de R$10,00 dentro da cidade
+  if (rideType === 'rotta_roza') return 10.00;
+
   const nocturnal = isNocturnal();
   const base = BASE_FARES[rideType]?.[nocturnal ? 'night' : 'day'] ?? 9.99;
   const pricePerKm = getPricePerKm(distanceKm);
@@ -32,9 +35,11 @@ export function calculateCityPrice(distanceKm, rideType = 'standard') {
 
 // Preços fixos moto táxi (Rotta Roza) para destinos especiais
 const FIXED_PRICES_MOTO = {
+  'delefratti':      12.00,
   'delefrati':       12.00,
+  'pátio brejeiro':  12.00,
   'patio brejeiro':  12.00,
-  'brejeiro':        12.00,
+  'brejeiro':        10.00, // brejeiro = preço base
   'timboré':         15.00,
   'timboro':         15.00,
   'ponte sem terra': 15.00,
