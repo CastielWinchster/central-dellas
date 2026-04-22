@@ -229,7 +229,7 @@ export default function MapView({
   const dashAnimRef = useRef(null);
   const driverAnimationsRef = useRef({});
   const hasInitialFitRef = useRef(false);
-  const routeDrawnRef = useRef(false);
+  const routeDrawnRef = useRef(null); // guarda "lat1,lng1|lat2,lng2" do par já desenhado
   const [currentStreet, setCurrentStreet] = useState('');
   const googleKeyRef = useRef(null);
   const streetIntervalRef = useRef(null);
@@ -372,10 +372,10 @@ export default function MapView({
         hasInitialFitRef.current = true;
       }
 
-      // Não redesenhar rota se já foi desenhada para este par de coordenadas
-      if (routeDrawnRef.current) return;
+      // Não redesenhar rota se já foi desenhada para este exato par de coordenadas
+      const routeKey = `${oLat},${oLng}|${dLat},${dLng}`;
+      if (routeDrawnRef.current === routeKey) return;
 
-      // Limpar rota anterior apenas se ainda não foi desenhada
       setRouteProgress(null);
 
       const getRoute = async () => {
@@ -388,7 +388,7 @@ export default function MapView({
             const coords = osrmData.routes[0].geometry.coordinates;
             console.log(`[MapView] OSRM: ${coords.length} pontos`);
             animateRoute(coords);
-            routeDrawnRef.current = true;
+            routeDrawnRef.current = routeKey;
             return;
           }
 
@@ -401,7 +401,7 @@ export default function MapView({
             const coords = decodePolyline(data.routes[0].overview_polyline.points);
             console.log(`[MapView] Google Directions: ${coords.length} pontos`);
             animateRoute(coords);
-            routeDrawnRef.current = true;
+            routeDrawnRef.current = routeKey;
           }
         } catch (error) {
           console.warn('[MapView] Rota via API falhou, mantendo linha reta:', error.message);
@@ -411,7 +411,7 @@ export default function MapView({
     } else {
       setRouteData(null);
       setRouteProgress(null);
-      routeDrawnRef.current = false;
+      routeDrawnRef.current = null;
       if (routeAnimationRef.current) cancelAnimationFrame(routeAnimationRef.current);
     }
   }, [showRoute, pickupKey, destKey]);
