@@ -65,6 +65,16 @@ export default function Notifications() {
     }
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
+      setNotifications([]);
+      toast.success('Todas as notificações foram removidas!');
+    } catch (error) {
+      toast.error('Erro ao limpar notificações');
+    }
+  };
+
   const filteredNotifications = filter === 'all' 
     ? notifications 
     : filter === 'unread'
@@ -93,12 +103,20 @@ export default function Notifications() {
               {notifications.filter(n => !n.is_read).length} não lidas
             </p>
           </div>
-          {notifications.filter(n => !n.is_read).length > 0 && (
-            <Button onClick={markAllAsRead} className="btn-gradient">
-              <Check className="w-4 h-4 mr-2" />
-              Marcar todas como lidas
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {notifications.filter(n => !n.is_read).length > 0 && (
+              <Button onClick={markAllAsRead} className="btn-gradient">
+                <Check className="w-4 h-4 mr-2" />
+                Marcar lidas
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button onClick={clearAllNotifications} variant="outline" className="border-red-500/40 text-red-400 hover:bg-red-500/10">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Limpar tudo
+              </Button>
+            )}
+          </div>
         </motion.div>
 
         {/* Filters */}

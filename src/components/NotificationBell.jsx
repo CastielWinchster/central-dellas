@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Car, MessageCircle } from 'lucide-react';
+import { Bell, Car, MessageCircle, Trash2 } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +30,10 @@ export default function NotificationBell({
   markAsRead: extMarkAsRead,
   markAllAsRead: extMarkAllAsRead,
 }) {
+  const clearAll = async () => {
+    await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
+    markAllAsRead();
+  };
   const [open, setOpen] = useState(false);
   const [badgePop, setBadgePop] = useState(false);
   const prevCountRef = useRef(0);
@@ -79,16 +84,29 @@ export default function NotificationBell({
       >
         <div className="p-4 border-b border-[#F22998]/20 flex items-center justify-between">
           <h3 className="font-semibold text-[#F2F2F2]">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button
-              onClick={markAllAsRead}
-              variant="ghost"
-              size="sm"
-              className="text-[#F22998] hover:bg-[#F22998]/10 text-xs"
-            >
-              Marcar todas como lidas
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button
+                onClick={markAllAsRead}
+                variant="ghost"
+                size="sm"
+                className="text-[#F22998] hover:bg-[#F22998]/10 text-xs"
+              >
+                Marcar lidas
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                onClick={clearAll}
+                variant="ghost"
+                size="sm"
+                className="text-red-400 hover:bg-red-500/10 text-xs"
+                title="Limpar todas"
+              >
+                <Trash2 size={14} />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-y-auto max-h-[400px]">
