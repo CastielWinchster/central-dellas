@@ -478,7 +478,8 @@ export default function RequestRide() {
       console.log('[RequestRide] É intermunicipal?', intercity);
       setIsIntercity(intercity);
 
-      const destText = destination?.text || '';
+      // Combina texto digitado pelo usuário + texto do endereço para detectar locais especiais
+      const destText = [destination, destinationLocation?.text].filter(Boolean).join(' ');
 
       if (intercity) {
         setIntercityPickupCity(pickupCity);
