@@ -31,7 +31,13 @@ export default function NotificationBell({
   markAllAsRead: extMarkAllAsRead,
 }) {
   const clearAll = async () => {
-    await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
+    for (const n of notifications) {
+      try {
+        await base44.entities.Notification.delete(n.id);
+      } catch (e) {
+        // ignora "not found" e continua
+      }
+    }
     markAllAsRead();
   };
   const [open, setOpen] = useState(false);

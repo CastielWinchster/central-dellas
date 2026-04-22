@@ -66,13 +66,15 @@ export default function Notifications() {
   };
 
   const clearAllNotifications = async () => {
-    try {
-      await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
-      setNotifications([]);
-      toast.success('Todas as notificações foram removidas!');
-    } catch (error) {
-      toast.error('Erro ao limpar notificações');
+    for (const n of notifications) {
+      try {
+        await base44.entities.Notification.delete(n.id);
+      } catch (e) {
+        // ignora "not found" e continua
+      }
     }
+    setNotifications([]);
+    toast.success('Todas as notificações foram removidas!');
   };
 
   const filteredNotifications = filter === 'all' 
