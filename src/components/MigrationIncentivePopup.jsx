@@ -4,33 +4,47 @@ import { X, Gift, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 export default function MigrationIncentivePopup() {
   const [showPopup, setShowPopup] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [promoCode, setPromoCode] = useState('LOADING...');
+  const [promoData, setPromoData] = useState(null); // { code, discount }
 
   useEffect(() => {
-    // Buscar código promocional do backend ou configuração
-    const fetchPromoCode = async () => {
+    // Buscar cupom ativo mais recente do banco
+    const fetchActivePromo = async () => {
       try {
-        // Por enquanto, usar um código padrão
-        // TODO: Implementar backend para gerenciar códigos promocionais dinamicamente
-        setPromoCode('WHATSAPP10');
+        const active = await base44.entities.PromoCode.filter(
+          { is_active: true },
+          '-created_date',
+          1
+        );
+        if (active.length > 0) {
+          const p = active[0];
+          const discount = p.discount_amount
+            ? `R$ ${Number(p.discount_amount).toFixed(2)} OFF`
+            : p.discount_percentage
+            ? `${p.discount_percentage}% OFF`
+            : 'desconto especial';
+          setPromoData({ code: p.code, discount });
+        }
       } catch (error) {
-        setPromoCode('ERRO');
+        console.error('[MigrationPopup] Erro ao buscar cupom:', error);
       }
     };
-    fetchPromoCode();
+    fetchActivePromo();
   }, []);
 
   useEffect(() => {
+    // Só mostrar se houver cupom ativo
+    if (!promoData) return;
+
     // Verificar se já viu o popup hoje
     const lastShown = localStorage.getItem('migrationPopupLastShown');
     const today = new Date().toDateString();
     
     if (lastShown !== today) {
-      // Mostrar depois de 3 segundos
       const timer = setTimeout(() => {
         setShowPopup(true);
         localStorage.setItem('migrationPopupLastShown', today);
@@ -38,10 +52,10 @@ export default function MigrationIncentivePopup() {
 
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [promoData]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(promoCode);
+    navigator.clipboard.writeText(promoData?.code || '');
     setCopied(true);
     toast.success('Código copiado!');
     setTimeout(() => setCopied(false), 2000);
@@ -50,7 +64,7 @@ export default function MigrationIncentivePopup() {
   const handleShare = () => {
     const message = `🚗 Central Dellas - App exclusivo para mulheres!
 
-Use o código ${promoCode} e ganhe 10% OFF na primeira corrida!
+Use o código ${promoData?.code} e ganhe ${promoData?.discount} na primeira corrida!
 
 Baixe agora: ${window.location.origin}`;
 
@@ -114,7 +128,7 @@ Baixe agora: ${window.location.origin}`;
                   <p className="text-[#F2F2F2]/60 text-sm mb-2">Código promocional:</p>
                   <div className="flex items-center justify-center gap-3">
                     <span className="text-3xl font-bold text-[#F22998] tracking-wider">
-                      {promoCode}
+                      {promoData?.code}
                     </span>
                     <Button
                       onClick={handleCopy}
