@@ -69,9 +69,10 @@ export function getFixedPrice(dropoffText, type = 'moto') {
 }
 
 // Desconto de R$2,00 na primeira corrida de moto do usuário
+// Preço mínimo de R$10,00 para não cobrar abaixo do fixo
 export function applyFirstMotoDiscount(price, isFirstMotoRide) {
   if (!isFirstMotoRide) return price;
-  return Math.max(0, Math.round((price - 2.00) * 100) / 100);
+  return Math.max(10.00, Math.round((price - 2.00) * 100) / 100);
 }
 
 // ── TARIFAS INTERMUNICIPAIS ─────────────────────────────────────────────────
