@@ -173,14 +173,14 @@ export function useNotifications(userId) {
   }, [userId, handleNewNotification]);
 
   const markAsRead = useCallback(async (notifId) => {
-    await base44.entities.Notification.update(notifId, { is_read: true });
+    await base44.entities.Notification.update(notifId, { is_read: true }).catch(() => {});
     setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, is_read: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
   }, []);
 
   const markAllAsRead = useCallback(async () => {
     const unread = notifications.filter(n => !n.is_read);
-    await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+    await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true }).catch(() => {})));
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
   }, [notifications]);
