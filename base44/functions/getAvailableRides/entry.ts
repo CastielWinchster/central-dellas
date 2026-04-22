@@ -28,17 +28,6 @@ Deno.serve(async (req) => {
 
     const { driverLat, driverLng, radiusKm = 15 } = await req.json();
 
-    // CRÍTICO: verificar se a motorista está com switch disponível (is_available=true)
-    const presenceList = await base44.asServiceRole.entities.DriverPresence.filter({
-      driver_id: driver.id,
-      is_available: true,
-    }, '-updated_date', 1);
-
-    if (presenceList.length === 0) {
-      console.log(`[getAvailableRides] Motorista ${driver.id} não está disponível, retornando lista vazia`);
-      return Response.json({ success: true, rides: [] });
-    }
-
     // Buscar todas corridas abertas via asServiceRole (contorna RLS para motoristas com role=user)
     // status 'requested': passageira solicitou, nenhum motorista foi acionado ainda
     // status 'assigned': dispatchRide encontrou motoristas e criou ofertas (mas corrida ainda não foi aceita)

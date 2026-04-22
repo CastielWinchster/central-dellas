@@ -160,6 +160,7 @@ export default function DriverDashboard() {
           record = await base44.entities.DriverPresence.create({
             driver_id: user.id,
             is_online: true,
+            is_available: true,
             lat: latitude,
             lng: longitude,
             accuracy,
@@ -172,6 +173,7 @@ export default function DriverDashboard() {
         } else {
           await base44.entities.DriverPresence.update(record.id, {
             is_online: true,
+            is_available: true,
             lat: latitude,
             lng: longitude,
             accuracy,
@@ -264,6 +266,7 @@ export default function DriverDashboard() {
         try {
           await base44.entities.DriverPresence.update(currentRecord.id, {
             is_online: false,
+            is_available: false,
             last_seen_at: new Date().toISOString()
           });
           toast.info('Você está offline');
