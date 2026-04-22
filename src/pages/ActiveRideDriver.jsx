@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
@@ -29,6 +29,11 @@ export default function ActiveRideDriver() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const watchIdRef = useRef(null);
+
+  // Memoizar objetos de localização — DEVE ficar antes dos early returns (regra dos Hooks)
+  const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
+  const destinationLocationMemo = useMemo(() => ride ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null, [ride?.dropoff_lat, ride?.dropoff_lng]);
+  const passengerPhoto = passenger?.photo_url || passenger?.profile_image || passenger?.avatar_url || passenger?.avatar || passenger?.photo || passenger?.picture || null;
 
   // Buscar dados da corrida
   useEffect(() => {
@@ -136,8 +141,8 @@ export default function ActiveRideDriver() {
       {/* MAPA — 65% */}
       <div className="relative" style={{ height: '65vh' }}>
         <MapView
-          pickupLocation={{ lat: ride.pickup_lat, lng: ride.pickup_lng }}
-          destinationLocation={{ lat: ride.dropoff_lat, lng: ride.dropoff_lng }}
+          pickupLocation={pickupLocationMemo}
+          destinationLocation={destinationLocationMemo}
           showRoute={true}
           driverLocation={myLocation}
           className="h-full w-full"
@@ -173,13 +178,16 @@ export default function ActiveRideDriver() {
         {/* Passageiro */}
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
-            {passenger?.photo_url
-              ? <img src={passenger.photo_url} alt={passenger.full_name} className="w-full h-full object-cover" />
-              : <span className="text-white text-2xl font-bold">{passenger?.full_name?.charAt(0) || 'P'}</span>
+            {passengerPhoto
+              ? <img src={passengerPhoto} alt={passenger?.full_name || 'Passageiro'} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+              : null
             }
+            <span className="text-white text-2xl font-bold" style={{ display: passengerPhoto ? 'none' : 'flex' }}>
+              {passenger?.full_name?.charAt(0)?.toUpperCase() || 'P'}
+            </span>
           </div>
           <div className="flex-1">
-            <h3 className="text-white font-bold text-lg leading-tight">{passenger?.full_name || 'Passageira'}</h3>
+            <h3 className="text-white font-bold text-lg leading-tight">{passenger?.full_name || 'Passageiro(a)'}</h3>
             {passenger?.phone && <p className="text-gray-400 text-sm mt-0.5">{passenger.phone}</p>}
           </div>
           <div className="flex gap-2">

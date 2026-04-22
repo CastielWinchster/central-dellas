@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
@@ -29,6 +29,10 @@ export default function ActiveRidePassenger() {
   const [loading, setLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const intervalRef = useRef(null);
+
+  // Memoizar objetos de localização — deve ficar antes dos early returns
+  const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
+  const destinationLocationMemo = useMemo(() => ride ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null, [ride?.dropoff_lat, ride?.dropoff_lng]);
 
   const fetchData = async () => {
     if (!rideId) return;
@@ -122,8 +126,8 @@ export default function ActiveRidePassenger() {
       {/* MAPA — 65% da tela */}
       <div className="relative" style={{ height: '65vh' }}>
         <MapView
-          pickupLocation={{ lat: ride.pickup_lat, lng: ride.pickup_lng }}
-          destinationLocation={{ lat: ride.dropoff_lat, lng: ride.dropoff_lng }}
+          pickupLocation={pickupLocationMemo}
+          destinationLocation={destinationLocationMemo}
           showRoute={true}
           driverLocation={driverLocation}
           className="h-full w-full"

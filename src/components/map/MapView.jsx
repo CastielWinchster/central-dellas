@@ -229,6 +229,7 @@ export default function MapView({
   const dashAnimRef = useRef(null);
   const driverAnimationsRef = useRef({});
   const hasInitialFitRef = useRef(false);
+  const routeDrawnRef = useRef(false);
   const [currentStreet, setCurrentStreet] = useState('');
   const googleKeyRef = useRef(null);
   const streetIntervalRef = useRef(null);
@@ -354,15 +355,15 @@ export default function MapView({
 
 
 
-  // Calcular rota
+  // Calcular rota — usa coordenadas numéricas para evitar re-execuções com objetos inline
+  const pickupKey = pickupLocation ? `${pickupLocation.lat},${pickupLocation.lng}` : null;
+  const destKey = destinationLocation ? `${destinationLocation.lat},${destinationLocation.lng}` : null;
+
   useEffect(() => {
     const hasRoute = (showRoute || (pickupLocation && destinationLocation));
     if (hasRoute && pickupLocation && destinationLocation) {
       const oLat = pickupLocation.lat, oLng = pickupLocation.lng;
       const dLat = destinationLocation.lat, dLng = destinationLocation.lng;
-
-      // Ajusta o mapa para mostrar os dois pontos enquanto busca a rota real
-      setRouteProgress(null);
 
       // fitBounds apenas na primeira vez (evita mapa tremendo com updates de GPS)
       if (!hasInitialFitRef.current && mapRef.current) {
@@ -370,6 +371,12 @@ export default function MapView({
         mapRef.current.fitBounds(bounds, { padding: 80, duration: 1000, pitch: 0 });
         hasInitialFitRef.current = true;
       }
+
+      // Não redesenhar rota se já foi desenhada para este par de coordenadas
+      if (routeDrawnRef.current) return;
+
+      // Limpar rota anterior apenas se ainda não foi desenhada
+      setRouteProgress(null);
 
       const getRoute = async () => {
         try {
@@ -381,6 +388,7 @@ export default function MapView({
             const coords = osrmData.routes[0].geometry.coordinates;
             console.log(`[MapView] OSRM: ${coords.length} pontos`);
             animateRoute(coords);
+            routeDrawnRef.current = true;
             return;
           }
 
@@ -393,8 +401,8 @@ export default function MapView({
             const coords = decodePolyline(data.routes[0].overview_polyline.points);
             console.log(`[MapView] Google Directions: ${coords.length} pontos`);
             animateRoute(coords);
+            routeDrawnRef.current = true;
           }
-          // Se ambos falharem, linha reta já está visível
         } catch (error) {
           console.warn('[MapView] Rota via API falhou, mantendo linha reta:', error.message);
         }
@@ -403,9 +411,10 @@ export default function MapView({
     } else {
       setRouteData(null);
       setRouteProgress(null);
+      routeDrawnRef.current = false;
       if (routeAnimationRef.current) cancelAnimationFrame(routeAnimationRef.current);
     }
-  }, [showRoute, pickupLocation, destinationLocation]);
+  }, [showRoute, pickupKey, destKey]);
 
   // Animação de entrada da rota (desenha progressivamente)
   const animateRoute = useCallback((coordinates) => {
