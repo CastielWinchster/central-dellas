@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import MigrationIncentivePopup from '../components/MigrationIncentivePopup';
+import WelcomeCouponModal from '../components/WelcomeCouponModal';
 import Breadcrumb from '../components/Breadcrumb';
 import { useKeyboardShortcuts } from '../components/useKeyboardShortcuts';
 import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
@@ -119,7 +119,7 @@ export default function PassengerDashboard() {
 
   return (
     <div className={`min-h-screen pb-24 md:pb-10 ${isDark ? 'bg-[#0D0D0D]' : 'bg-gray-50'}`}>
-      <MigrationIncentivePopup />
+      <WelcomeCouponModal />
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Breadcrumb items={[{ label: 'Dashboard', page: 'PassengerDashboard' }]} />
         

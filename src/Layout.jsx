@@ -35,6 +35,29 @@ function LayoutContent({ children, currentPageName }) {
     setTimeout(() => subscribeToPush(), 3000);
   }, [user?.id]);
 
+  // Limpar notificações antigas com cupom hardcoded "PRIMEIRA VELOZ"
+  useEffect(() => {
+    if (!user?.id) return;
+    const cleanOldCouponNotifications = async () => {
+      try {
+        const oldNotifs = await base44.entities.Notification.filter({ user_id: user.id, type: 'coupon' });
+        for (const notif of oldNotifs) {
+          if (
+            notif.title?.includes('PRIMEIRA VELOZ') ||
+            notif.message?.includes('PRIMEIRA VELOZ') ||
+            notif.title?.includes('PrimeiraVeloz') ||
+            notif.message?.includes('PrimeiraVeloz')
+          ) {
+            await base44.entities.Notification.delete(notif.id);
+          }
+        }
+      } catch (e) {
+        console.warn('[cleanup] Erro ao limpar notificações antigas:', e);
+      }
+    };
+    cleanOldCouponNotifications();
+  }, [user?.id]);
+
   useEffect(() => {
     // Apply theme to document
     if (user?.theme) {

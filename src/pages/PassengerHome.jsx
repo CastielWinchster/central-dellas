@@ -1,128 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
-  MapPin, Navigation, Car, Shield, Users, Star, 
-  ChevronRight, Clock, Sparkles, Heart, AlertTriangle,
-  Eye, Phone, Package, Calendar, X, Check
+  MapPin, Car, Shield,
+  Sparkles, Heart, AlertTriangle,
+  Eye, Phone, Package, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthUser } from '../components/AuthGuard';
-import { toast } from 'sonner';
+import WelcomeCouponModal from '../components/WelcomeCouponModal';
 
 export default function PassengerHome() {
   const navigate = useNavigate();
   const { user } = useAuthUser();
 
-  const [showPreLaunchModal, setShowPreLaunchModal] = useState(false);
-  const [couponNotificationId, setCouponNotificationId] = useState(null);
-
-  useEffect(() => {
-    checkCouponNotification();
-  }, []);
-
-  const checkCouponNotification = async () => {
-    try {
-      const userData = await base44.auth.me();
-      if (!userData) return;
-
-      // Verificar no localStorage se já mostrou o modal (para mobile)
-      const hasSeenCoupon = localStorage.getItem(`coupon_seen_${userData.id}`);
-      
-      // Buscar notificação de cupom existente
-      const notifications = await base44.entities.Notification.filter({
-        user_id: userData.id,
-        type: 'coupon',
-        title: 'Obrigada por apoiar nosso lançamento!'
-      });
-
-      if (notifications.length > 0) {
-        setCouponNotificationId(notifications[0].id);
-        // Mostrar modal apenas se não viu ainda
-        if (!hasSeenCoupon) {
-          setShowPreLaunchModal(true);
-        }
-      } else {
-        // Criar nova notificação
-        const newNotification = await base44.entities.Notification.create({
-          user_id: userData.id,
-          title: 'Obrigada por apoiar nosso lançamento!',
-          message: 'Cupom PRIMEIRA VELOZ: 50% OFF na primeira corrida. De mulher para mulher, sua segurança é nossa prioridade.',
-          type: 'coupon',
-          is_persistent: true,
-          is_read: false
-        });
-        setCouponNotificationId(newNotification.id);
-        setShowPreLaunchModal(true);
-      }
-    } catch (error) {
-      console.error('Erro ao verificar cupom:', error);
-    }
-  };
-
-  const handleSaveCoupon = async () => {
-    try {
-      const userData = await base44.auth.me();
-      if (userData) {
-        // Marcar que já viu o cupom
-        localStorage.setItem(`coupon_seen_${userData.id}`, 'true');
-      }
-    } catch (error) {
-      console.error('Erro ao salvar preferência:', error);
-    }
-    setShowPreLaunchModal(false);
-    toast.success('Cupom PRIMEIRA VELOZ salvo! Confira na aba de Notificações.');
-  };
-
   return (
     <div className="min-h-screen pb-24 md:pb-10">
-      {/* Modal Pré-Lançamento */}
-      {showPreLaunchModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#F22998]/30 overflow-hidden"
-          >
-            <button
-              onClick={() => setShowPreLaunchModal(false)}
-              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#F22998]/10 hover:bg-[#F22998]/20 flex items-center justify-center transition-colors"
-            >
-              <X className="w-4 h-4 text-[#F22998]" />
-            </button>
-
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
-
-              <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2">
-                Obrigada por apoiar nosso lançamento!
-              </h2>
-
-              <div className="my-6 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/30">
-                <p className="text-sm text-[#F2F2F2]/60 mb-2">Cupom de Desconto</p>
-                <p className="text-3xl font-bold text-[#F22998] tracking-wide">PRIMEIRA VELOZ</p>
-                <p className="text-lg text-[#F2F2F2] mt-2">50% OFF na primeira corrida</p>
-              </div>
-
-              <p className="text-[#F2F2F2]/60 text-sm mb-6 italic">
-                De mulher para mulher, sua segurança é nossa prioridade.
-              </p>
-
-              <Button
-                onClick={handleSaveCoupon}
-                className="w-full btn-gradient py-6 rounded-2xl text-lg font-semibold"
-              >
-                <Check className="w-5 h-5 mr-2" />
-                Salvar Cupom
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      {/* Modal de cupom 100% dinâmico — busca do banco automaticamente */}
+      <WelcomeCouponModal />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#8C0D60]/30 via-[#0D0D0D] to-[#0D0D0D]" />
