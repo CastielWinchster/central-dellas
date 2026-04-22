@@ -189,5 +189,5 @@ export function useNotifications(userId) {
     setToastQueue(q => q.filter(t => t.toastId !== toastId));
   }, []);
 
-  return { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast, reload: loadNotifications };
+  return { notifications, setNotifications, unreadCount, setUnreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast, reload: loadNotifications };
 }

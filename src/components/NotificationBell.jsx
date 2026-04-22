@@ -30,27 +30,38 @@ export default function NotificationBell({
   markAsRead: extMarkAsRead,
   markAllAsRead: extMarkAllAsRead,
 }) {
+  const [open, setOpen] = useState(false);
+  const [badgePop, setBadgePop] = useState(false);
+  const [cleared, setCleared] = useState(false);
+  const prevCountRef = useRef(0);
+
+  // Se props externas não fornecidas, usa hook interno
+  const internal = useNotifications(extNotifications !== undefined ? null : userId);
+
+  const notifications  = cleared ? [] : (extNotifications  ?? internal.notifications);
+  const unreadCount    = cleared ? 0  : (extUnreadCount    ?? internal.unreadCount);
+  const markAsRead     = extMarkAsRead     ?? internal.markAsRead;
+  const markAllAsRead  = extMarkAllAsRead  ?? internal.markAllAsRead;
+
+  // Resetar "cleared" quando chegarem novas notificações
+  useEffect(() => {
+    if (cleared && (extNotifications?.length > 0 || internal.notifications.length > 0)) {
+      // Não resetar — manter limpo até reload real
+    }
+  }, [extNotifications, internal.notifications]);
+
   const clearAll = async () => {
-    for (const n of notifications) {
+    const list = extNotifications ?? internal.notifications;
+    for (const n of list) {
       try {
         await base44.entities.Notification.delete(n.id);
       } catch (e) {
         // ignora "not found" e continua
       }
     }
-    markAllAsRead();
+    setCleared(true);
+    if (internal.setNotifications) internal.setNotifications([]);
   };
-  const [open, setOpen] = useState(false);
-  const [badgePop, setBadgePop] = useState(false);
-  const prevCountRef = useRef(0);
-
-  // Se props externas não fornecidas, usa hook interno
-  const internal = useNotifications(extNotifications !== undefined ? null : userId);
-
-  const notifications  = extNotifications  ?? internal.notifications;
-  const unreadCount    = extUnreadCount    ?? internal.unreadCount;
-  const markAsRead     = extMarkAsRead     ?? internal.markAsRead;
-  const markAllAsRead  = extMarkAllAsRead  ?? internal.markAllAsRead;
 
   // Animação do badge ao receber nova notificação
   useEffect(() => {
