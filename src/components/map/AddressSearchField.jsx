@@ -7,6 +7,7 @@ export default function AddressSearchField({
   value,
   onChange,
   onSelect,
+  onClear,
   placeholder,
   dotColor = '#F22998',
   icon = null,
@@ -51,6 +52,7 @@ export default function AddressSearchField({
 
   const handleClear = () => {
     onChange('');
+    if (onClear) onClear();
     inputRef.current?.focus();
   };
 

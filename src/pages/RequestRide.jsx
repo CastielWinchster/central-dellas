@@ -966,6 +966,7 @@ export default function RequestRide() {
                         label="De onde você está"
                         value={pickup}
                         onChange={(v) => { setPickup(v); setPickupError(''); }}
+                        onClear={() => { setPickupLocation(null); setRouteDistance(null); setRouteDuration(null); setEstimatedPrice(null); }}
                         onSelect={handlePickupSuggestionSelect}
                         placeholder="Digite seu endereço de origem"
                         dotColor="#22c55e"
@@ -1000,6 +1001,7 @@ export default function RequestRide() {
                         label="Para onde vai"
                         value={destination}
                         onChange={(v) => { setDestination(v); setDestinationError(''); }}
+                        onClear={() => { setDestinationLocation(null); setRouteDistance(null); setRouteDuration(null); setEstimatedPrice(null); }}
                         onSelect={handleDestinationSuggestionSelect}
                         placeholder="Restaurante, loja, endereço..."
                         dotColor="#F22998"
