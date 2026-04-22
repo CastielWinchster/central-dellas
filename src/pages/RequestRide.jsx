@@ -526,24 +526,34 @@ export default function RequestRide() {
     }
   };
 
-  // Aplicar cupom
+  // Aplicar cupom via backend
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
+    if (!estimatedPrice || parseFloat(estimatedPrice) <= 0) {
+      toast.error('Calcule a corrida primeiro');
+      return;
+    }
     try {
-      const coupons = await base44.entities.PromoCode.filter({ code: couponCode.toUpperCase(), is_active: true });
-      const result = applyCoupon(parseFloat(estimatedPrice ?? '0'), couponCode, coupons);
-      setCouponResult(result);
+      const res = await base44.functions.invoke('validatePromoCode', {
+        code: couponCode,
+        rideValue: parseFloat(estimatedPrice)
+      });
+      const result = res.data;
+      console.log('[PromoCode] Resultado:', result);
       if (result.valid) {
-        setAppliedCoupon(result.coupon);
-        setEstimatedPrice(result.price.toFixed(2));
-        toast.success(`Cupom aplicado! -R$ ${result.discount.toFixed(2)}`);
+        setAppliedCoupon(result.promoCode);
+        setCouponResult({ valid: true, discount: result.discountAmount });
+        setEstimatedPrice(result.finalValue.toFixed(2));
+        toast.success(result.message);
       } else {
         setAppliedCoupon(null);
-        toast.error('Cupom inválido ou expirado');
+        setCouponResult({ valid: false });
+        toast.error(result.error || 'Cupom inválido ou expirado');
       }
     } catch (e) {
-      console.error('Erro ao validar cupom:', e);
+      console.error('[PromoCode] Erro:', e);
       setCouponResult({ valid: false });
+      toast.error('Erro ao validar cupom');
     }
   };
 
@@ -653,6 +663,7 @@ export default function RequestRide() {
         paymentMethod: paymentMethod || selectedPayment,
         firstMotoDiscount: (selectedRideType === 'rotta_roza' && isFirstMotoRide) ? 2.00 : 0,
         couponCode: appliedCoupon?.code || null,
+        // normalizado para o backend registrar uso corretamente
       });
       
       if (response.data.success) {
@@ -1256,11 +1267,26 @@ export default function RequestRide() {
                         </button>
                       </div>
                       {couponResult && (
-                        <p className={`text-xs mt-1.5 ${couponResult.valid ? 'text-green-400' : 'text-red-400'}`}>
-                          {couponResult.valid
-                            ? `✅ Cupom aplicado! -R$ ${couponResult.discount.toFixed(2)}`
-                            : '❌ Cupom inválido ou expirado'}
-                        </p>
+                        <div className={`mt-2 ${couponResult.valid ? '' : ''}`}>
+                          {couponResult.valid ? (
+                            <div className="flex items-center justify-between bg-green-900/20 border border-green-600/30 rounded-xl px-3 py-2">
+                              <div>
+                                <p className="text-green-400 text-xs font-semibold">✅ Cupom "{appliedCoupon?.code}" aplicado!</p>
+                                <p className="text-gray-400 text-xs">Desconto: R$ {couponResult.discount.toFixed(2)}</p>
+                              </div>
+                              <button onClick={() => {
+                                setAppliedCoupon(null);
+                                setCouponResult(null);
+                                setCouponCode('');
+                                // Recalcular rota para restaurar preço original
+                                if (pickupLocation && destinationLocation) calculateRouteAndPrice(pickupLocation, destinationLocation);
+                                toast.info('Cupom removido');
+                              }} className="text-gray-400 hover:text-white text-sm ml-2">✕</button>
+                            </div>
+                          ) : (
+                            <p className="text-red-400 text-xs">❌ Cupom inválido ou expirado</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </Card>

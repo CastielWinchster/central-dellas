@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       rideType = 'standard',
       hasPet,
       packageSize,
+      couponCode,
     } = body;
 
     // Aceitar tanto pickupText quanto pickup_text (compatibilidade)
@@ -207,6 +208,23 @@ Deno.serve(async (req) => {
       console.log(`[dispatchRide] ${nearbyDrivers.length} motoristas notificadas`);
     } catch (notifyErr) {
       console.warn('[dispatchRide] Falha ao notificar motoristas:', notifyErr.message);
+    }
+
+    // Registrar uso do cupom se foi aplicado
+    if (couponCode) {
+      try {
+        const normalizedCode = couponCode.trim().replace(/\s+/g, '').toLowerCase();
+        const allPromos = await base44.asServiceRole.entities.PromoCode.filter({ is_active: true });
+        const promo = allPromos.find(p => p.code.trim().replace(/\s+/g, '').toLowerCase() === normalizedCode);
+        if (promo) {
+          await base44.asServiceRole.entities.PromoCode.update(promo.id, {
+            current_uses: (promo.current_uses || 0) + 1
+          });
+          console.log('[dispatchRide] Cupom registrado:', promo.code, '| Usos:', (promo.current_uses || 0) + 1);
+        }
+      } catch (promoErr) {
+        console.warn('[dispatchRide] Erro ao registrar cupom:', promoErr.message);
+      }
     }
 
     return Response.json({
