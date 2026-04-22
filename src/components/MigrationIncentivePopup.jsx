@@ -64,13 +64,13 @@ export default function MigrationIncentivePopup() {
   const handleShare = () => {
     const message = `🚗 Central Dellas - App exclusivo para mulheres!
 
-Use o código ${promoData?.code} e ganhe ${promoData?.discount} na primeira corrida!
+Use o código ${promoData?.code} e ganhe ${promoData?.discount} na próxima corrida!
 
 Baixe agora: ${window.location.origin}`;
 
     if (navigator.share) {
       navigator.share({
-        title: 'Central Dellas - 10% OFF',
+        title: 'Central Dellas - Cupom exclusivo',
         text: message
       });
     } else {
@@ -117,10 +117,10 @@ Baixe agora: ${window.location.origin}`;
                 </div>
 
                 <h3 className="text-2xl font-bold text-white mb-2">
-                  Ganhe 10% OFF!
+                  Cupom disponível! 🎁
                 </h3>
                 <p className="text-[#F2F2F2]/70 mb-6">
-                  Compartilhe este código com suas amigas e ganhe desconto na próxima corrida!
+                  Use este código e ganhe <span className="text-[#F22998] font-bold">{promoData?.discount}</span> na sua próxima corrida!
                 </p>
 
                 {/* Promo code box */}
@@ -146,7 +146,7 @@ Baixe agora: ${window.location.origin}`;
                 </div>
 
                 <p className="text-[#F2F2F2]/50 text-xs mb-6">
-                  ✨ Válido na primeira corrida pelo app
+                  ✨ Use no app ao solicitar sua corrida
                 </p>
 
                 {/* Action buttons */}
