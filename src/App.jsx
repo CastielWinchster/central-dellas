@@ -13,6 +13,8 @@ import RequestDelivery from './pages/RequestDelivery';
 import DriverVehicle from './pages/DriverVehicle';
 import ActiveRidePassenger from './pages/ActiveRidePassenger';
 import ActiveRideDriver from './pages/ActiveRideDriver';
+import ActiveDeliveryPassenger from './pages/ActiveDeliveryPassenger';
+import ActiveDeliveryDriver from './pages/ActiveDeliveryDriver';
 import LoadingScreen from './components/LoadingScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -90,6 +92,8 @@ const AuthenticatedApp = () => {
       } />
       <Route path="/ActiveRidePassenger" element={<ActiveRidePassenger />} />
       <Route path="/ActiveRideDriver" element={<ActiveRideDriver />} />
+      <Route path="/ActiveDeliveryPassenger" element={<ActiveDeliveryPassenger />} />
+      <Route path="/ActiveDeliveryDriver" element={<ActiveDeliveryDriver />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -6,7 +6,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
   Home, Car, MapPin, MessageCircle, User, Menu, X, 
-  LogOut, History, Shield, Wallet, Star, Settings, Download as DownloadIcon
+  LogOut, History, Shield, Wallet, Star, Settings, Download as DownloadIcon, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,32 @@ function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const { user, isLoading: loading } = useAuthUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasActiveDelivery, setHasActiveDelivery] = useState(false);
+  const [activeDeliveryId, setActiveDeliveryId] = useState(null);
   const { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast } = useNotifications(user?.id);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const checkDelivery = async () => {
+      try {
+        const rides = await base44.entities.Ride.filter({
+          ride_type: 'delivery',
+          passenger_id: user.id,
+        }, '-created_date', 5);
+        const active = rides.find(r => ['requested','accepted','picked_up','in_transit'].includes(r.status));
+        if (active) {
+          setHasActiveDelivery(true);
+          setActiveDeliveryId(active.id);
+        } else {
+          setHasActiveDelivery(false);
+          setActiveDeliveryId(null);
+        }
+      } catch(_) {}
+    };
+    checkDelivery();
+    const interval = setInterval(checkDelivery, 8000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   // Inscrever no Web Push (solicita permissão + salva subscription no backend)
   useEffect(() => {
@@ -78,7 +103,8 @@ function LayoutContent({ children, currentPageName }) {
       icon: Settings, 
       page: 'PassengerOptions'
     },
-    { name: 'Baixar App', icon: DownloadIcon, page: 'Download' }
+    { name: 'Baixar App', icon: DownloadIcon, page: 'Download' },
+    ...(hasActiveDelivery ? [{ name: 'Entrega', icon: Truck, page: 'ActiveDeliveryPassenger', to: `/ActiveDeliveryPassenger?id=${activeDeliveryId}` }] : []),
   ];
 
   const driverLinks = [
@@ -195,7 +221,7 @@ function LayoutContent({ children, currentPageName }) {
               {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
                 <Link
                   key={link.page}
-                  to={createPageUrl(link.page)}
+                  to={link.to || createPageUrl(link.page)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300",
                     currentPageName === link.page
@@ -287,17 +313,17 @@ function LayoutContent({ children, currentPageName }) {
               )}
 
               {(isDriverPage ? driverLinks : passengerLinks).map((link) => (
-                <Link
-                  key={link.page}
-                  to={createPageUrl(link.page)}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-xl transition-all",
-                    currentPageName === link.page
-                      ? "bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border border-[#F22998]/30"
-                      : isDark ? "hover:bg-[#F22998]/10" : "hover:bg-gray-100"
-                  )}
-                >
+              <Link
+                key={link.page}
+                to={link.to || createPageUrl(link.page)}
+                onClick={() => setIsMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-4 px-4 py-4 rounded-xl transition-all",
+                  currentPageName === link.page
+                    ? "bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border border-[#F22998]/30"
+                    : isDark ? "hover:bg-[#F22998]/10" : "hover:bg-gray-100"
+                )}
+              >
                   <link.icon className={cn(
                     "w-6 h-6",
                     currentPageName === link.page ? "text-[#F22998]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
@@ -354,7 +380,7 @@ function LayoutContent({ children, currentPageName }) {
                 {(isDriverPage ? driverLinks : passengerLinks).map((link, index) => (
                 <Link
                   key={link.page}
-                  to={createPageUrl(link.page)}
+                  to={link.to || createPageUrl(link.page)}
                   className="flex flex-col items-center gap-1"
                 >
                   <motion.div

@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
     console.log(`[acceptRideOffer] Motorista: ${driver.id} (${driver.email})`);
 
-    const { rideId, offerId, driverConfirmedPrice } = await req.json();
+    const { rideId, offerId, driverConfirmedPrice, driverPrice } = await req.json();
 
     if (!rideId) {
       return Response.json({ error: 'rideId é obrigatório' }, { status: 400 });
@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.Ride.update(ride.id, {
       status: 'accepted',
       assigned_driver_id: driver.id,
+      driver_price: driverPrice || null,
       ...(driverConfirmedPrice != null ? {
         driver_confirmed_price: driverConfirmedPrice,
         price_validated_at: now.toISOString(),

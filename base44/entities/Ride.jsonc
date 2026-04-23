@@ -46,12 +46,15 @@
         "accepted",
         "arrived",
         "in_progress",
+        "picked_up",
+        "in_transit",
+        "delivered",
         "completed",
         "cancelled",
         "expired"
       ],
       "default": "requested",
-      "description": "Status da corrida"
+      "description": "Status da corrida/entrega"
     },
     "assigned_driver_id": {
       "type": "string",
@@ -78,6 +81,10 @@
     "driver_confirmed_price": {
       "type": "number",
       "description": "Valor digitado pela motorista ao aceitar"
+    },
+    "driver_price": {
+      "type": "number",
+      "description": "Valor definido pelo entregador/motorista"
     },
     "price_validation_attempts": {
       "type": "number",

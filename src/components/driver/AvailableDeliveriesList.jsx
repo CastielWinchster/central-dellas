@@ -4,6 +4,7 @@ import { Clock, Navigation, RefreshCw, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 
 const PROXIMITY_KM = 15;
 
@@ -23,8 +24,11 @@ const PACKAGE_SIZE_LABELS = {
 };
 
 export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, selectedRideId, driverLocation }) {
+  const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [showPriceInput, setShowPriceInput] = useState(false);
   const pollingRef = useRef(null);
   const driverLocationRef = useRef(driverLocation);
   useEffect(() => { driverLocationRef.current = driverLocation; }, [driverLocation]);
@@ -67,21 +71,18 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
     setIsRefreshing(false);
   };
 
-  const handleAccept = async (delivery, e) => {
+  const handleAccept = async (delivery, e, price = null) => {
     e.stopPropagation();
     try {
       const response = await base44.functions.invoke('acceptRideOffer', {
         rideId: delivery.id,
         offerId: null,
+        driverPrice: price,
       });
       if (response.data?.success) {
         const accepted = response.data.ride;
         setDeliveries(prev => prev.filter(d => d.id !== delivery.id));
-        if (onRideAccepted) {
-          onRideAccepted(accepted);
-        } else if (onRideSelect) {
-          onRideSelect(accepted);
-        }
+        navigate(`/ActiveDeliveryDriver?id=${accepted.id}`);
       }
     } catch (err) {
       console.error('[AvailableDeliveriesList] Erro ao aceitar:', err);
@@ -180,21 +181,49 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#F22998]/10"
+                      className="mt-3 pt-3 border-t border-[#F22998]/10"
                     >
-                      <Button
-                        onClick={(e) => { e.stopPropagation(); onRideSelect && onRideSelect(null); }}
-                        variant="outline"
-                        className="py-2 rounded-xl border-[#F22998]/30 text-[#F2F2F2]/60 hover:bg-[#F22998]/10"
-                      >
-                        <X className="w-4 h-4 mr-1" /> Ignorar
-                      </Button>
-                      <Button
-                        onClick={(e) => handleAccept(delivery, e)}
-                        className="py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" /> Aceitar Entrega
-                      </Button>
+                      {!showPriceInput ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            onClick={(e) => { e.stopPropagation(); onRideSelect && onRideSelect(null); setShowPriceInput(false); setOfferPrice(''); }}
+                            variant="outline"
+                            className="py-2 rounded-xl border-[#F22998]/30 text-[#F2F2F2]/60 hover:bg-[#F22998]/10"
+                          >
+                            <X className="w-4 h-4 mr-1" /> Ignorar
+                          </Button>
+                          <Button
+                            onClick={(e) => { e.stopPropagation(); setShowPriceInput(true); }}
+                            className="py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" /> Aceitar Entrega
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-gray-800/50 rounded-xl border border-amber-500/30">
+                          <p className="text-xs text-gray-400 mb-2">Informe o valor que você cobra por esta entrega:</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-bold">R$</span>
+                            <input
+                              type="number"
+                              min="1"
+                              step="0.50"
+                              value={offerPrice}
+                              onChange={(e) => setOfferPrice(e.target.value)}
+                              placeholder="0,00"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm border border-gray-600 focus:border-amber-500 outline-none"
+                            />
+                            <Button
+                              onClick={(e) => handleAccept(delivery, e, parseFloat(offerPrice))}
+                              disabled={!offerPrice || parseFloat(offerPrice) <= 0}
+                              className="py-2 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-bold"
+                            >
+                              Confirmar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </Card>
