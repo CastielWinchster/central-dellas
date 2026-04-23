@@ -630,14 +630,29 @@ export default function RequestRide() {
     }
   };
 
+  // Distância em linha reta como fallback de segurança
+  function haversineDistance(loc1, loc2) {
+    if (!loc1 || !loc2) return 0;
+    const R = 6371;
+    const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+    const dLon = (loc2.lng - loc1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(loc1.lat * Math.PI/180) * Math.cos(loc2.lat * Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
   const [currentRide, setCurrentRide] = useState(null);
   const [searchingDrivers, setSearchingDrivers] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
+  const LONG_RIDE_THRESHOLD_KM = 35;
+
   const handleConfirmRide = async () => {
-    // Verificar se é intermunicipal e distância >= 35km
-    if (isIntercity && routeDistance >= 35) {
-      setBlockedDistance(routeDistance);
+    // Validação de distância: qualquer corrida acima de 35km abre modal de aviso/negociação
+    // Usa routeDistance (OSRM real) se disponível, senão fallback em linha reta
+    const effectiveDistance = routeDistance || haversineDistance(pickupLocation, destinationLocation);
+    if (effectiveDistance >= LONG_RIDE_THRESHOLD_KM) {
+      setBlockedDistance(effectiveDistance);
+      setIsIntercity(true); // garante que o modal exibe as opções corretas
       setShowContactModal(true);
       return;
     }

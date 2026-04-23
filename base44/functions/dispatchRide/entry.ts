@@ -59,6 +59,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
 
+    // ── VALIDAÇÃO DE DISTÂNCIA MÁXIMA (linha de defesa no backend) ──────────
+    const MAX_DISTANCE_KM = 150; // bloqueio absoluto acima de 150km
+    const straightLineDistance = calculateDistance(pickupLat, pickupLng, dropoffLat, dropoffLng);
+    console.log(`[dispatchRide] Distância em linha reta: ${straightLineDistance.toFixed(1)} km`);
+
+    if (straightLineDistance > MAX_DISTANCE_KM) {
+      console.warn(`[dispatchRide] BLOQUEADO: distância ${straightLineDistance.toFixed(1)} km excede limite de ${MAX_DISTANCE_KM} km`);
+      return Response.json({
+        success: false,
+        error: `Corrida não permitida: distância de ${straightLineDistance.toFixed(1)} km excede o limite de ${MAX_DISTANCE_KM} km. Entre em contato pelo WhatsApp para corridas de longa distância.`,
+        distance_km: parseFloat(straightLineDistance.toFixed(1))
+      }, { status: 400 });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     // Criar corrida via asServiceRole (RLS create = null, sem restrição)
     console.log('[dispatchRide] Criando corrida para passenger_id:', user.id);
     let ride;
