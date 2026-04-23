@@ -28,12 +28,14 @@ export default function ActiveRideDriver() {
   const [completing, setCompleting] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const watchIdRef = useRef(null);
+  const lastGpsPosRef = useRef(null);
 
   // Memoizar objetos de localização — DEVE ficar antes dos early returns (regra dos Hooks)
   const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
   const destinationLocationMemo = useMemo(() => ride ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null, [ride?.dropoff_lat, ride?.dropoff_lng]);
-  const passengerPhoto = passenger?.photo_url || passenger?.profile_image || passenger?.avatar_url || passenger?.avatar || passenger?.photo || passenger?.picture || null;
+  const passengerPhoto = passenger?.photo_url || passenger?.profile_picture || passenger?.profile_image || passenger?.avatar_url || passenger?.avatar || passenger?.photo || passenger?.picture || null;
 
   // Buscar dados da corrida
   useEffect(() => {
@@ -61,16 +63,33 @@ export default function ActiveRideDriver() {
     fetchData();
   }, [rideId]);
 
-  // GPS da motorista
+  // GPS da motorista — maximumAge:0 evita posição em cache (causa do "teleporte")
   useEffect(() => {
     if (!navigator.geolocation) return;
+
+    const MIN_DIST_METERS = 5;
+    const haversineMeters = (lat1, lng1, lat2, lng2) => {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    };
+
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const { latitude, longitude, accuracy } = pos.coords;
+        if (accuracy > 50) return; // ignorar posições imprecisas
+        if (lastGpsPosRef.current) {
+          const dist = haversineMeters(lastGpsPosRef.current.lat, lastGpsPosRef.current.lng, latitude, longitude);
+          if (dist < MIN_DIST_METERS) return; // ignorar micro-movimentos
+        }
+        const loc = { lat: latitude, lng: longitude };
+        lastGpsPosRef.current = loc;
         setMyLocation(loc);
       },
       (err) => console.warn('[GPS]', err),
-      { enableHighAccuracy: true, maximumAge: 3000 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
     return () => {
       if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
@@ -277,6 +296,45 @@ export default function ActiveRideDriver() {
           )}
         </button>
         <p className="text-center text-gray-500 text-xs mt-2">Certifique-se de que a passageira chegou ao destino</p>
+
+        <button
+          onClick={() => setShowCancelConfirm(true)}
+          className="w-full mt-3 py-3 rounded-xl border border-red-500/50 text-red-400 font-medium text-sm hover:bg-red-500/10 transition-colors"
+        >
+          Cancelar Corrida
+        </button>
+
+        {/* Modal de confirmação de cancelamento */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1a1a1a] rounded-2xl p-6 w-full max-w-sm border border-red-500/30">
+              <h3 className="text-white font-bold text-lg mb-2">Cancelar corrida?</h3>
+              <p className="text-gray-400 text-sm mb-6">Tem certeza que deseja cancelar esta corrida? A passageira será notificada.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 py-3 rounded-xl bg-gray-800 text-white font-medium"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await base44.entities.Ride.update(rideId, { status: 'cancelled' });
+                      toast.info('Corrida cancelada.');
+                      navigate('/DriverDashboard');
+                    } catch (e) {
+                      toast.error('Erro ao cancelar. Tente novamente.');
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
+                >
+                  Cancelar Corrida
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Chat */}

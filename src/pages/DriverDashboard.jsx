@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
-import AcceptedRideModal from '../components/driver/AcceptedRideModal';
+
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import AvailableDeliveriesList from '../components/driver/AvailableDeliveriesList';
 
@@ -44,14 +44,8 @@ export default function DriverDashboard() {
   const etaIntervalRef = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeDriverTab, setActiveDriverTab] = useState('rides'); // 'rides' | 'deliveries'
-  const [acceptedRide, setAcceptedRide] = useState(() => {
-    try { const s = localStorage.getItem('active_ride'); return s ? JSON.parse(s) : null; } catch { return null; }
-  });
+  const [acceptedRide, setAcceptedRide] = useState(null);
   const [passengerUser, setPassengerUser] = useState(null);
-  const [showAcceptedModal, setShowAcceptedModal] = useState(() => {
-    // Reabrir modal se havia corrida ativa salva
-    try { return !!localStorage.getItem('active_ride'); } catch { return false; }
-  });
   const lastGpsUpdateRef = useRef(0);
 
   // Haversine local para ETA em tempo real
@@ -388,16 +382,13 @@ export default function DriverDashboard() {
       
       const responseData = response?.data || response;
       if (responseData.success) {
-        toast.success('🎉 Corrida aceita! Navegue até a passageira');
+        toast.success('🎉 Corrida aceita!');
         const acceptedRideData = responseData?.ride || ride;
-        setAcceptedRide(acceptedRideData);
-        setSelectedRide(acceptedRideData);
-        setPassengerUser(offerPassenger);
-        setShowAcceptedModal(true);
         localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
+        navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
       } else if (responseData.expired) {
         toast.warning('Oferta expirada');
         setRideOffer(null);
@@ -433,16 +424,9 @@ export default function DriverDashboard() {
 
   // Chamado pelo AvailableRidesList quando aceita via lista
   const handleRideAcceptedFromList = async (acceptedRideData) => {
-    setAcceptedRide(acceptedRideData);
-    setSelectedRide(acceptedRideData);
     localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
-    // Buscar passageira
-    try {
-      const passengers = await base44.entities.User.filter({ id: acceptedRideData.passenger_id });
-      setPassengerUser(passengers[0] || null);
-    } catch(e) {}
-    setShowAcceptedModal(true);
-    toast.success('🎉 Corrida aceita! Navegue até a passageira');
+    toast.success('🎉 Corrida aceita!');
+    navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
   };
 
   const handleCompleteRide = async () => {
@@ -454,7 +438,6 @@ export default function DriverDashboard() {
     setAcceptedRide(null);
     setSelectedRide(null);
     setPassengerUser(null);
-    setShowAcceptedModal(false);
     setTodayStats(prev => ({ rides: prev.rides + 1, earnings: prev.earnings + price }));
     toast.success(`✅ Corrida concluída! Você ganhou R$ ${Number(price).toFixed(2)}`);
   };
@@ -836,18 +819,6 @@ export default function DriverDashboard() {
         rideStatus={acceptedRide?.status || 'accepted'}
       />
 
-
-      {/* Modal de corrida aceita */}
-      {showAcceptedModal && acceptedRide && (
-        <AcceptedRideModal
-          acceptedRide={acceptedRide}
-          passengerUser={passengerUser}
-          onClose={() => setShowAcceptedModal(false)}
-          onStartRide={() => { setShowAcceptedModal(false); navigate(`/ActiveRideDriver?id=${acceptedRide?.id}`); }}
-          onOpenChat={() => { setIsChatOpen(true); setShowAcceptedModal(false); }}
-          onCancelRide={handleCompleteRide}
-        />
-      )}
 
       {/* Ride Offer Modal */}
       {rideOffer && offerRide && (
