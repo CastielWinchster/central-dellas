@@ -130,6 +130,12 @@ export default function ActiveRidePassenger() {
           destinationLocation={destinationLocationMemo}
           showRoute={true}
           driverLocation={driverLocation}
+          nearbyDrivers={driverLocation ? [{
+            id: ride?.assigned_driver_id || 'active-driver',
+            lat: driverLocation.lat,
+            lng: driverLocation.lng,
+            tags: [],
+          }] : []}
           className="h-full w-full"
         />
 

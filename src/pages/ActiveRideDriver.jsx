@@ -196,17 +196,28 @@ export default function ActiveRideDriver() {
 
         {/* Passageiro */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
-            {passengerPhoto
-              ? <img src={passengerPhoto} alt={passenger?.full_name || 'Passageiro'} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-              : null
-            }
-            <span className="text-white text-2xl font-bold" style={{ display: passengerPhoto ? 'none' : 'flex' }}>
-              {passenger?.full_name?.charAt(0)?.toUpperCase() || 'P'}
-            </span>
-          </div>
+          {(() => {
+            const foto = passenger?.photo_url
+              || passenger?.profile_picture
+              || passenger?.profile_image
+              || passenger?.avatar_url
+              || passenger?.avatar
+              || passenger?.photo
+              || null;
+            const nome = passenger?.full_name || passenger?.name || 'Passageiro(a)';
+            const inicial = nome.charAt(0).toUpperCase();
+            return (
+              <div className="w-16 h-16 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                {foto
+                  ? <img src={foto} alt={nome} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                  : null
+                }
+                <span className="text-white text-2xl font-bold" style={{ display: foto ? 'none' : 'flex' }}>{inicial}</span>
+              </div>
+            );
+          })()}
           <div className="flex-1">
-            <h3 className="text-white font-bold text-lg leading-tight">{passenger?.full_name || 'Passageiro(a)'}</h3>
+            <h3 className="text-white font-bold text-lg leading-tight">{passenger?.full_name || passenger?.name || 'Passageiro(a)'}</h3>
             {passenger?.phone && <p className="text-gray-400 text-sm mt-0.5">{passenger.phone}</p>}
           </div>
           <div className="flex gap-2">

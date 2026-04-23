@@ -374,7 +374,9 @@ export default function MapView({
 
       // Não redesenhar rota se já foi desenhada para este exato par de coordenadas
       const routeKey = `${oLat},${oLng}|${dLat},${dLng}`;
-      if (routeDrawnRef.current === routeKey) return;
+      const routeLayerExists = mapRef.current?.getLayer('route-glow') ||
+                               mapRef.current?.getLayer('route-line');
+      if (routeDrawnRef.current === routeKey && routeLayerExists) return;
 
       setRouteProgress(null);
 
