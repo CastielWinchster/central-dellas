@@ -116,15 +116,15 @@ export default function RequestRide() {
       const reverseData = await reverseGeocode(lat, lng);
 
       if (reverseData) {
-        const number = pickupLocation?.userProvidedNumber || reverseData.housenumber;
-        const finalAddress = formatAddressDisplay(reverseData, pickupLocation?.userProvidedNumber);
+        const number = reverseData.housenumber || null;
+        const finalAddress = formatAddressDisplay(reverseData);
 
         setPickup(finalAddress);
         setPickupLocation({
           lat,
           lng,
           text: finalAddress,
-          userProvidedNumber: pickupLocation?.userProvidedNumber || reverseData.housenumber,
+          userProvidedNumber: number,
           hasHouseNumber: !!number && number !== 's/n'
         });
 
@@ -145,15 +145,15 @@ export default function RequestRide() {
       const reverseData = await reverseGeocode(lat, lng);
 
       if (reverseData) {
-        const number = destinationLocation?.userProvidedNumber || reverseData.housenumber;
-        const finalAddress = formatAddressDisplay(reverseData, destinationLocation?.userProvidedNumber);
+        const number = reverseData.housenumber || null;
+        const finalAddress = formatAddressDisplay(reverseData);
 
         setDestination(finalAddress);
         setDestinationLocation({
           lat,
           lng,
           text: finalAddress,
-          userProvidedNumber: destinationLocation?.userProvidedNumber || reverseData.housenumber,
+          userProvidedNumber: number,
           hasHouseNumber: !!number && number !== 's/n'
         });
 

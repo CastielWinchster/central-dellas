@@ -416,7 +416,7 @@ export default function MapView({
       routeDrawnRef.current = null;
       if (routeAnimationRef.current) cancelAnimationFrame(routeAnimationRef.current);
     }
-  }, [showRoute, pickupKey, destKey]);
+  }, [showRoute, pickupKey, destKey, mapLoaded]);
 
   // Animação de entrada da rota (desenha progressivamente)
   const animateRoute = useCallback((coordinates) => {
@@ -553,7 +553,7 @@ export default function MapView({
         onMove={evt => setViewState({...evt.viewState, pitch: 0})}
         onDragStart={handleMoveStart}
         onClick={handleMapClick}
-        onLoad={() => setMapLoaded(true)}
+        onLoad={() => { setMapLoaded(true); routeDrawnRef.current = null; }}
         mapStyle={MAPBOX_CONFIG.MAP_STYLE}
         mapboxAccessToken={MAPBOX_CONFIG.ACCESS_TOKEN}
         style={{ width: '100%', height: '100%' }}
