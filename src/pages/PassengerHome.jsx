@@ -167,11 +167,6 @@ export default function PassengerHome() {
               description: 'Motoristas femininas e verificação rigorosa.'
             },
             {
-              icon: Eye,
-              title: 'Monitoramento em Tempo Real',
-              description: 'Compartilhamento da corrida com contatos de confiança.'
-            },
-            {
               icon: AlertTriangle,
               title: 'Botão SOS',
               description: 'Acionamento imediato da central de segurança.'
@@ -210,16 +205,6 @@ export default function PassengerHome() {
                   icon: AlertTriangle,
                   title: 'Botão de Pânico',
                   text: 'Acionamento direto com a central de segurança em situações de emergência.'
-                },
-                {
-                  icon: Phone,
-                  title: 'Contato de Confiança',
-                  text: 'Compartilhe sua corrida em tempo real via WhatsApp com quem você confia.'
-                },
-                {
-                  icon: Eye,
-                  title: 'Monitoramento Constante',
-                  text: 'Todas as corridas são rastreadas e acompanhadas do início ao fim.'
                 },
                 {
                   icon: Shield,
