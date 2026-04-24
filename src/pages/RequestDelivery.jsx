@@ -19,9 +19,6 @@ import {
 import { calculateDeliveryPrice } from '../utils/pricing';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 
-const BASE_PRICE = 12.00;
-const PRICE_PER_KM = 1.20;
-
 const PACKAGE_SIZES = [
   {
     id: 'small',
@@ -195,12 +192,6 @@ export default function RequestDelivery() {
     } catch (_) {}
   };
 
-  const getEstimatedPrice = () => {
-    if (!routeDistance) return null;
-    const price = BASE_PRICE + parseFloat(routeDistance) * PRICE_PER_KM;
-    return price.toFixed(2);
-  };
-
   const deliveryPrice = routeDistance
     ? calculateDeliveryPrice(parseFloat(routeDistance))
     : null;
@@ -249,7 +240,6 @@ export default function RequestDelivery() {
   const STEPS = ['Endereços', 'Tamanho', 'Detalhes', 'Pagamento'];
 
   const selectedSizeObj = PACKAGE_SIZES.find(s => s.id === selectedSize);
-  const estimatedPrice = getEstimatedPrice();
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
@@ -342,14 +332,14 @@ export default function RequestDelivery() {
                       <p className="font-bold text-gray-900 text-sm">{routeDuration} min</p>
                     </div>
                   </div>
-                  {estimatedPrice && (
+                  {deliveryPrice && (
                     <>
                       <div className="w-px h-6 bg-gray-200" />
                       <div className="flex items-center gap-1.5">
                         <CreditCard className="w-4 h-4 text-[#F22998]" />
                         <div>
                           <p className="text-[10px] text-gray-500">Estimado</p>
-                          <p className="font-bold text-[#F22998] text-sm">R$ {estimatedPrice}</p>
+                          <p className="font-bold text-[#F22998] text-sm">R$ {deliveryPrice.toFixed(2)}</p>
                         </div>
                       </div>
                     </>
@@ -443,9 +433,9 @@ export default function RequestDelivery() {
                     {routeDistance && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/20">
                         <p className="text-sm text-[#F2F2F2]/70">Estimativa de frete:</p>
-                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {estimatedPrice}</p>
+                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {deliveryPrice?.toFixed(2)}</p>
                         <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
-                          R$ {BASE_PRICE.toFixed(2)} (mínimo) + {routeDistance} km × R$ {PRICE_PER_KM.toFixed(2)}/km
+                          Preço padrão - R$ 1,20 • Distância: {routeDistance} km
                         </p>
                         <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
                           Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
