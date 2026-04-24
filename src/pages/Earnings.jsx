@@ -12,7 +12,7 @@ import { format, startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fn
 import { ptBR } from 'date-fns/locale';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-const COMMISSION_RATE = 0.05;
+const COMMISSION_RATE = 0.12;
 
 const PERIOD_LABELS = { week: 'Semana', month: 'Mês', year: 'Ano' };
 
@@ -171,7 +171,7 @@ export default function Earnings() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[#F2F2F2]/60 text-sm">Taxa de comissão</span>
-                      <span className="text-[#F22998] font-semibold">5%</span>
+                      <span className="text-[#F22998] font-semibold">12%</span>
                     </div>
                     <div className="border-t border-[#F2F2F2]/10 pt-4 flex justify-between items-center">
                       <span className="text-[#F2F2F2]/80 text-sm font-medium">Valor a repassar</span>
@@ -187,17 +187,13 @@ export default function Earnings() {
                     Este valor corresponde à comissão devida à Central Dellas. Confirme o repasse quando efetuado.
                   </p>
 
+                  <p className="text-amber-400/80 text-xs text-center mb-4">
+                    ⚠️ As motoristas devem passar o valor a repassar diretamente para a CentralDellas.
+                  </p>
                   <div className="flex gap-3">
                     <Button
-                      variant="outline"
-                      onClick={() => setShowCommissionModal(false)}
-                      className="flex-1 border-[#F2F2F2]/20 text-[#F2F2F2]/60 hover:bg-[#F2F2F2]/5 rounded-2xl py-5"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
                       onClick={() => setCommissionConfirmed(true)}
-                      className="flex-1 bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white rounded-2xl py-5 font-semibold"
+                      className="w-full bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white rounded-2xl py-5 font-semibold"
                     >
                       Confirmar Repasse
                     </Button>

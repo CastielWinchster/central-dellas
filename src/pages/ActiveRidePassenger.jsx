@@ -220,7 +220,7 @@ export default function ActiveRidePassenger() {
               <img
                 src={vehicle.photo_url}
                 alt={`${vehicle.brand || ''} ${vehicle.model || ''}`.trim()}
-                className="w-full h-36 object-cover"
+                className="w-full object-contain max-h-48 bg-white"
               />
             )}
             <div className="flex items-center justify-between px-4 py-3">
