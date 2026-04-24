@@ -85,7 +85,7 @@ export default function PassengerHome() {
               </h1>
               
               <p className="text-[#F2F2F2]/60 text-lg mb-8 max-w-md mx-auto md:mx-0">
-                A Central Dellas conecta motoristas e passageiros, homens e mulheres, que buscam uma carona segura.
+                A CentralDellas conecta motoristas e passageiros, homens e mulheres, que buscam uma carona segura.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
