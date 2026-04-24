@@ -81,6 +81,9 @@ export default function RequestDelivery() {
     fragile: false,
   });
 
+  // Preço de entrega (state dedicado — calculado via haversine independente de OSRM)
+  const [deliveryPrice, setDeliveryPrice] = useState(null);
+
   // Etapa 4: Pagamento
   const [selectedPayment, setSelectedPayment] = useState('pix');
   const [confirming, setConfirming] = useState(false);
@@ -207,9 +210,32 @@ export default function RequestDelivery() {
     } catch (_) {}
   };
 
-  const deliveryPrice = routeDistance
-    ? calculateDeliveryPrice(parseFloat(routeDistance))
-    : null;
+  // Calcular preço diretamente do haversine — sem depender de routeDistance assíncrono
+  useEffect(() => {
+    if (!pickupLocation?.lat || !destinationLocation?.lat) {
+      setDeliveryPrice(null);
+      return;
+    }
+    const toRad = (v) => (v * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(destinationLocation.lat - pickupLocation.lat);
+    const dLng = toRad(destinationLocation.lng - pickupLocation.lng);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(pickupLocation.lat)) *
+      Math.cos(toRad(destinationLocation.lat)) *
+      Math.sin(dLng / 2) ** 2;
+    const straightKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const estimatedKm = straightKm * 1.3;
+    const base = 9.99;
+    let pricePerKm;
+    if (estimatedKm <= 3) pricePerKm = 2.00;
+    else if (estimatedKm <= 10) pricePerKm = 1.80;
+    else pricePerKm = 1.50;
+    const standardPrice = base + (estimatedKm * pricePerKm);
+    const finalPrice = Math.max(Math.round((standardPrice - 1.20) * 100) / 100, 4.00);
+    setDeliveryPrice(finalPrice);
+  }, [pickupLocation?.lat, pickupLocation?.lng, destinationLocation?.lat, destinationLocation?.lng]);
 
   const handleConfirm = async () => {
     if (!pickupLocation?.lat || !destinationLocation?.lat || !selectedSize || !selectedPayment) {
@@ -445,13 +471,15 @@ export default function RequestDelivery() {
                       ))}
                     </div>
 
-                    {routeDistance && (
+                    {deliveryPrice && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/20">
                         <p className="text-sm text-[#F2F2F2]/70">Estimativa de frete:</p>
-                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {deliveryPrice?.toFixed(2)}</p>
-                        <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
-                          Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
-                        </p>
+                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {deliveryPrice.toFixed(2)}</p>
+                        {routeDistance && (
+                          <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
+                            Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
+                          </p>
+                        )}
                       </motion.div>
                     )}
 
