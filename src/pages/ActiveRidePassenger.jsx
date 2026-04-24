@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
 import RideChat from '@/components/chat/RideChat';
-import { Phone, MessageCircle, User, Car, Clock, MapPin, Star, Shield } from 'lucide-react';
+import { Phone, MessageCircle, User, Car, Clock, MapPin, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -190,11 +190,9 @@ export default function ActiveRidePassenger() {
             </div>
             <div className="flex-1">
               <h3 className="text-white font-bold text-lg leading-tight">{driver.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-400 mt-0.5">
-                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                <span>{driver.rating?.toFixed(1)}</span>
-                {driver.totalRides > 0 && <span>• {driver.totalRides} corridas</span>}
-              </div>
+              {driver.totalRides > 0 && (
+                <p className="text-sm text-gray-400 mt-0.5">{driver.totalRides} corridas</p>
+              )}
             </div>
             <div className="flex gap-2">
               {driver.phone && (

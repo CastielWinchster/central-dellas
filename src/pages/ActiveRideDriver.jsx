@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
 import RideChat from '@/components/chat/RideChat';
-import { Phone, MessageCircle, User, MapPin, CheckCircle, Navigation, Star } from 'lucide-react';
+import { Phone, MessageCircle, User, MapPin, CheckCircle, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 

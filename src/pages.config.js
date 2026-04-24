@@ -59,7 +59,6 @@ import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
 import FavoriteDrivers from './pages/FavoriteDrivers';
 import FavoritePlaces from './pages/FavoritePlaces';
-import MyReviews from './pages/MyReviews';
 import Notifications from './pages/Notifications';
 import PassengerChat from './pages/PassengerChat';
 import PassengerDashboard from './pages/PassengerDashboard';
@@ -72,7 +71,6 @@ import PassengerSafety from './pages/PassengerSafety';
 import PassengerSecurity from './pages/PassengerSecurity';
 import PushTestPage from './pages/PushTestPage';
 import RequestRide from './pages/RequestRide';
-import Reviews from './pages/Reviews';
 import RideChat from './pages/RideChat';
 import RideHistory from './pages/RideHistory';
 import ScheduleRide from './pages/ScheduleRide';
@@ -94,7 +92,6 @@ export const PAGES = {
     "Earnings": Earnings,
     "FavoriteDrivers": FavoriteDrivers,
     "FavoritePlaces": FavoritePlaces,
-    "MyReviews": MyReviews,
     "Notifications": Notifications,
     "PassengerChat": PassengerChat,
     "PassengerDashboard": PassengerDashboard,
@@ -107,7 +104,6 @@ export const PAGES = {
     "PassengerSecurity": PassengerSecurity,
     "PushTestPage": PushTestPage,
     "RequestRide": RequestRide,
-    "Reviews": Reviews,
     "RideChat": RideChat,
     "RideHistory": RideHistory,
     "ScheduleRide": ScheduleRide,
