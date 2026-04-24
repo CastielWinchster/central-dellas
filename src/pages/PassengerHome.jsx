@@ -103,6 +103,25 @@ export default function PassengerHome() {
                   Solicitar Corrida
                 </Button>
               </div>
+
+              {/* Logos visíveis apenas no mobile, abaixo do botão */}
+              <div className="flex md:hidden items-center justify-center gap-6 mt-8">
+                <div className="logo-glass rounded-2xl p-3">
+                  <img
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a971de28c_centraltranspa.png"
+                    alt="Central Dellas"
+                    className="w-28 h-auto object-contain"
+                  />
+                </div>
+                <span className="text-xs text-[#F2F2F2]/40">×</span>
+                <div className="logo-glass rounded-2xl p-3">
+                  <img
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/1d47fa63e_Rota.png"
+                    alt="Rotta Roza"
+                    className="w-20 h-auto object-contain"
+                  />
+                </div>
+              </div>
             </motion.div>
 
             {/* Right: Logos */}
