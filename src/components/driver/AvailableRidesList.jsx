@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Navigation, Star, RefreshCw, CheckCircle, X, Dog } from 'lucide-react';
+import { MapPin, Clock, Navigation, Star, RefreshCw, CheckCircle, X, Dog, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ const rideTypeColors = {
   rotta_roza: { bg: 'bg-pink-500/20',   text: 'text-pink-400',   label: 'Rotta Roza' },
   premium:    { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Premium' },
   shared:     { bg: 'bg-green-500/20',  text: 'text-green-400',  label: 'Carona' },
+  delivery:   { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Entrega' },
 };
 
 function haversine(lat1, lng1, lat2, lng2) {
@@ -47,8 +48,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
       // Deduplicar por ride.id
       const seen = new Map();
       raw.forEach(r => { if (!seen.has(r.id)) seen.set(r.id, r); });
-      const fetched = Array.from(seen.values())
-        .filter(r => r.ride_type !== 'delivery');
+      const fetched = Array.from(seen.values()); // inclui deliveries
 
       const enriched = fetched.map(ride => {
         const distKm = ride.distance ?? (loc
@@ -117,7 +117,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#F2F2F2]">Passageiras disponíveis</h2>
+          <h2 className="text-xl font-bold text-[#F2F2F2]">Corridas Disponíveis</h2>
           <p className="text-[#F2F2F2]/50 text-sm">{filteredRides.length} corridas próximas</p>
         </div>
         <Button
@@ -137,6 +137,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
           { id: 'standard', label: 'Standard' },
           { id: 'rotta_roza', label: 'Rotta Roza' },
           { id: 'shared', label: 'Carona' },
+          { id: 'delivery', label: 'Entregas' },
         ].map((f) => (
           <button
             key={f.id}
@@ -199,9 +200,16 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                         </div>
                       </div>
                     </div>
-                    <Badge className={`${typeStyle.bg} ${typeStyle.text} border-0`}>
-                      {typeStyle.label}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      {ride.ride_type === 'delivery' && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold border border-emerald-500/30">
+                          <Package className="w-3 h-3" /> Entrega
+                        </span>
+                      )}
+                      <Badge className={`${typeStyle.bg} ${typeStyle.text} border-0`}>
+                        {typeStyle.label}
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="space-y-2 mb-3">

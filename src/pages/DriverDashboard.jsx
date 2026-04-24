@@ -17,7 +17,6 @@ import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
 
 import AvailableRidesList from '../components/driver/AvailableRidesList';
-import AvailableDeliveriesList from '../components/driver/AvailableDeliveriesList';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -43,7 +42,7 @@ export default function DriverDashboard() {
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeDriverTab, setActiveDriverTab] = useState('rides'); // 'rides' | 'deliveries'
+  const shownOfferIdsRef = useRef(new Set()); // IDs de ofertas já exibidas nesta sessão
   const [acceptedRide, setAcceptedRide] = useState(null);
   const [passengerUser, setPassengerUser] = useState(null);
   const lastGpsUpdateRef = useRef(0);
@@ -343,13 +342,23 @@ export default function DriverDashboard() {
         if (offers.length > 0) {
           const offer = offers[0];
 
+          // Já está processando ou já foi exibida nesta sessão
           if (processingOfferRef.current === offer.id) return;
+          if (shownOfferIdsRef.current.has(offer.id)) return;
+
           processingOfferRef.current = offer.id;
+          shownOfferIdsRef.current.add(offer.id);
           
           // Buscar dados da corrida
           const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
           if (rides.length === 0) return;
           const ride = rides[0];
+
+          // Se a corrida já foi cancelada/expirada/aceita, ignorar e deletar a oferta
+          if (!['requested', 'assigned'].includes(ride.status)) {
+            await base44.entities.RideOffer.update(offer.id, { status: 'expired' });
+            return;
+          }
           
           // Buscar dados da passageira
           const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
@@ -415,12 +424,14 @@ export default function DriverDashboard() {
         responded_at: new Date().toISOString()
       });
       toast.info('Corrida recusada');
+    } catch (error) {
+      console.error('Erro ao recusar:', error);
+    } finally {
       setRideOffer(null);
       setOfferRide(null);
       setOfferPassenger(null);
       processingOfferRef.current = null;
-    } catch (error) {
-      console.error('Erro ao recusar:', error);
+      // shownOfferIdsRef mantém o ID para não reexibir
     }
   };
 
@@ -707,46 +718,12 @@ export default function DriverDashboard() {
             className="mb-6"
           >
             <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
-              {/* Abas */}
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => setActiveDriverTab('rides')}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    activeDriverTab === 'rides'
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-gray-800 text-gray-400'
-                  }`}
-                >
-                  Passageiros Disponíveis
-                </button>
-                <button
-                  onClick={() => setActiveDriverTab('deliveries')}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    activeDriverTab === 'deliveries'
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-gray-800 text-gray-400'
-                  }`}
-                >
-                  Entregas
-                </button>
-              </div>
-
-              {/* Conteúdo da aba */}
-              {activeDriverTab === 'rides' ? (
-                <AvailableRidesList
-                  onRideSelect={setSelectedRide}
-                  onRideAccepted={handleRideAcceptedFromList}
-                  selectedRideId={selectedRide?.id}
-                  driverLocation={currentLocation}
-                />
-              ) : (
-                <AvailableDeliveriesList
-                  onRideSelect={setSelectedRide}
-                  onRideAccepted={handleRideAcceptedFromList}
-                  selectedRideId={selectedRide?.id}
-                  driverLocation={currentLocation}
-                />
-              )}
+              <AvailableRidesList
+                onRideSelect={setSelectedRide}
+                onRideAccepted={handleRideAcceptedFromList}
+                selectedRideId={selectedRide?.id}
+                driverLocation={currentLocation}
+              />
             </Card>
           </motion.div>
         )}
