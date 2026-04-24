@@ -245,6 +245,15 @@ export default function RequestDelivery() {
 
     setConfirming(true);
     try {
+      // Cancelar pedidos anteriores pendentes do mesmo usuário
+      const pendingRides = await base44.entities.Ride.filter({
+        passenger_id: user.id,
+        status: 'requested',
+      });
+      for (const ride of pendingRides) {
+        await base44.entities.Ride.update(ride.id, { status: 'cancelled' });
+      }
+
       const result = await base44.functions.invoke('dispatchRide', {
         pickupLat: pickupLocation.lat,
         pickupLng: pickupLocation.lng,
