@@ -144,18 +144,7 @@ export default function ActiveDeliveryPassenger() {
           className="h-full w-full"
         />
 
-        {/* ETA badge */}
-        {driverETA && (
-          <div className="absolute top-4 right-4 z-10">
-            <div className="bg-[#0D0D0D]/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-lg border border-[#F22998]/20">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <Clock className="w-3.5 h-3.5 text-[#F22998]" />
-                <span className="text-xs text-gray-400">Chegada em</span>
-              </div>
-              <p className="text-2xl font-bold leading-none">{driverETA} min</p>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Card info */}
@@ -196,7 +185,7 @@ export default function ActiveDeliveryPassenger() {
             <div className="w-14 h-14 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
               {driver.photo
                 ? <img src={driver.photo} alt={driver.name} className="w-full h-full object-cover" />
-                : <span className="text-white text-xl font-bold">{driver.name?.charAt(0) || 'E'}</span>
+                : <span className="text-white text-xl font-bold">{(driver?.full_name || driver?.name || 'E').charAt(0).toUpperCase()}</span>
               }
             </div>
             <div className="flex-1">
@@ -209,6 +198,13 @@ export default function ActiveDeliveryPassenger() {
                 <Phone className="w-5 h-5 text-white" />
               </a>
             )}
+            <button
+              onClick={() => navigate(`/PassengerChat?rideId=${rideId}`)}
+              className="w-11 h-11 rounded-full bg-pink-600 hover:bg-pink-700 flex items-center justify-center transition-colors"
+              title="Chat com entregador"
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+            </button>
           </div>
         )}
 
