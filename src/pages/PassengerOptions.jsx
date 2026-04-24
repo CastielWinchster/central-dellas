@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import NotificationSettingsPanel from '../components/NotificationSettingsPanel';
 
 export default function PassengerOptions() {
   const navigate = useNavigate();
@@ -77,8 +76,9 @@ export default function PassengerOptions() {
         { 
           icon: Clock, 
           label: 'Agendar Corrida', 
-          description: 'Até 30 dias',
-          page: 'ScheduleRide'
+          description: 'Em breve...',
+          page: null,
+          disabled: true
         }
       ]
     },
@@ -119,8 +119,7 @@ export default function PassengerOptions() {
           description: 'Gerenciar alertas',
           page: 'PassengerNotifications'
         }
-      ],
-      showPanel: true
+      ]
     },
     {
       title: '💬 SUPORTE',
@@ -209,38 +208,55 @@ export default function PassengerOptions() {
                 {section.title}
               </h3>
               
-              {section.showPanel && user && (
-                <div className="mb-4">
-                  <NotificationSettingsPanel userId={user.id} />
-                </div>
-              )}
-              
               <div className="bg-[#1A1A1A] border border-[#BF3B79] rounded-2xl overflow-hidden">
-                {section.items.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={createPageUrl(item.page)}
-                    className={`flex items-center justify-between p-4 bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-all group ${
-                      index !== section.items.length - 1 ? 'border-b border-[#1A1A1A]' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center group-hover:bg-[#F22998]/30 transition-colors relative">
-                        <item.icon className="w-6 h-6 text-[#F22998]" />
-                        {item.page === 'PassengerNotifications' && unreadCount > 0 && (
-                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center">
-                            <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                {section.items.map((item, index) => {
+                  if (item.disabled) {
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-center justify-between p-4 bg-[#1A1A1A] opacity-50 cursor-not-allowed ${
+                          index !== section.items.length - 1 ? 'border-b border-[#1A1A1A]' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-gray-700/50 flex items-center justify-center">
+                            <item.icon className="w-6 h-6 text-gray-500" />
                           </div>
-                        )}
+                          <div>
+                            <p className="font-medium text-gray-500 text-left">{item.label}</p>
+                            <p className="text-sm text-gray-600 text-left">{item.description}</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-700" />
                       </div>
-                      <div>
-                        <p className="font-medium text-[#F2F2F2] text-left">{item.label}</p>
-                        <p className="text-sm text-[#CCCCCC] text-left">{item.description}</p>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={index}
+                      to={createPageUrl(item.page)}
+                      className={`flex items-center justify-between p-4 bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-all group ${
+                        index !== section.items.length - 1 ? 'border-b border-[#1A1A1A]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center group-hover:bg-[#F22998]/30 transition-colors relative">
+                          <item.icon className="w-6 h-6 text-[#F22998]" />
+                          {item.page === 'PassengerNotifications' && unreadCount > 0 && (
+                            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center">
+                              <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[#F2F2F2] text-left">{item.label}</p>
+                          <p className="text-sm text-[#CCCCCC] text-left">{item.description}</p>
+                        </div>
                       </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
-                  </Link>
-                ))}
+                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
+                    </Link>
+                  );
+                })}
               </div>
             </motion.div>
           ))}

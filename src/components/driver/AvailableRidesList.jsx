@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Navigation, Star, RefreshCw, CheckCircle, X, Dog, Package } from 'lucide-react';
+import { MapPin, Clock, Navigation, RefreshCw, CheckCircle, X, Dog, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -186,18 +186,14 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                         </div>
                       )}
                       <div>
-                        <h3 className="font-semibold text-[#F2F2F2] flex items-center gap-2">
-                          {ride.passengerName}
-                          {ride.has_pet && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center gap-1">
-                              <Dog className="w-3 h-3" /> Pet
-                            </span>
-                          )}
-                        </h3>
-                        <div className="flex items-center gap-1 text-sm text-[#F2F2F2]/60">
-                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                          {ride.passengerRating}
-                        </div>
+                      <h3 className="font-semibold text-[#F2F2F2] flex items-center gap-2">
+                        {ride.passengerName}
+                        {ride.has_pet && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center gap-1">
+                            <Dog className="w-3 h-3" /> Pet
+                          </span>
+                        )}
+                      </h3>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
