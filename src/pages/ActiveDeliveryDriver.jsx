@@ -32,6 +32,7 @@ export default function ActiveDeliveryDriver() {
   const [currentUser, setCurrentUser] = useState(null);
   const watchIdRef = useRef(null);
   const lastGpsPosRef = useRef(null);
+  const ridePollingRef = useRef(null);
 
   const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
   const destinationLocationMemo = useMemo(() => ride ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null, [ride?.dropoff_lat, ride?.dropoff_lng]);
@@ -63,6 +64,13 @@ export default function ActiveDeliveryDriver() {
       }
     };
     fetchData();
+    ridePollingRef.current = setInterval(fetchData, 4000);
+    return () => {
+      if (ridePollingRef.current) {
+        clearInterval(ridePollingRef.current);
+        ridePollingRef.current = null;
+      }
+    };
   }, [rideId]);
 
   // GPS

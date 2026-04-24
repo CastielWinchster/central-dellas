@@ -97,7 +97,7 @@ export default function ActiveDeliveryPassenger() {
   const handleCancel = async () => {
     setCancelling(true);
     try {
-      await base44.entities.Ride.update(rideId, { status: 'cancelled' });
+      await base44.entities.Ride.update(rideId, { status: 'cancelled', cancelled_by: 'passenger', cancelled_at: new Date().toISOString() });
       toast.info('Entrega cancelada');
       navigate('/');
     } catch (_) {
