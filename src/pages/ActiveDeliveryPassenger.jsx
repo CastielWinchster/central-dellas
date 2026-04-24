@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
-import { Phone, MessageCircle, Package, MapPin, Clock } from 'lucide-react';
+import { Phone, MessageCircle, MapPin } from 'lucide-react';
+import RideChat from '@/components/chat/RideChat';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -36,10 +37,16 @@ export default function ActiveDeliveryPassenger() {
   const [driverETA, setDriverETA] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const intervalRef = useRef(null);
 
   const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
   const destinationLocationMemo = useMemo(() => ride ? { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : null, [ride?.dropoff_lat, ride?.dropoff_lng]);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const fetchData = async () => {
     if (!rideId) return;
@@ -199,7 +206,7 @@ export default function ActiveDeliveryPassenger() {
               </a>
             )}
             <button
-              onClick={() => navigate(`/PassengerChat?rideId=${rideId}`)}
+              onClick={() => setIsChatOpen(true)}
               className="w-11 h-11 rounded-full bg-pink-600 hover:bg-pink-700 flex items-center justify-center transition-colors"
               title="Chat com entregador"
             >
@@ -262,6 +269,18 @@ export default function ActiveDeliveryPassenger() {
           </div>
         )}
       </div>
+
+      {/* Chat */}
+      {currentUser && (
+        <RideChat
+          rideId={rideId}
+          currentUserId={currentUser.id}
+          otherUser={{ name: driver?.name, photo: driver?.photo }}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          rideStatus={ride.status || 'accepted'}
+        />
+      )}
     </div>
   );
 }

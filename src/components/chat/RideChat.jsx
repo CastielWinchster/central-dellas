@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'; // useCallback mantido para scrollToBottom
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Camera, Mic, Image, User } from 'lucide-react';
+import { X, Send, User } from 'lucide-react';
 
 const ACTIVE_STATUSES = ['accepted', 'on_the_way', 'in_progress', 'assigned'];
 
@@ -185,11 +185,6 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
             style={{ background: 'rgba(255,255,255,0.04)' }}
           >
             <div className="flex items-center gap-2">
-              {/* Câmera */}
-              <button className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border border-[#F22998]/40 text-[#F22998] hover:bg-[#F22998]/10 transition-colors">
-                <Camera className="w-5 h-5" />
-              </button>
-
               {/* Input de texto */}
               <input
                 ref={inputRef}
@@ -200,14 +195,6 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
                 className="flex-1 bg-white/8 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#F22998]/50 transition-colors"
                 style={{ background: 'rgba(255,255,255,0.06)' }}
               />
-
-              {/* Ícones extras (visuais) */}
-              <button className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white/40">
-                <Mic className="w-5 h-5" />
-              </button>
-              <button className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white/40">
-                <Image className="w-5 h-5" />
-              </button>
 
               {/* Botão enviar */}
               <button
