@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
 
     console.log(`[getAvailableRides] Corridas recentes (últimos 30min): ${recentRides.length}`);
 
-    // Excluir corridas que já têm motorista designada
-    const openRides = recentRides.filter(r => !r.assigned_driver_id);
+    // Excluir corridas que já têm motorista designada e excluir entregas (delivery)
+    const openRides = recentRides.filter(r => !r.assigned_driver_id && r.ride_type !== 'delivery');
 
     console.log(`[getAvailableRides] Corridas sem motorista: ${openRides.length}`);
 
