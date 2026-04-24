@@ -265,6 +265,14 @@ export default function ActiveRideDriver() {
         <p className="text-center text-gray-500 text-xs mt-2">Certifique-se de que a passageira chegou ao destino</p>
 
         <button
+          onClick={() => setIsChatOpen(true)}
+          className="w-full mt-3 py-3 rounded-xl bg-[#F22998]/10 border border-[#F22998]/30 text-[#F22998] font-medium text-sm hover:bg-[#F22998]/20 transition-colors flex items-center justify-center gap-2"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Chat com passageira
+        </button>
+
+        <button
           onClick={() => setShowCancelConfirm(true)}
           className="w-full mt-3 py-3 rounded-xl border border-red-500/50 text-red-400 font-medium text-sm hover:bg-red-500/10 transition-colors"
         >
