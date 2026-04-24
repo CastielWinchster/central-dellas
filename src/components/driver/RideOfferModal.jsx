@@ -71,6 +71,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[10001] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
+
         onClick={onClose}
       >
         <motion.div
@@ -92,10 +93,12 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
             {/* Header */}
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2">
-                🚗 Nova Corrida!
+                {ride?.ride_type === 'delivery' ? '📦 Nova Entrega!' : '🚗 Nova Corrida!'}
               </h2>
               <p className="text-[#F2F2F2]/70">
-                Uma passageira está aguardando
+                {ride?.ride_type === 'delivery'
+                  ? 'Um cliente aguarda coleta'
+                  : 'Uma passageira está aguardando'}
               </p>
             </div>
             

@@ -173,6 +173,13 @@ export async function getCityFromCoordinates(lat, lng) {
   }
 }
 
+// Preço de entrega = preço standard - R$1,20 (mínimo R$4,00)
+export function calculateDeliveryPrice(distanceKm) {
+  const ridePriceStandard = calculateCityPrice(distanceKm, 'standard');
+  const deliveryPrice = ridePriceStandard - 1.20;
+  return Math.max(Math.round(deliveryPrice * 100) / 100, 4.00);
+}
+
 // ── CUPOM ───────────────────────────────────────────────────────────────────
 
 // Aplicar cupom de desconto

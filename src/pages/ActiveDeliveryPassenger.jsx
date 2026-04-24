@@ -51,7 +51,13 @@ export default function ActiveDeliveryPassenger() {
 
       if (rideData.status === 'delivered' || rideData.status === 'cancelled') {
         clearInterval(intervalRef.current);
-        if (rideData.status === 'delivered') toast.success('🎉 Entrega realizada com sucesso!');
+        if (rideData.status === 'delivered') {
+          toast.success('🎉 Entrega realizada com sucesso!');
+        } else if (rideData.status === 'cancelled') {
+          toast.error('A entrega foi cancelada pelo entregador.');
+          navigate('/');
+          return;
+        }
         return;
       }
 
@@ -93,7 +99,7 @@ export default function ActiveDeliveryPassenger() {
     try {
       await base44.entities.Ride.update(rideId, { status: 'cancelled' });
       toast.info('Entrega cancelada');
-      navigate('/RequestDelivery');
+      navigate('/');
     } catch (_) {
       toast.error('Erro ao cancelar');
     } finally {

@@ -16,6 +16,7 @@ import {
   formatAddressDisplay,
   loadFavoritesAndRecents
 } from '@/components/utils/geocoding';
+import { calculateDeliveryPrice } from '../utils/pricing';
 import { loadMapboxToken } from '@/components/utils/mapboxConfig';
 
 const BASE_PRICE = 12.00;
@@ -200,6 +201,10 @@ export default function RequestDelivery() {
     return price.toFixed(2);
   };
 
+  const deliveryPrice = routeDistance
+    ? calculateDeliveryPrice(parseFloat(routeDistance))
+    : null;
+
   const handleConfirm = async () => {
     if (!pickupLocation?.lat || !destinationLocation?.lat || !selectedSize || !selectedPayment) {
       toast.error('Preencha todas as informações');
@@ -217,7 +222,7 @@ export default function RequestDelivery() {
         dropoff_text: destination,
         rideType: 'delivery',
         packageSize: selectedSize,
-        estimatedPrice: parseFloat(estimatedPrice || '0'),
+        estimatedPrice: deliveryPrice || 0,
         estimatedDuration: routeDuration || 0,
         paymentMethod: selectedPayment,
       });
@@ -564,8 +569,10 @@ export default function RequestDelivery() {
                           <p className="text-[#F2F2F2] font-medium">{selectedSizeObj?.label} ({selectedSizeObj?.weight})</p>
                         </div>
                         <div>
-                          <p className="text-[#F2F2F2]/50 text-xs">Distância</p>
-                          <p className="text-[#F2F2F2] font-medium">{routeDistance} km</p>
+                          <p className="text-[#F2F2F2]/50 text-xs">Valor estimado</p>
+                          <p className="text-[#F2F2F2] font-bold">
+                            {deliveryPrice ? `R$ ${deliveryPrice.toFixed(2)}` : '—'}
+                          </p>
                         </div>
                         {details.recipientName && (
                           <div>

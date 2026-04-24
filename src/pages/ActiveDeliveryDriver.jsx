@@ -45,6 +45,14 @@ export default function ActiveDeliveryDriver() {
         const rides = await base44.entities.Ride.filter({ id: rideId });
         if (!rides.length) { setLoading(false); return; }
         const rideData = rides[0];
+
+        if (rideData.status === 'cancelled' && ride !== null) {
+          // ride !== null significa que já foi carregado antes — foi cancelado pelo cliente durante o acompanhamento
+          toast.error('O cliente cancelou a entrega.');
+          navigate('/DriverDashboard');
+          return;
+        }
+
         setRide(rideData);
         const passengers = await base44.entities.User.filter({ id: rideData.passenger_id });
         setPassenger(passengers[0] || null);

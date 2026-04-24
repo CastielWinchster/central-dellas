@@ -47,7 +47,8 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
       // Deduplicar por ride.id
       const seen = new Map();
       raw.forEach(r => { if (!seen.has(r.id)) seen.set(r.id, r); });
-      const fetched = Array.from(seen.values());
+      const fetched = Array.from(seen.values())
+        .filter(r => r.ride_type !== 'delivery');
 
       const enriched = fetched.map(ride => {
         const distKm = ride.distance ?? (loc

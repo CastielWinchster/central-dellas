@@ -47,6 +47,7 @@ export default function DriverDashboard() {
   const [acceptedRide, setAcceptedRide] = useState(null);
   const [passengerUser, setPassengerUser] = useState(null);
   const lastGpsUpdateRef = useRef(0);
+  const processingOfferRef = useRef(null);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -341,6 +342,9 @@ export default function DriverDashboard() {
         
         if (offers.length > 0) {
           const offer = offers[0];
+
+          if (processingOfferRef.current === offer.id) return;
+          processingOfferRef.current = offer.id;
           
           // Buscar dados da corrida
           const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
@@ -363,7 +367,7 @@ export default function DriverDashboard() {
     };
     
     checkOffers();
-    offerPollingRef.current = setInterval(checkOffers, 2000);
+    offerPollingRef.current = setInterval(checkOffers, 3500);
     
     return () => {
       if (offerPollingRef.current) {
@@ -388,6 +392,7 @@ export default function DriverDashboard() {
         setRideOffer(null);
         setOfferRide(null);
         setOfferPassenger(null);
+        processingOfferRef.current = null;
         navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
       } else if (responseData.expired) {
         toast.warning('Oferta expirada');
@@ -413,6 +418,7 @@ export default function DriverDashboard() {
       setRideOffer(null);
       setOfferRide(null);
       setOfferPassenger(null);
+      processingOfferRef.current = null;
     } catch (error) {
       console.error('Erro ao recusar:', error);
     }
@@ -832,8 +838,9 @@ export default function DriverDashboard() {
             setRideOffer(null);
             setOfferRide(null);
             setOfferPassenger(null);
-          }}
-        />
+            processingOfferRef.current = null;
+            }}
+            />
       )}
     </div>
   );
