@@ -124,6 +124,21 @@ export default function RequestDelivery() {
   };
 
   const calculateRoute = async (origin, dest) => {
+    // Fallback haversine para garantir que o preço apareça mesmo se OSRM falhar
+    const haversineKm = (lat1, lng1, lat2, lng2) => {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    };
+    // Setar estimativa imediata com haversine (× 1.3 para estimar rota real)
+    const straightKm = haversineKm(origin.lat, origin.lng, dest.lat, dest.lng);
+    const estimatedKm = (straightKm * 1.3).toFixed(1);
+    const estimatedMin = Math.ceil((straightKm * 1.3) / 30 * 60);
+    setRouteDistance(estimatedKm);
+    setRouteDuration(estimatedMin);
+    // Tentar refinar com OSRM
     try {
       const res = await fetch(
         `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${dest.lng},${dest.lat}?overview=false`
@@ -434,9 +449,6 @@ export default function RequestDelivery() {
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/20">
                         <p className="text-sm text-[#F2F2F2]/70">Estimativa de frete:</p>
                         <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {deliveryPrice?.toFixed(2)}</p>
-                        <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
-                          Preço padrão - R$ 1,20 • Distância: {routeDistance} km
-                        </p>
                         <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
                           Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
                         </p>
