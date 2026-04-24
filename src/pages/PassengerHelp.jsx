@@ -22,7 +22,7 @@ export default function PassengerHelp() {
         },
         {
           q: 'Posso agendar corridas?',
-          a: 'Sim! Use a opção "Agendar Corrida" e escolha data e horário com até 30 dias de antecedência.'
+          a: 'Sim! No momento estamos trabalhando para implementar o agendamento direto no aplicativo, até lá, agendamentos serão feitos por whatsapp.'
         },
         {
           q: 'Como cancelar uma corrida?',
@@ -35,15 +35,11 @@ export default function PassengerHelp() {
       questions: [
         {
           q: 'Quais formas de pagamento são aceitas?',
-          a: 'Aceitamos Pix, cartão de crédito, débito e carteira digital.'
+          a: 'Aceitamos Pix, cartão de crédito e débito, e dinheiro físico.'
         },
         {
           q: 'Quando sou cobrada?',
           a: 'O pagamento é processado automaticamente ao final da corrida.'
-        },
-        {
-          q: 'Como adicionar um método de pagamento?',
-          a: 'Vá em Opções > Cartões e Pix e clique em "Adicionar Método de Pagamento".'
         }
       ]
     },
@@ -52,15 +48,11 @@ export default function PassengerHelp() {
       questions: [
         {
           q: 'Como funciona o botão de emergência?',
-          a: 'Durante uma corrida, use o botão vermelho para contatar a Central Dellas imediatamente.'
-        },
-        {
-          q: 'Posso compartilhar minha localização?',
-          a: 'Sim! Durante a corrida, compartilhe sua rota com contatos de confiança.'
+          a: 'Durante uma corrida, vá para (Configurações -> Emergência) e use o botão vermelho para contatar a CentralDellas imediatamente.'
         },
         {
           q: 'As motoristas são verificadas?',
-          a: 'Sim! Todas passam por verificação de CNH, antecedentes e documentos do veículo.'
+          a: 'Sim! Todas passam por verificação de CNH, antecedentes e documentos do veículo, sem exceção!'
         }
       ]
     }
