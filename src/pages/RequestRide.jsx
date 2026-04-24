@@ -529,6 +529,7 @@ export default function RequestRide() {
   // Aplicar cupom via backend
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
+    if (appliedCoupon) return; // Cupom já aplicado — não permitir reaplicar
     if (!estimatedPrice || parseFloat(estimatedPrice) <= 0) {
       toast.error('Calcule a corrida primeiro');
       return;
