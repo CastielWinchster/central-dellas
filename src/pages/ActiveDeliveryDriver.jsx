@@ -252,48 +252,63 @@ export default function ActiveDeliveryDriver() {
           </div>
         </div>
 
-        {/* Botões de avanço de status */}
-        {ride.status === 'accepted' && (
-          <button
-            onClick={() => handleStatusUpdate('picked_up')}
-            disabled={updating}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 text-white font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2"
-          >
-            {updating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-            Cheguei ao local de coleta
-          </button>
-        )}
+        {/* 4 botões fixos de progresso */}
+        {(() => {
+          const STATUS_BUTTONS = [
+            { key: 'accepted',  label: '🚗 A caminho', nextStatus: 'picked_up',  activeColor: 'bg-blue-600 hover:bg-blue-700',   doneColor: 'bg-blue-900/40 border border-blue-600/40' },
+            { key: 'picked_up', label: '📦 Coletado',  nextStatus: 'in_transit', activeColor: 'bg-amber-500 hover:bg-amber-600',  doneColor: 'bg-amber-900/40 border border-amber-500/40' },
+            { key: 'in_transit',label: '🚚 Em rota',   nextStatus: 'delivered',  activeColor: 'bg-purple-600 hover:bg-purple-700',doneColor: 'bg-purple-900/40 border border-purple-600/40' },
+            { key: 'delivered', label: '✅ Entregue',  nextStatus: null,         activeColor: 'bg-green-600 hover:bg-green-700',  doneColor: 'bg-green-900/40 border border-green-600/40' },
+          ];
+          const STATUS_ORDER = ['accepted', 'picked_up', 'in_transit', 'delivered'];
+          const currentStatusIndex = STATUS_ORDER.indexOf(ride?.status);
+          return (
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {STATUS_BUTTONS.map((btn) => {
+                const btnIndex = STATUS_ORDER.indexOf(btn.key);
+                const isDone = currentStatusIndex > btnIndex;
+                const isActive = ride?.status === btn.key;
+                return (
+                  <button
+                    key={btn.key}
+                    onClick={() => { if (isActive && btn.nextStatus) handleStatusUpdate(btn.nextStatus); }}
+                    disabled={!isActive || updating}
+                    className={`w-full py-3 px-2 rounded-xl text-sm font-bold transition-all duration-200 ${
+                      isDone
+                        ? btn.doneColor + ' text-gray-400 cursor-default'
+                        : isActive
+                          ? btn.activeColor + ' text-white shadow-lg'
+                          : 'bg-gray-800/50 text-gray-600 cursor-not-allowed border border-gray-700/30'
+                    }`}
+                  >
+                    {updating && isActive ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Atualizando...</span>
+                      </div>
+                    ) : (
+                      <span>{isDone ? '✓ ' : ''}{btn.label}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
 
-        {ride.status === 'picked_up' && (
-          <button
-            onClick={() => handleStatusUpdate('in_transit')}
-            disabled={updating}
-            className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-700 text-white font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2"
-          >
-            {updating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span>🚚</span>}
-            Iniciar entrega (saí para entregar)
-          </button>
-        )}
-
-        {ride.status === 'in_transit' && (
-          <button
-            onClick={() => handleStatusUpdate('delivered')}
-            disabled={updating}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-700 text-white font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2"
-          >
-            {updating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span>🎉</span>}
-            Confirmar entrega realizada
-          </button>
-        )}
-
-        {/* Cancelar — apenas se ainda não coletou */}
-        {ride.status === 'accepted' && (
+        {/* Cancelar — apenas antes de coletar */}
+        {['accepted'].includes(ride?.status) && (
           <button
             onClick={() => setShowCancelConfirm(true)}
             className="w-full mt-3 py-3 rounded-xl border border-red-500/50 text-red-400 font-medium text-sm hover:bg-red-500/10 transition-colors"
           >
             Cancelar Entrega
           </button>
+        )}
+        {['picked_up', 'in_transit'].includes(ride?.status) && (
+          <p className="text-center text-xs text-gray-500 mt-2">
+            ⚠️ Cancelamento não disponível após coleta
+          </p>
         )}
 
         {/* Modal confirmação cancelamento */}
