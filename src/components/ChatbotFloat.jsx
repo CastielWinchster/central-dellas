@@ -93,7 +93,7 @@ export default function ChatbotFloat() {
       // Mensagem de boas-vindas
       setMessages([{
         role: 'assistant',
-        content: 'Olá! 👋 Sou a **Delia**, sua assistente virtual da Central Dellas! 💖\n\nPosso te ajudar a:\n🚗 Agendar corridas\n💎 Conhecer nossos planos Clube Dellas\n🎁 Informar sobre promoções\n❓ Tirar dúvidas\n\nComo posso te ajudar hoje?',
+        content: 'Olá! 👋 Sou a **Delia**, sua assistente virtual da Central Dellas! 💖\n\nPosso te ajudar a:\n🚗 Como solicitar corridas\n📦 Como solicitar entregas\n🎟️ Cupons e promoções ativas\n❓ Dúvidas gerais sobre o app\n\nComo posso te ajudar hoje?',
         timestamp: new Date()
       }]);
 
