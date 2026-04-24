@@ -36,22 +36,20 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
   const fetchDeliveries = async () => {
     const loc = driverLocationRef.current;
     try {
-      const results = await base44.entities.Ride.filter({
-        status: 'requested',
-        ride_type: 'delivery',
-      }, '-created_date', 30);
+      const response = await base44.functions.invoke('getAvailableDeliveries', {
+        driverLat: loc?.lat ?? null,
+        driverLng: loc?.lng ?? null,
+        radiusKm: PROXIMITY_KM,
+      });
 
-      const enriched = results
-        .map(ride => {
-          const distKm = loc
-            ? haversine(loc.lat, loc.lng, ride.pickup_lat, ride.pickup_lng)
-            : null;
-          const etaMin = distKm === null ? null
-            : distKm < 0.1 ? 'Chegando'
-            : Math.ceil((distKm / 30) * 60);
-          return { ...ride, distance: distKm, etaMin };
-        })
-        .filter(r => r.distance === null || r.distance <= PROXIMITY_KM);
+      const raw = response.data?.deliveries || [];
+      const enriched = raw.map(ride => {
+        const distKm = ride.distance;
+        const etaMin = distKm === null ? null
+          : distKm < 0.1 ? 'Chegando'
+          : Math.ceil((distKm / 30) * 60);
+        return { ...ride, etaMin };
+      });
 
       setDeliveries(enriched);
     } catch (e) {
