@@ -238,7 +238,6 @@ export default function Download() {
                 { icon: Zap, title: 'Acesso Rápido', desc: 'Abra direto da tela inicial do seu dispositivo' },
                 { icon: Bell, title: 'Notificações Push', desc: 'Receba atualizações em tempo real sobre suas corridas' },
                 { icon: Gauge, title: 'Melhor Performance', desc: 'Carregamento ultrarrápido com cache local' },
-                { icon: DownloadIcon, title: 'Tamanho Pequeno', desc: 'Muito menor que apps nativos tradicionais' },
                 { icon: CheckCircle, title: 'Sempre Atualizado', desc: 'Receba as últimas funcionalidades automaticamente' },
               ].map((benefit, index) => (
                 <motion.div
