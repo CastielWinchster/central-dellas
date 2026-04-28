@@ -212,76 +212,15 @@ export default function Download() {
                   <Chrome className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">
-                  Instale Diretamente do Navegador
+                  Use o app direto pelo navegador caso preferir!
                 </h2>
                 <p className="text-[#F2F2F2]/70 text-lg mb-6">
                   Sem precisar de lojas de aplicativos. Instalação rápida e segura direto do seu navegador.
                 </p>
-                <Button
-                  onClick={handleInstallClick}
-                  size="lg"
-                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
-                >
-                  <DownloadIcon className="w-5 h-5 mr-2" />
-                  Instalar Agora
-                </Button>
-                {!canInstall && (
-                  <p className="text-[#F2F2F2]/60 text-sm mt-3">
-                    👇 Veja as instruções de instalação abaixo
-                  </p>
-                )}
               </div>
             </Card>
           </motion.div>
         )}
-
-        {/* Installation Instructions */}
-        <motion.div
-          id="install-instructions"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-8"
-        >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30">
-            <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2 text-center">
-              Como Instalar
-            </h2>
-            <p className="text-[#F2F2F2]/60 text-center mb-6">
-              Instruções detalhadas por sistema operacional
-            </p>
-
-            <div className="space-y-6">
-              {/* Chrome/Edge */}
-              <div className="p-6 rounded-xl bg-[#F22998]/5 border border-[#F22998]/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#BF3B79] to-[#F22998] rounded-lg flex items-center justify-center">
-                    <Chrome className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#F2F2F2]">Chrome / Edge (Android & Desktop)</h3>
-                </div>
-                <div className="space-y-3 ml-2">
-                  {[
-                    'Clique no ícone "⋮" (menu) no navegador',
-                    'Toque em "Instalar app" ou "Instalar Central Dellas"',
-                    'Confirme clicando em "Instalar"',
-                  ].map((step, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-white font-bold">{i + 1}</span>
-                      </div>
-                      <p className="text-[#F2F2F2]/80 pt-0.5">{step}</p>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2 text-[#F22998] text-sm mt-2 ml-9">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Ou use o ícone de instalação na barra de endereços</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
 
         {/* Benefits */}
         <motion.div
