@@ -212,10 +212,10 @@ export default function Download() {
                   <Chrome className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">
-                  Use o app direto pelo navegador caso preferir!
+                  Use o app direto pelo navegador caso preferir
                 </h2>
                 <p className="text-[#F2F2F2]/70 text-lg mb-6">
-                  Sem precisar de lojas de aplicativos. Instalação rápida e segura direto do seu navegador.
+                  Usufrua de todas as funcionalidades sem precisar instalar nada!
                 </p>
               </div>
             </Card>
