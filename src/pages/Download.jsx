@@ -279,58 +279,6 @@ export default function Download() {
                   </div>
                 </div>
               </div>
-
-              {/* Safari iOS */}
-              <div className="p-6 rounded-xl bg-[#F22998]/5 border border-[#F22998]/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#BF3B79] to-[#F22998] rounded-lg flex items-center justify-center">
-                    <Apple className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#F2F2F2]">Safari (iPhone / iPad)</h3>
-                </div>
-                <div className="space-y-3 ml-2">
-                  {[
-                    { text: 'Clique no ícone "Compartilhar"', icon: <Share2 className="w-4 h-4 inline ml-1" /> },
-                    { text: 'Role para baixo e toque em "Adicionar à Tela de Início"', icon: <Plus className="w-4 h-4 inline ml-1" /> },
-                    { text: 'Nomeie como "Central Dellas"', icon: null },
-                    { text: 'Clique "Adicionar"', icon: <CheckCircle className="w-4 h-4 inline ml-1" /> },
-                  ].map((step, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-white font-bold">{i + 1}</span>
-                      </div>
-                      <p className="text-[#F2F2F2]/80 pt-0.5">
-                        {step.text}
-                        {step.icon}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Samsung/Firefox */}
-              <div className="p-6 rounded-xl bg-[#F22998]/5 border border-[#F22998]/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#BF3B79] to-[#F22998] rounded-lg flex items-center justify-center">
-                    <Smartphone className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#F2F2F2]">Samsung Internet / Firefox</h3>
-                </div>
-                <div className="space-y-3 ml-2">
-                  {[
-                    'Clique no menu (⋮)',
-                    'Selecione "Instalar aplicativo"',
-                    'Confirme a instalação',
-                  ].map((step, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-white font-bold">{i + 1}</span>
-                      </div>
-                      <p className="text-[#F2F2F2]/80 pt-0.5">{step}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </Card>
         </motion.div>
@@ -349,7 +297,6 @@ export default function Download() {
             <div className="grid md:grid-cols-2 gap-4">
               {[
                 { icon: Zap, title: 'Acesso Rápido', desc: 'Abra direto da tela inicial do seu dispositivo' },
-                { icon: Wifi, title: 'Funciona Offline', desc: 'Modo limitado disponível sem internet' },
                 { icon: Bell, title: 'Notificações Push', desc: 'Receba atualizações em tempo real sobre suas corridas' },
                 { icon: Gauge, title: 'Melhor Performance', desc: 'Carregamento ultrarrápido com cache local' },
                 { icon: DownloadIcon, title: 'Tamanho Pequeno', desc: 'Muito menor que apps nativos tradicionais' },
@@ -391,54 +338,9 @@ export default function Download() {
                   🚀 Fase de Testes Ativa
                 </h3>
                 <p className="text-[#F2F2F2]/70">
-                  Instale o app e ajude-nos a torná-lo ainda melhor com seu feedback! Sua opinião é fundamental para construirmos a melhor experiência de mobilidade urbana.
+                  Instale o app e ajude-nos a torná-lo ainda melhor com seu feedback! Sua opinião é necessária para construirmos a melhor experiência possível.
                 </p>
               </div>
-            </div>
-          </Card>
-        </motion.div>
-        
-        {/* FAQ */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8"
-        >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30">
-            <h2 className="text-2xl font-bold text-[#F2F2F2] mb-6 text-center">
-              Perguntas Frequentes
-            </h2>
-            <div className="space-y-4">
-              {[
-                {
-                  q: '💾 Quanto espaço o app ocupa?',
-                  a: 'Muito pouco! O app PWA ocupa apenas alguns MB, muito menos que apps nativos tradicionais.'
-                },
-                {
-                  q: '🔒 É seguro instalar?',
-                  a: 'Sim! O app é instalado diretamente do nosso site oficial com certificado de segurança SSL. Seus dados estão protegidos.'
-                },
-                {
-                  q: '📶 Funciona offline?',
-                  a: 'Sim! O app possui modo offline limitado. Você pode acessar algumas funcionalidades mesmo sem internet.'
-                },
-                {
-                  q: '🔄 Como atualizar o app?',
-                  a: 'As atualizações são automáticas! Sempre que abrimos o app, ele verifica e baixa a versão mais recente.'
-                },
-              ].map((faq, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  className="p-4 rounded-xl bg-[#F22998]/5 border border-[#F22998]/10"
-                >
-                  <h3 className="font-semibold text-[#F2F2F2] mb-2">{faq.q}</h3>
-                  <p className="text-[#F2F2F2]/70 text-sm">{faq.a}</p>
-                </motion.div>
-              ))}
             </div>
           </Card>
         </motion.div>
