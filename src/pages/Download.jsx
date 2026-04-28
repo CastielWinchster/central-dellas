@@ -159,12 +159,51 @@ export default function Download() {
           )}
         </motion.div>
 
-        {/* Main Install Card */}
+        {/* APK Download Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30 text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-br from-[#BF3B79] to-[#F22998] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#F22998]/50">
+                <Smartphone className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-[#F2F2F2] mb-4">
+                Baixar APK para Android
+              </h2>
+              <p className="text-[#F2F2F2]/70 text-lg mb-6">
+                Instale o app diretamente no seu celular Android sem precisar da Play Store.
+              </p>
+              <a
+                href="https://github.com/CastielWinchster/central-dellas/releases/download/v1.0.0/CentralDellas.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+              >
+                <Button
+                  size="lg"
+                  className="btn-gradient text-lg px-8 py-6 shadow-lg shadow-[#F22998]/30"
+                >
+                  <DownloadIcon className="w-5 h-5 mr-2" />
+                  Baixar CentralDellas
+                </Button>
+              </a>
+              <p className="text-[#F2F2F2]/50 text-sm mt-4">
+                📦 Arquivo APK • Android 8.0+
+              </p>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* PWA Install Card */}
         {!isInstalled && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.2 }}
             className="mb-8"
           >
             <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30 text-center">
