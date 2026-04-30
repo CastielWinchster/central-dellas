@@ -178,7 +178,7 @@ export default function Download() {
                 Instale o app diretamente no seu celular Android sem precisar da Play Store.
               </p>
               <a
-                href="https://github.com/CastielWinchster/central-dellas/releases/download/v1.0.0/CentralDellas.apk"
+                href="https://github.com/CastielWinchster/central-dellas/releases/download/v1.0.0/centraldellas.apk"
                 target="_blank"
                 rel="noopener noreferrer"
                 download
