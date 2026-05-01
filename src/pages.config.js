@@ -50,7 +50,6 @@
 import AdminPanel from './pages/AdminPanel';
 import BlockedUsers from './pages/BlockedUsers';
 import CustomSignup from './pages/CustomSignup';
-import Download from './pages/Download';
 import DriverDashboard from './pages/DriverDashboard';
 import DriverDocuments from './pages/DriverDocuments';
 import DriverOptions from './pages/DriverOptions';
@@ -83,7 +82,6 @@ export const PAGES = {
     "AdminPanel": AdminPanel,
     "BlockedUsers": BlockedUsers,
     "CustomSignup": CustomSignup,
-    "Download": Download,
     "DriverDashboard": DriverDashboard,
     "DriverDocuments": DriverDocuments,
     "DriverOptions": DriverOptions,

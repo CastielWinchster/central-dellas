@@ -6,7 +6,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { 
   Home, Car, MapPin, MessageCircle, User, Menu, X, 
-  LogOut, History, Shield, Wallet, Star, Settings, Download as DownloadIcon, Truck
+  LogOut, History, Shield, Wallet, Star, Settings, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,7 @@ const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsH
 
 
 // Rotas públicas que não exigem autenticação
-const PUBLIC_ROUTES = ['PassengerHome', 'CustomSignup', 'Download'];
+const PUBLIC_ROUTES = ['PassengerHome', 'CustomSignup'];
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
@@ -103,7 +103,7 @@ function LayoutContent({ children, currentPageName }) {
       icon: Settings, 
       page: 'PassengerOptions'
     },
-    { name: 'Baixar App', icon: DownloadIcon, page: 'Download' },
+
     ...(hasActiveDelivery ? [{ name: 'Entrega', icon: Truck, page: 'ActiveDeliveryPassenger', to: `/ActiveDeliveryPassenger?id=${activeDeliveryId}` }] : []),
   ];
 
