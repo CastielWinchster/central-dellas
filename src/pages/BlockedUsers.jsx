@@ -25,24 +25,18 @@ export default function BlockedUsers() {
       
       const blockedList = await base44.entities.BlockedUser.filter({ user_id: userData.id });
       
-      // Carregar informações dos usuários bloqueados
-      const blockedWithInfo = [];
-      for (const block of blockedList) {
-        try {
-          const profiles = await base44.entities.UserProfile.filter({ user_id: block.blocked_user_id });
-          const profile = profiles.length > 0 ? profiles[0] : null;
-          blockedWithInfo.push({
-            ...block,
-            blockedUser: profile
-          });
-        } catch (error) {
-          console.error('Erro ao carregar perfil bloqueado:', error);
-          blockedWithInfo.push({
-            ...block,
-            blockedUser: null
-          });
-        }
-      }
+      // Carregar informações reais da entidade User
+      const blockedWithInfo = await Promise.all(
+        blockedList.map(async (block) => {
+          try {
+            const drivers = await base44.entities.User.filter({ id: block.blocked_user_id });
+            const driver = drivers.length > 0 ? drivers[0] : null;
+            return { ...block, blockedUser: driver };
+          } catch {
+            return { ...block, blockedUser: null };
+          }
+        })
+      );
       
       setBlocked(blockedWithInfo);
     } catch (error) {
@@ -62,8 +56,8 @@ export default function BlockedUsers() {
     
     try {
       await base44.entities.BlockedUser.delete(blockId);
-      toast.success('Usuária desbloqueada');
-      loadData();
+      setBlocked(prev => prev.filter(b => b.id !== blockId));
+      toast.success('Motorista desbloqueada com sucesso');
     } catch (error) {
       toast.error('Erro ao desbloquear');
     }
@@ -115,44 +109,62 @@ export default function BlockedUsers() {
 
         {/* Blocked List */}
         <div className="space-y-3">
-          {blocked.map((block) => (
-            <motion.div
-              key={block.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
-                      <UserX className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-[#F2F2F2]">
-                        {block.blockedUser?.full_name || 'Usuária'}
-                      </h3>
-                      {block.reason && (
-                        <p className="text-sm text-[#F2F2F2]/60 mt-1">
-                          Motivo: {block.reason}
+          {blocked.map((block) => {
+            const driver = block.blockedUser;
+            const name = driver?.full_name || 'Motorista não encontrada';
+            const photo = driver?.photo_url;
+            const phone = driver?.phone;
+            return (
+              <motion.div
+                key={block.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {/* Avatar */}
+                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-[#F22998]/20">
+                        {photo ? (
+                          <img src={photo} alt={name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                            <UserX className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-[#F2F2F2] truncate">{name}</h3>
+                        {phone && (
+                          <p className="text-sm text-[#F2F2F2]/60 mt-0.5">{phone}</p>
+                        )}
+                        {block.reason && (
+                          <p className="text-xs text-[#F22998]/70 mt-0.5">
+                            Motivo: {block.reason}
+                          </p>
+                        )}
+                        <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
+                          Bloqueada em {format(new Date(block.created_date), "dd/MM/yyyy")}
                         </p>
-                      )}
-                      <p className="text-xs text-[#F2F2F2]/40 mt-1">
-                        Bloqueado em {format(new Date(block.created_date), "dd/MM/yyyy")}
-                      </p>
+                      </div>
                     </div>
+
+                    <Button
+                      onClick={() => handleUnblock(block.id, name)}
+                      variant="outline"
+                      size="sm"
+                      className="border-green-500/30 text-green-400 hover:bg-green-500/10 flex-shrink-0"
+                    >
+                      Desbloquear
+                    </Button>
                   </div>
-                  
-                  <Button
-                    onClick={() => handleUnblock(block.id, block.blockedUser?.full_name || 'usuária')}
-                    variant="outline"
-                    className="border-green-500/30 text-green-400 hover:bg-green-500/10"
-                  >
-                    Desbloquear
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
