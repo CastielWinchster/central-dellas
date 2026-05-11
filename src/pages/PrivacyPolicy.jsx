@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 export default function PrivacyPolicy() {
   return (
@@ -12,13 +11,12 @@ export default function PrivacyPolicy() {
             alt="CentralDellas"
             className="h-10 w-auto"
           />
-          <Link to="/" className="text-sm text-[#F22998] hover:underline">Voltar ao app</Link>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-[#F22998] mb-2">Política de Privacidade</h1>
-        <p className="text-[#F2F2F2]/50 text-sm mb-8">Última atualização: maio de 2025</p>
+        <p className="text-[#F2F2F2]/50 text-sm mb-8">Última atualização: Maio de 2026</p>
 
         <div className="space-y-8 text-[#F2F2F2]/80 leading-relaxed">
 
