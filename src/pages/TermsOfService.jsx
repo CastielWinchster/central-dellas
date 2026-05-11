@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function TermsOfService() {
+export default function TermosdeServicos() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-16">
       {/* Header */}
@@ -12,7 +12,7 @@ export default function TermsOfService() {
             alt="CentralDellas"
             className="h-10 w-auto"
           />
-          <Link to="/" className="text-sm text-[#F22998] hover:underline">Voltar ao app</Link>
+          <Link to="https://centraldellas.online/login" className="text-sm text-[#F22998] hover:underline">Voltar ao app</Link>
         </div>
       </div>
 
