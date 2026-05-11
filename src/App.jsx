@@ -10,6 +10,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import RequestDelivery from './pages/RequestDelivery';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import DriverVehicle from './pages/DriverVehicle';
 import ActiveRidePassenger from './pages/ActiveRidePassenger';
 import ActiveRideDriver from './pages/ActiveRideDriver';
@@ -40,10 +42,24 @@ function useAppVisibilityPersist() {
   }, []);
 }
 
+const PUBLIC_PATHS = ['/privacy', '/terms'];
+
 const AuthenticatedApp = () => {
   useAppVisibilityPersist();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const [loadingDone, setLoadingDone] = useState(false);
+
+  const isPublicPath = PUBLIC_PATHS.includes(window.location.pathname);
+
+  // Skip auth loading for public pages
+  if (isPublicPath) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+      </Routes>
+    );
+  }
 
   // Show loading screen while checking app public settings or auth, minimum 3s
   if ((isLoadingPublicSettings || isLoadingAuth) || !loadingDone) {
@@ -94,6 +110,8 @@ const AuthenticatedApp = () => {
       <Route path="/ActiveRideDriver" element={<ActiveRideDriver />} />
       <Route path="/ActiveDeliveryPassenger" element={<ActiveDeliveryPassenger />} />
       <Route path="/ActiveDeliveryDriver" element={<ActiveDeliveryDriver />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

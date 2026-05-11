@@ -21,7 +21,7 @@ const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsH
 
 
 // Rotas públicas que não exigem autenticação
-const PUBLIC_ROUTES = ['PassengerHome', 'CustomSignup'];
+const PUBLIC_ROUTES = ['PassengerHome', 'CustomSignup', 'privacy', 'terms'];
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
