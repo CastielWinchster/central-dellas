@@ -1,4 +1,5 @@
 import React from 'react';
+import { base44 } from '@/api/base44Client';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion } from 'framer-motion';
@@ -94,7 +95,7 @@ export default function PassengerHome() {
                     if (user) {
                       navigate(createPageUrl('RequestRide'));
                     } else {
-                      navigate(createPageUrl('PassengerLogin'));
+                      base44.auth.redirectToLogin(createPageUrl('RequestRide'));
                     }
                   }}
                   className="w-full sm:w-auto btn-gradient text-white px-8 py-6 rounded-2xl text-lg font-semibold glow-pink"
