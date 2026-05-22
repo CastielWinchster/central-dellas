@@ -310,8 +310,11 @@ export default function PassengerLogin() {
               </button>
             </div>
 
-            <div className="mt-4 text-center">
-              <Link to={createPageUrl('DriverLogin')} className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm">
+            <div className="mt-4 text-center space-y-2">
+              <Link to={createPageUrl('PhoneLogin')} className="text-[#F22998]/80 hover:text-[#F22998] text-sm block">
+                📱 Entrar com código SMS (sem senha)
+              </Link>
+              <Link to={createPageUrl('DriverLogin')} className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm block">
                 É motorista? Clique aqui
               </Link>
             </div>

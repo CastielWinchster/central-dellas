@@ -13,6 +13,8 @@ import RequestDelivery from './pages/RequestDelivery';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import DriverVehicle from './pages/DriverVehicle';
+import PassengerLogin from './pages/PassengerLogin';
+import PhoneLogin from './pages/PhoneLogin';
 import ActiveRidePassenger from './pages/ActiveRidePassenger';
 import ActiveRideDriver from './pages/ActiveRideDriver';
 import ActiveDeliveryPassenger from './pages/ActiveDeliveryPassenger';
@@ -112,6 +114,8 @@ const AuthenticatedApp = () => {
       <Route path="/ActiveDeliveryDriver" element={<ActiveDeliveryDriver />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/PassengerLogin" element={<PassengerLogin />} />
+      <Route path="/PhoneLogin" element={<PhoneLogin />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
