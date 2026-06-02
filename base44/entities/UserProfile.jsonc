@@ -1,0 +1,64 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Nome completo"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "URL da foto"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "feminino",
+        "masculino",
+        "nao_informar",
+        "outro"
+      ],
+      "description": "G\u00eanero"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone com DDD"
+    },
+    "birth_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de nascimento"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "state": {
+      "type": "string",
+      "description": "Estado"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "is_authenticated": true
+      }
+    },
+    "read": {
+      "user_id": "{{user.id}}"
+    },
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_id": "{{user.id}}"
+    }
+  }
+}

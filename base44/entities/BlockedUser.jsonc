@@ -1,0 +1,36 @@
+{
+  "name": "BlockedUser",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria que bloqueou"
+    },
+    "blocked_user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria bloqueada"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo do bloqueio"
+    }
+  },
+  "required": [
+    "user_id",
+    "blocked_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "user_id": "{{user.id}}"
+    },
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_id": "{{user.id}}"
+    }
+  }
+}

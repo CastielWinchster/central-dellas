@@ -1,0 +1,78 @@
+{
+  "name": "PendingDocumentReview",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da motorista"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "cnh",
+        "comprovante",
+        "crlv"
+      ],
+      "description": "Tipo de documento"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "URL da imagem do documento"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending_review",
+      "description": "Status da an\u00e1lise"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es da an\u00e1lise manual"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Email do admin que revisou"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da revis\u00e3o"
+    }
+  },
+  "required": [
+    "user_id",
+    "document_type",
+    "document_url"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

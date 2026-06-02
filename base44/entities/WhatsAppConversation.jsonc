@@ -1,0 +1,73 @@
+{
+  "name": "WhatsAppConversation",
+  "type": "object",
+  "properties": {
+    "phone_number": {
+      "type": "string",
+      "description": "N\u00famero de telefone do usu\u00e1rio"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "bot",
+        "human",
+        "migrated",
+        "closed"
+      ],
+      "default": "bot",
+      "description": "Status da conversa"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Hist\u00f3rico de mensagens"
+    },
+    "migrated_to_app": {
+      "type": "boolean",
+      "default": false,
+      "description": "Usu\u00e1rio migrou para o app"
+    },
+    "conversation_type": {
+      "type": "string",
+      "enum": [
+        "ride_request",
+        "complaint",
+        "question",
+        "corporate",
+        "other"
+      ],
+      "description": "Tipo de conversa"
+    }
+  },
+  "required": [
+    "phone_number"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

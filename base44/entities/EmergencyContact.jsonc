@@ -1,0 +1,50 @@
+{
+  "name": "EmergencyContact",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do contato"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone do contato"
+    },
+    "is_whatsapp": {
+      "type": "boolean",
+      "default": true,
+      "description": "Possui WhatsApp"
+    },
+    "relationship": {
+      "type": "string",
+      "description": "Relacionamento (m\u00e3e, amiga, etc)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "phone"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "user_id": "{{user.id}}"
+    },
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_id": "{{user.id}}"
+    }
+  }
+}

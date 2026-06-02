@@ -24,9 +24,17 @@ export default function PassengerOptions() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       await base44.auth.updateMe({ photo_url: file_url });
+
+      // Sincroniza também a entidade UserProfile, se existir
+      const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+      if (profiles && profiles.length > 0) {
+        await base44.entities.UserProfile.update(profiles[0].id, { photo_url: file_url });
+      }
+
       setUser(prev => ({ ...prev, photo_url: file_url }));
       toast.success('Foto atualizada!');
     } catch (error) {
+      console.error('Erro upload foto:', error);
       toast.error('Erro ao carregar foto');
     }
     setUploading(false);
@@ -187,10 +195,6 @@ export default function PassengerOptions() {
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-[#F2F2F2]">{user.full_name}</h2>
                 <p className="text-[#F2F2F2]/60">{user.email}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Shield className="w-4 h-4 text-[#F22998]" />
-                  <span className="text-sm text-[#F22998]">Passageira VIP</span>
-                </div>
               </div>
             </div>
           </motion.div>

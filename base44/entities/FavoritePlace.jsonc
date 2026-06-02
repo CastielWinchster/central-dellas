@@ -1,0 +1,86 @@
+{
+  "name": "FavoritePlace",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "label": {
+      "type": "string",
+      "enum": [
+        "Casa",
+        "Trabalho",
+        "Igreja",
+        "Mercado",
+        "Academia",
+        "Outros"
+      ],
+      "description": "R\u00f3tulo do local"
+    },
+    "address_text": {
+      "type": "string",
+      "description": "Endere\u00e7o completo formatado"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Instru\u00e7\u00f5es especiais (port\u00e3o, apartamento, etc)"
+    }
+  },
+  "required": [
+    "user_id",
+    "label",
+    "address_text",
+    "lat",
+    "lng"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

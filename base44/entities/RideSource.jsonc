@@ -1,0 +1,54 @@
+{
+  "name": "RideSource",
+  "type": "object",
+  "properties": {
+    "ride_id": {
+      "type": "string",
+      "description": "ID da corrida"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "app",
+        "whatsapp",
+        "phone",
+        "admin"
+      ],
+      "description": "Origem da corrida"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "N\u00famero de telefone (se aplic\u00e1vel)"
+    }
+  },
+  "required": [
+    "ride_id",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

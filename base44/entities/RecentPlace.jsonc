@@ -1,0 +1,79 @@
+{
+  "name": "RecentPlace",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID da usu\u00e1ria"
+    },
+    "address_text": {
+      "type": "string",
+      "description": "Endere\u00e7o completo formatado"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez usado"
+    },
+    "times_used": {
+      "type": "number",
+      "default": 1,
+      "description": "Quantas vezes usado"
+    }
+  },
+  "required": [
+    "user_id",
+    "address_text",
+    "lat",
+    "lng"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
