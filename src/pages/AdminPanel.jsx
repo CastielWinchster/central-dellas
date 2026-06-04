@@ -8,7 +8,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { base44 } from '@/api/base44Client';
-import LiveMap from '../components/admin/LiveMap.jsx';
+import LiveMap from '../components/admin/LiveMap';
 import DispatchRide from '../components/admin/DispatchRide';
 import Reports from '../components/admin/Reports';
 import RideHistory from '../components/admin/RideHistory';
