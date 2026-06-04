@@ -1,0 +1,70 @@
+{
+  "name": "PricingSettings",
+  "type": "object",
+  "properties": {
+    "moto_base_day": {
+      "type": "number",
+      "default": 9.99,
+      "description": "Tarifa base moto/standard diurna"
+    },
+    "moto_base_night": {
+      "type": "number",
+      "default": 14.99,
+      "description": "Tarifa base moto/standard noturna"
+    },
+    "moto_fixed": {
+      "type": "number",
+      "default": 10.0,
+      "description": "Pre\u00e7o fixo Rotta Roza (moto) dentro da cidade"
+    },
+    "car_base_day": {
+      "type": "number",
+      "default": 9.99,
+      "description": "Tarifa base carro diurna"
+    },
+    "car_base_night": {
+      "type": "number",
+      "default": 14.99,
+      "description": "Tarifa base carro noturna"
+    },
+    "car_price_per_km": {
+      "type": "number",
+      "default": 1.8,
+      "description": "Pre\u00e7o por km do carro"
+    },
+    "delivery_base": {
+      "type": "number",
+      "default": 8.79,
+      "description": "Tarifa base de entrega"
+    },
+    "delivery_min": {
+      "type": "number",
+      "default": 4.0,
+      "description": "Valor m\u00ednimo de entrega"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Configura\u00e7\u00e3o de pre\u00e7os ativa"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

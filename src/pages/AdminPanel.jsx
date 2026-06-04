@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   MapPin, Users, TrendingUp, Star, Phone, 
-  Car, DollarSign, Activity, Calendar 
+  Car, DollarSign, Activity, Calendar, Ticket 
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { base44 } from '@/api/base44Client';
-import LiveMap from '../components/admin/LiveMap';
+import LiveMap from '../components/admin/LiveMap.jsx';
 import DispatchRide from '../components/admin/DispatchRide';
 import Reports from '../components/admin/Reports';
 import RideHistory from '../components/admin/RideHistory';
 import MigrationMetrics from '../components/admin/MigrationMetrics';
+import PriceManager from '../components/admin/PriceManager';
+import CouponManager from '../components/admin/CouponManager';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -154,10 +156,18 @@ export default function AdminPanel() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="map" className="space-y-6">
-          <TabsList className="bg-[#F2F2F2]/5 border border-[#F22998]/20">
+          <TabsList className="bg-[#F2F2F2]/5 border border-[#F22998]/20 flex-wrap h-auto">
             <TabsTrigger value="map" className="data-[state=active]:bg-[#F22998]">
               <MapPin className="w-4 h-4 mr-2" />
               Mapa ao Vivo
+            </TabsTrigger>
+            <TabsTrigger value="prices" className="data-[state=active]:bg-[#F22998]">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Preços
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="data-[state=active]:bg-[#F22998]">
+              <Ticket className="w-4 h-4 mr-2" />
+              Cupons
             </TabsTrigger>
             <TabsTrigger value="dispatch" className="data-[state=active]:bg-[#F22998]">
               <Phone className="w-4 h-4 mr-2" />
@@ -179,6 +189,14 @@ export default function AdminPanel() {
 
           <TabsContent value="map">
             <LiveMap />
+          </TabsContent>
+
+          <TabsContent value="prices">
+            <PriceManager />
+          </TabsContent>
+
+          <TabsContent value="coupons">
+            <CouponManager />
           </TabsContent>
 
           <TabsContent value="dispatch">
