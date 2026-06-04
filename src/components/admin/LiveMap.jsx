@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Car, MapPin, Clock, RefreshCw, Radio } from 'lucide-react';
+import { Car, MapPin, RefreshCw, Radio } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { MAPBOX_CONFIG, loadMapboxToken } from '@/components/utils/mapboxConfig';
 
@@ -114,12 +114,11 @@ export default function LiveMap() {
     { icon: Radio, label: 'Motoristas Online', value: drivers.length, color: 'text-green-500', bg: 'bg-green-500/20' },
     { icon: Car, label: 'Disponíveis', value: idleCount, color: 'text-[#F22998]', bg: 'bg-[#F22998]/20' },
     { icon: MapPin, label: 'Em Corrida', value: busyCount, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
-    { icon: Clock, label: 'Corridas Ativas', value: rides.length, color: 'text-blue-400', bg: 'bg-blue-500/20' },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {summary.map((s, i) => (
           <Card key={i} className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-4">
             <div className="flex items-center gap-3">

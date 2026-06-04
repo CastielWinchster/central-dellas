@@ -74,7 +74,7 @@ export default function Reports() {
 
       const topDrivers = await Promise.all(
         Object.entries(driverStats)
-          .sort((a, b) => b[1].revenue - a[1].revenue)
+          .sort((a, b) => b[1].rides - a[1].rides)
           .slice(0, 5)
           .map(async ([driverId, stats]) => {
             const driver = drivers.find(d => d.id === driverId);
@@ -120,12 +120,6 @@ export default function Reports() {
       label: 'Motoristas Ativas',
       value: stats.activeDrivers,
       color: 'from-purple-500 to-purple-600'
-    },
-    {
-      icon: Star,
-      label: 'Avaliação Média',
-      value: stats.avgRating,
-      color: 'from-yellow-500 to-yellow-600'
     }
   ];
 
@@ -152,7 +146,7 @@ export default function Reports() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {reportCards.map((card, index) => (
           <Card key={index} className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6">
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mb-3`}>

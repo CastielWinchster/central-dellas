@@ -114,12 +114,6 @@ export default function AdminPanel() {
       label: 'Receita Hoje',
       value: `R$ ${stats.todayRevenue.toFixed(2)}`,
       color: 'from-[#F22998] to-[#BF3B79]'
-    },
-    {
-      icon: Star,
-      label: 'Avaliação Média',
-      value: stats.avgRating,
-      color: 'from-yellow-500 to-yellow-600'
     }
   ];
 
@@ -135,7 +129,7 @@ export default function AdminPanel() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {statCards.map((stat, index) => (
             <motion.div
               key={index}
