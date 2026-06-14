@@ -21,6 +21,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import DeleteAccount from './pages/DeleteAccount';
 import LoadingScreen from './components/LoadingScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
       {/* Public informational routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/delete-account" element={<DeleteAccount />} />
 
       {/* Protected app routes — gate everything behind auth */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
