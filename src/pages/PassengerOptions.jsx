@@ -10,12 +10,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import DeleteAccountDialog from '../components/DeleteAccountDialog';
 
 export default function PassengerOptions() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -282,9 +284,18 @@ export default function PassengerOptions() {
               <LogOut className="w-5 h-5 mr-2" />
               Sair da Conta
             </Button>
+
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full mt-4 text-center text-sm text-red-400/70 hover:text-red-400 transition-colors py-2"
+            >
+              Excluir minha conta
+            </button>
           </motion.div>
         </div>
       </div>
+
+      <DeleteAccountDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />
     </div>
   );
 }
