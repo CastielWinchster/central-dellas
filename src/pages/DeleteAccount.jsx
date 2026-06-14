@@ -2,7 +2,7 @@ import React from 'react';
 import { Trash2, Mail, ShieldCheck, Clock, Database } from 'lucide-react';
 
 const SUPPORT_EMAIL = 'suporte@centraldellas.com.br';
-const WHATSAPP_NUMBER = '5516997000000'; // ajustar se necessário
+const WHATSAPP_NUMBER = '5516994465137'; // ajustar se necessário
 
 export default function DeleteAccount() {
   return (
