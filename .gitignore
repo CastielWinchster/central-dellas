@@ -16,6 +16,12 @@ dist
 dist-ssr
 *.local
 
+# Capacitor / iOS (projeto nativo gerado automaticamente no build da nuvem)
+ios/
+android/
+*.ipa
+*.app
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

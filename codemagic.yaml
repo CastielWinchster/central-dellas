@@ -1,0 +1,151 @@
+# Pipeline de build iOS na nuvem (Codemagic) para o app "Dellas Driver".
+#
+# Este projeto e um app web (React + Vite) empacotado como app iOS nativo com
+# Capacitor, no modo "Opcao A": o app nativo CARREGA a URL publicada na base44
+# (definida em capacitor.config.json -> server.url). Por isso o conteudo nao
+# precisa ser empacotado offline; ainda assim rodamos `npm run build` porque o
+# Capacitor exige que a pasta `dist` (webDir) exista durante o `cap sync`.
+#
+# Sao oferecidos dois workflows:
+#   1) ios-unsigned  -> gera um .IPA NAO ASSINADO (nao precisa de conta Apple).
+#                       Use para entregar o arquivo a quem vai RE-ASSINAR e publicar.
+#   2) ios-signed    -> gera um .IPA ASSINADO e (opcionalmente) envia ao TestFlight.
+#                       Exige que o publicador configure os certificados Apple no Codemagic.
+#
+# Docs: https://docs.codemagic.io/yaml-quick-start/building-a-react-native-app/
+
+workflows:
+  # ---------------------------------------------------------------------------
+  # 1) IPA NAO ASSINADO — nao requer conta Apple Developer.
+  # ---------------------------------------------------------------------------
+  ios-unsigned:
+    name: iOS - IPA nao assinado (sem conta Apple)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      node: 20.11.0
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Instalar dependencias do projeto
+        script: npm ci
+      - name: Build do app web (gera a pasta dist)
+        script: npm run build
+      - name: Adicionar a plataforma iOS (se ainda nao existir)
+        script: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+      - name: Sincronizar arquivos web + plugins com o iOS
+        script: npx cap sync ios
+      - name: Gerar icone do app (se resources/icon.png existir)
+        script: |
+          if [ -f "resources/icon.png" ]; then
+            npx @capacitor/assets generate --ios
+          else
+            echo "Sem resources/icon.png — usando o icone padrao do Capacitor."
+          fi
+      - name: Configurar permissoes no Info.plist
+        script: |
+          chmod +x scripts/configure-ios.sh
+          ./scripts/configure-ios.sh
+      - name: Instalar pods do CocoaPods
+        script: |
+          cd ios/App
+          pod install
+      - name: Compilar (sem assinatura) e montar o .IPA
+        script: |
+          set -e
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build
+          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
+          rm -rf Payload "$CM_BUILD_DIR/DellasDriver-unsigned.ipa"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r "$CM_BUILD_DIR/DellasDriver-unsigned.ipa" Payload >/dev/null
+          echo "IPA nao assinado gerado em DellasDriver-unsigned.ipa"
+    artifacts:
+      - "*.ipa"
+      - ios/App/build/Build/Products/Release-iphoneos/*.app
+    # Para receber o .IPA por e-mail, troque o endereco abaixo:
+    publishing:
+      email:
+        recipients:
+          - seu-email@exemplo.com
+        notify:
+          success: true
+          failure: true
+
+  # ---------------------------------------------------------------------------
+  # 2) IPA ASSINADO + TestFlight — para quem TEM a conta Apple Developer.
+  #    Requer configurar no Codemagic:
+  #      - Integracao "App Store Connect" (chave de API), e
+  #      - Code signing automatico (bundle id deve pertencer a essa conta).
+  #    Veja o passo a passo em IOS_BUILD.md.
+  # ---------------------------------------------------------------------------
+  ios-signed:
+    name: iOS - IPA assinado + TestFlight (requer conta Apple)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic_app_store_connect
+    environment:
+      node: 20.11.0
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.dellasdriver.app
+    scripts:
+      - name: Instalar dependencias do projeto
+        script: npm ci
+      - name: Build do app web (gera a pasta dist)
+        script: npm run build
+      - name: Adicionar a plataforma iOS (se ainda nao existir)
+        script: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+      - name: Sincronizar arquivos web + plugins com o iOS
+        script: npx cap sync ios
+      - name: Gerar icone do app (se resources/icon.png existir)
+        script: |
+          if [ -f "resources/icon.png" ]; then
+            npx @capacitor/assets generate --ios
+          else
+            echo "Sem resources/icon.png — usando o icone padrao do Capacitor."
+          fi
+      - name: Configurar permissoes no Info.plist
+        script: |
+          chmod +x scripts/configure-ios.sh
+          ./scripts/configure-ios.sh
+      - name: Instalar pods do CocoaPods
+        script: |
+          cd ios/App
+          pod install
+      - name: Aplicar perfis de assinatura
+        script: |
+          xcode-project use-profiles
+      - name: Compilar e gerar o .IPA assinado
+        script: |
+          cd ios/App
+          xcode-project build-ipa \
+            --workspace App.xcworkspace \
+            --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - "*.ipa"
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

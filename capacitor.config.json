@@ -1,0 +1,32 @@
+{
+  "appId": "com.dellasdriver.app",
+  "appName": "Dellas Driver",
+  "webDir": "dist",
+  "server": {
+    "url": "https://centraldellas.base44.app",
+    "cleartext": false,
+    "allowNavigation": [
+      "*.base44.app",
+      "*.base44.com",
+      "*.stripe.com",
+      "*.mapbox.com",
+      "accounts.google.com",
+      "*.googleapis.com",
+      "*.firebaseapp.com"
+    ]
+  },
+  "ios": {
+    "contentInset": "always",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#0d0010",
+      "showSpinner": false
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}
