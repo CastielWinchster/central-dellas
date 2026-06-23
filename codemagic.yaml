@@ -23,7 +23,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
-      node: 20.11.0
+      node: 22
       xcode: latest
       cocoapods: default
     scripts:
@@ -31,13 +31,14 @@ workflows:
         script: npm ci
       - name: Build do app web (gera a pasta dist)
         script: npm run build
-      - name: Adicionar a plataforma iOS (se ainda nao existir)
+      - name: Preparar projeto iOS (Capacitor + CocoaPods)
         script: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
-      - name: Sincronizar arquivos web + plugins com o iOS
-        script: npx cap sync ios
+          set -euxo pipefail
+          node --version
+          test -d dist || (echo "ERRO: pasta dist/ nao encontrada" && exit 1)
+          rm -rf ios
+          npx cap add ios --packagemanager CocoaPods
+          npx cap sync ios
       - name: Gerar icone do app (se resources/icon.png existir)
         script: |
           if [ -f "resources/icon.png" ]; then
@@ -51,8 +52,10 @@ workflows:
           ./scripts/configure-ios.sh
       - name: Instalar pods do CocoaPods
         script: |
+          set -euxo pipefail
           cd ios/App
           pod install
+          test -f App.xcworkspace/contents.xcworkspacedata || (echo "ERRO: App.xcworkspace nao encontrado" && exit 1)
       - name: Compilar (sem assinatura) e montar o .IPA
         script: |
           set -e
@@ -100,7 +103,7 @@ workflows:
     integrations:
       app_store_connect: codemagic_app_store_connect
     environment:
-      node: 20.11.0
+      node: 22
       xcode: latest
       cocoapods: default
       ios_signing:
@@ -111,13 +114,14 @@ workflows:
         script: npm ci
       - name: Build do app web (gera a pasta dist)
         script: npm run build
-      - name: Adicionar a plataforma iOS (se ainda nao existir)
+      - name: Preparar projeto iOS (Capacitor + CocoaPods)
         script: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
-      - name: Sincronizar arquivos web + plugins com o iOS
-        script: npx cap sync ios
+          set -euxo pipefail
+          node --version
+          test -d dist || (echo "ERRO: pasta dist/ nao encontrada" && exit 1)
+          rm -rf ios
+          npx cap add ios --packagemanager CocoaPods
+          npx cap sync ios
       - name: Gerar icone do app (se resources/icon.png existir)
         script: |
           if [ -f "resources/icon.png" ]; then
@@ -131,8 +135,10 @@ workflows:
           ./scripts/configure-ios.sh
       - name: Instalar pods do CocoaPods
         script: |
+          set -euxo pipefail
           cd ios/App
           pod install
+          test -f App.xcworkspace/contents.xcworkspacedata || (echo "ERRO: App.xcworkspace nao encontrado" && exit 1)
       - name: Aplicar perfis de assinatura
         script: |
           xcode-project use-profiles
