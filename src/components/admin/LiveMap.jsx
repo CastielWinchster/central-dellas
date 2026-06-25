@@ -33,37 +33,38 @@ export default function LiveMap() {
 
   const load = async () => {
     try {
-      // A localização real das motoristas vive em DriverPresence, não em User.
+      // Motoristas reais = usuárias com role "admin"
+      const allUsers = await base44.entities.User.list('-created_date', 1000);
+      const driverUsers = allUsers.filter(u => u.role === 'admin');
+      const driverById = {};
+      driverUsers.forEach(u => { driverById[u.id] = u; });
+
+      // A localização vive em DriverPresence. Só mostra quem é motorista real,
+      // está com o modo ON ligado E com localização ligada (coordenadas válidas).
       const presences = await base44.entities.DriverPresence.list('-last_seen_at', 200);
-      // Considerar online quem está marcado como online E tem coordenadas válidas
-      const onlinePresences = presences.filter(p => {
-        const lat = p.lat ?? p.current_lat;
-        const lng = p.lng ?? p.current_lng;
-        return (p.is_online || p.is_available) && lat != null && lng != null;
-      });
-
-      // Cruzar com os dados do usuário (nome, veículo, telefone)
-      const driverIds = [...new Set(onlinePresences.map(p => p.driver_id).filter(Boolean))];
-      const userById = {};
-      await Promise.all(driverIds.map(async (id) => {
-        try {
-          const us = await base44.entities.User.filter({ id });
-          if (us[0]) userById[id] = us[0];
-        } catch (_) {}
-      }));
-
-      const online = onlinePresences.map(p => {
-        const u = userById[p.driver_id] || {};
-        return {
-          id: p.driver_id,
-          current_lat: p.lat ?? p.current_lat,
-          current_lng: p.lng ?? p.current_lng,
-          full_name: u.full_name,
-          phone: u.phone,
-          vehicle_model: u.vehicle_model,
-          vehicle_plate: u.vehicle_plate,
-        };
-      });
+      const seen = new Set();
+      const online = presences
+        .filter(p => {
+          const lat = p.lat ?? p.current_lat;
+          const lng = p.lng ?? p.current_lng;
+          if (!(p.is_online === true && lat != null && lng != null && driverById[p.driver_id])) return false;
+          // Manter apenas o registro mais recente de cada motorista (evita pontos duplicados)
+          if (seen.has(p.driver_id)) return false;
+          seen.add(p.driver_id);
+          return true;
+        })
+        .map(p => {
+          const u = driverById[p.driver_id];
+          return {
+            id: p.driver_id,
+            current_lat: p.lat ?? p.current_lat,
+            current_lng: p.lng ?? p.current_lng,
+            full_name: u.full_name,
+            phone: u.phone,
+            vehicle_model: u.vehicle_model,
+            vehicle_plate: u.vehicle_plate,
+          };
+        });
       setDrivers(online);
 
       const allRides = await base44.entities.Ride.list('-created_date', 100);
