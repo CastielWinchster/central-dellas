@@ -33,8 +33,37 @@ export default function LiveMap() {
 
   const load = async () => {
     try {
-      const allDrivers = await base44.entities.User.filter({ user_type: 'driver' });
-      const online = allDrivers.filter(d => d.is_online && d.current_lat && d.current_lng);
+      // A localização real das motoristas vive em DriverPresence, não em User.
+      const presences = await base44.entities.DriverPresence.list('-last_seen_at', 200);
+      // Considerar online quem está marcado como online E tem coordenadas válidas
+      const onlinePresences = presences.filter(p => {
+        const lat = p.lat ?? p.current_lat;
+        const lng = p.lng ?? p.current_lng;
+        return (p.is_online || p.is_available) && lat != null && lng != null;
+      });
+
+      // Cruzar com os dados do usuário (nome, veículo, telefone)
+      const driverIds = [...new Set(onlinePresences.map(p => p.driver_id).filter(Boolean))];
+      const userById = {};
+      await Promise.all(driverIds.map(async (id) => {
+        try {
+          const us = await base44.entities.User.filter({ id });
+          if (us[0]) userById[id] = us[0];
+        } catch (_) {}
+      }));
+
+      const online = onlinePresences.map(p => {
+        const u = userById[p.driver_id] || {};
+        return {
+          id: p.driver_id,
+          current_lat: p.lat ?? p.current_lat,
+          current_lng: p.lng ?? p.current_lng,
+          full_name: u.full_name,
+          phone: u.phone,
+          vehicle_model: u.vehicle_model,
+          vehicle_plate: u.vehicle_plate,
+        };
+      });
       setDrivers(online);
 
       const allRides = await base44.entities.Ride.list('-created_date', 100);

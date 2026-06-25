@@ -26,7 +26,7 @@ import { calculateEtaWithGoogle } from '@/components/utils/googlePlaces';
 import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon, calculateIntercityPrice, isIntercityRide, getCityFromCoordinates } from '@/utils/pricing';
 import ContactWhatsAppModal from '@/components/ContactWhatsAppModal';
 import { usePersistedState } from '@/hooks/usePersistedState';
-import { clearState } from '@/utils/stateManager';
+import { clearState, saveState, restoreState } from '@/utils/stateManager';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -702,93 +702,80 @@ export default function RequestRide() {
     }
   };
   
-  const startRidePolling = (rideId) => {
-    console.log('[Polling] Iniciando polling para rideId:', rideId);
-    let consecutiveEmptyResults = 0;
+  // Refs para controlar o polling de forma resiliente (sobrevive a re-renders
+  // e à suspensão de timers em background no celular)
+  const pollIntervalRef = useRef(null);
+  const pollTimeoutRef = useRef(null);
+  const pollNavigatedRef = useRef(false);
+  const activeRideIdRef = useRef(null);
 
-    const pollInterval = setInterval(async () => {
-      try {
-        console.log('[Polling] Consultando ride:', rideId);
-        const res = await base44.functions.invoke('getRideStatus', { rideId });
-        const rideData = res.data;
-        console.log('[Polling] Resultado:', rideData);
+  // Verifica o status da corrida uma vez. Retorna true se já navegou/encerrou.
+  const checkRideStatusOnce = async (rideId) => {
+    if (pollNavigatedRef.current) return true;
+    try {
+      const res = await base44.functions.invoke('getRideStatus', { rideId });
+      const rideData = res.data;
+      console.log('[Polling] Resultado:', rideData);
 
-        if (!rideData?.found) {
-          consecutiveEmptyResults++;
-          console.warn(`[Polling] Corrida não encontrada (tentativa ${consecutiveEmptyResults})`);
-          if (consecutiveEmptyResults >= 10) {
-            clearInterval(pollInterval);
-            toast.error('Não foi possível acompanhar sua corrida. Tente novamente.');
-            setStep('options');
-          }
-          return;
+      if (!rideData?.found) return false;
+
+      if (rideData.status === 'accepted') {
+        if (!rideData.assigned_driver_id) {
+          console.error('[Polling] status accepted sem assigned_driver_id, aguardando...');
+          return false;
         }
-
-        consecutiveEmptyResults = 0;
-        const ride = rideData;
-
-        if (ride.status === 'accepted') {
-          console.log('[Polling] Corrida aceita! assigned_driver_id:', ride.assigned_driver_id);
-          clearInterval(pollInterval);
-
-          if (!ride.assigned_driver_id) {
-            console.error('[Polling] assigned_driver_id está vazio mesmo com status accepted!');
-            toast.error('Erro ao identificar a motorista. Tente novamente.');
-            setStep('options');
-            return;
-          }
-
-          try {
-            const res = await base44.functions.invoke('getDriverInfo', {
-              driverId: ride.assigned_driver_id
-            });
-            const info = res.data || {};
-
-            console.log('[Polling] Dados da motorista via backend:', info.name, '| Veículo:', info.vehicle?.model);
-
-            setDriver({
-              id: ride.assigned_driver_id,
-              name: info.name || 'Motorista',
-              photo: info.photo || null,
-              phone: info.phone || null,
-              rating: info.rating ?? null,
-              totalRides: info.totalRides ?? null,
-              vehicle: info.vehicle || null,
-              eta: null,
-            });
-            // Navegar para tela dedicada de corrida ativa
-            console.log('[Polling] Motorista carregada:', ride.assigned_driver_id, info.name);
-            navigate(`/ActiveRidePassenger?id=${rideId}`);
-          } catch (driverError) {
-            console.error('[Polling] Erro ao buscar dados da motorista:', driverError);
-            setDriver({
-              id: ride.assigned_driver_id,
-              name: 'Motorista',
-              photo: null,
-              rating: null,
-              totalRides: null,
-              vehicle: null,
-              eta: null,
-            });
-            navigate(`/ActiveRidePassenger?id=${rideId}`);
-          }
-
-        } else if (rideData.status === 'expired' || rideData.status === 'cancelled') {
-          console.log('[Polling] Corrida encerrada com status:', rideData.status);
-          clearInterval(pollInterval);
-          toast.error('Nenhuma motorista aceitou sua corrida');
-          setStep('options');
-        } else {
-          console.log('[Polling] Aguardando... status atual:', ride.status);
-        }
-      } catch (error) {
-        console.error('[Polling] Erro na consulta:', error);
+        // Encerrar polling e navegar — a tela de destino carrega tudo pelo id da URL
+        pollNavigatedRef.current = true;
+        stopRidePolling();
+        navigate(`/ActiveRidePassenger?id=${rideId}`);
+        return true;
       }
+
+      if (rideData.status === 'expired' || rideData.status === 'cancelled') {
+        stopRidePolling();
+        clearActiveRide();
+        toast.error('Nenhuma motorista aceitou sua corrida');
+        setStep('options');
+        return true;
+      }
+
+      console.log('[Polling] Aguardando... status atual:', rideData.status);
+      return false;
+    } catch (error) {
+      console.error('[Polling] Erro na consulta:', error);
+      return false;
+    }
+  };
+
+  const stopRidePolling = () => {
+    if (pollIntervalRef.current) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    if (pollTimeoutRef.current) { clearTimeout(pollTimeoutRef.current); pollTimeoutRef.current = null; }
+  };
+
+  const clearActiveRide = () => {
+    activeRideIdRef.current = null;
+    try { clearState('rr_activeRideId'); } catch (_) {}
+  };
+
+  const startRidePolling = (rideId) => {
+    console.log('[Polling] Iniciando polling resiliente para rideId:', rideId);
+    pollNavigatedRef.current = false;
+    activeRideIdRef.current = rideId;
+    // Persistir o id da corrida ativa para retomar mesmo após recarregar a tela
+    try { saveState('rr_activeRideId', rideId); } catch (_) {}
+
+    stopRidePolling();
+
+    // Checagem imediata + polling a cada 2s
+    checkRideStatusOnce(rideId);
+    pollIntervalRef.current = setInterval(() => {
+      checkRideStatusOnce(rideId);
     }, 2000);
 
     // Timeout de 5 minutos
-    const timeoutId = setTimeout(() => {
-      clearInterval(pollInterval);
+    pollTimeoutRef.current = setTimeout(() => {
+      stopRidePolling();
+      clearActiveRide();
       setStep(prev => {
         if (prev === 'searching') {
           console.log('[Polling] Timeout de 5 minutos atingido');
@@ -799,6 +786,38 @@ export default function RequestRide() {
       });
     }, 300000);
   };
+
+  // Retomar verificação quando a aba volta ao foco — corrige o caso em que o
+  // navegador do celular congela os timers em background e a corrida é aceita
+  // exatamente nesse intervalo (tela travada em "Buscando motorista").
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden && activeRideIdRef.current && !pollNavigatedRef.current) {
+        console.log('[Polling] Aba retornou ao foco, revalidando status imediatamente');
+        checkRideStatusOnce(activeRideIdRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+      stopRidePolling();
+    };
+  }, []);
+
+  // Ao montar a tela, se houver uma corrida ativa pendente (ex.: a pessoa
+  // recarregou ou voltou ao app), retomar o acompanhamento automaticamente.
+  useEffect(() => {
+    const pendingId = restoreState('rr_activeRideId', 6 * 60 * 1000);
+    if (pendingId) {
+      console.log('[Polling] Retomando corrida ativa pendente:', pendingId);
+      setStep('searching');
+      setSearchingDrivers(true);
+      startRidePolling(pendingId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const simulatedDriver = {
     name: 'Maria Silva',
@@ -1386,7 +1405,7 @@ export default function RequestRide() {
                     </div>
 
                     <button
-                      onClick={() => setStep('options')}
+                      onClick={() => { stopRidePolling(); clearActiveRide(); pollNavigatedRef.current = true; setStep('options'); }}
                       className="mt-6 text-sm text-[#F2F2F2]/40 hover:text-[#F2F2F2]/70 transition-colors"
                     >
                       Cancelar busca

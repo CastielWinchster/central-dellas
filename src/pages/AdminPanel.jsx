@@ -5,6 +5,7 @@ import {
   MapPin, Users, TrendingUp, Star, Phone, 
   Car, DollarSign, Activity, Calendar, Ticket 
 } from 'lucide-react';
+import AppUsers from '../components/admin/AppUsers';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { base44 } from '@/api/base44Client';
@@ -66,10 +67,10 @@ export default function AdminPanel() {
         new Date(r.created_date) >= today
       );
 
-      // Receita de hoje
+      // Receita de hoje (usa o preço confirmado/acordado/estimado, nesta ordem)
       const todayRevenue = todayRides
         .filter(r => r.status === 'completed')
-        .reduce((sum, r) => sum + (r.final_price || 0), 0);
+        .reduce((sum, r) => sum + (r.driver_confirmed_price ?? r.agreed_price ?? r.estimated_price ?? 0), 0);
 
       // Avaliação média
       const reviews = await base44.entities.Review.list();
@@ -171,6 +172,10 @@ export default function AdminPanel() {
               <Calendar className="w-4 h-4 mr-2" />
               Histórico
             </TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-[#F22998]">
+              <Users className="w-4 h-4 mr-2" />
+              Usuárias
+            </TabsTrigger>
             <TabsTrigger value="reports" className="data-[state=active]:bg-[#F22998]">
               <TrendingUp className="w-4 h-4 mr-2" />
               Relatórios
@@ -199,6 +204,10 @@ export default function AdminPanel() {
 
           <TabsContent value="history">
             <RideHistory />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <AppUsers />
           </TabsContent>
 
           <TabsContent value="reports">
