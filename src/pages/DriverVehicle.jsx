@@ -103,8 +103,7 @@ export default function DriverVehicle() {
       return;
     }
 
-    // Preview local imediato via blob URL — mantido durante e após o upload.
-    // NUNCA revertemos para a foto antiga: a imagem que a usuária vê é sempre a que ela escolheu.
+    // Preview local imediato via blob URL enquanto o upload acontece.
     const localPreview = URL.createObjectURL(file);
     setPhotoPreview(localPreview);
     if (photoInputRef.current) photoInputRef.current.value = '';
@@ -114,12 +113,20 @@ export default function DriverVehicle() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       if (!file_url) throw new Error('Servidor não retornou URL da foto');
 
-      // Guarda a URL final para salvar, mas o preview continua sendo o blob local (sem cache CDN).
+      // Só confirma o preview quando o upload deu certo e temos uma URL real para salvar.
       setFormData((p) => ({ ...p, photo_url: file_url }));
       toast.success('Foto carregada! Toque em Salvar para confirmar.');
     } catch (err) {
       console.error('[DriverVehicle] Erro no upload:', err);
-      toast.error('Erro ao fazer upload da foto. Tente novamente.');
+      // Upload falhou — remove o preview falso para não dar impressão de sucesso.
+      if (localPreview.startsWith('blob:')) URL.revokeObjectURL(localPreview);
+      setPhotoPreview(formData.photo_url || '');
+      const msg = String(err?.message || '');
+      if (msg.includes('limit of integrations')) {
+        toast.error('Limite mensal de uploads atingido no plano. Faça upgrade para enviar novas fotos.');
+      } else {
+        toast.error('Erro ao fazer upload da foto. Tente novamente.');
+      }
     } finally {
       setUploading(false);
     }
