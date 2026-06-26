@@ -54,12 +54,6 @@ function LayoutContent({ children, currentPageName }) {
     return () => clearInterval(interval);
   }, [user?.id]);
 
-  // Inscrever no Web Push (solicita permissão + salva subscription no backend)
-  useEffect(() => {
-    if (!user) return;
-    setTimeout(() => subscribeToPush(), 3000);
-  }, [user?.id]);
-
   // Limpar notificações antigas com cupom hardcoded "PRIMEIRA VELOZ"
   useEffect(() => {
     if (!user?.id) return;
@@ -114,6 +108,15 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const isDriverPage = ['DriverDashboard', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
+  const isDriverUser = user?.user_type === 'driver' || user?.user_type === 'both';
+
+  // Inscrever no Web Push — motoristas com prioridade (segundo plano)
+  useEffect(() => {
+    if (!user) return;
+    const delay = isDriverUser || isDriverPage ? 500 : 3000;
+    const timer = setTimeout(() => subscribeToPush(), delay);
+    return () => clearTimeout(timer);
+  }, [user?.id, isDriverUser, isDriverPage]);
 
   // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
   useEffect(() => {

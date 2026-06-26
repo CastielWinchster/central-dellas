@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import RideOfferModal from '../components/driver/RideOfferModal';
 
 import AvailableRidesList from '../components/driver/AvailableRidesList';
+import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
+import { subscribeToPush } from '@/hooks/useNotifications';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -47,6 +49,8 @@ export default function DriverDashboard() {
   const [passengerUser, setPassengerUser] = useState(null);
   const lastGpsUpdateRef = useRef(0);
   const processingOfferRef = useRef(null);
+
+  useRideAlert(!!rideOffer);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -384,6 +388,10 @@ export default function DriverDashboard() {
       }
     };
   }, [isOnline, user]);
+
+  useEffect(() => {
+    if (user && isOnline) subscribeToPush();
+  }, [user, isOnline]);
   
   const handleAcceptOffer = async (offer, ride, driverConfirmedPrice) => {
     try {
@@ -396,6 +404,7 @@ export default function DriverDashboard() {
       const responseData = response?.data || response;
       if (responseData.success) {
         toast.success('🎉 Corrida aceita!');
+        cancelRideAlert(ride.id);
         const acceptedRideData = responseData?.ride || ride;
         localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
         setRideOffer(null);
@@ -427,6 +436,7 @@ export default function DriverDashboard() {
     } catch (error) {
       console.error('Erro ao recusar:', error);
     } finally {
+      cancelRideAlert(offer?.ride_id);
       setRideOffer(null);
       setOfferRide(null);
       setOfferPassenger(null);
@@ -520,8 +530,12 @@ export default function DriverDashboard() {
                 <Switch
                   checked={isOnline}
                   onCheckedChange={(val) => {
-                    if (val) { localStorage.setItem('driver_is_online', 'true'); }
-                    else { localStorage.removeItem('driver_is_online'); }
+                    if (val) {
+                      localStorage.setItem('driver_is_online', 'true');
+                      subscribeToPush();
+                    } else {
+                      localStorage.removeItem('driver_is_online');
+                    }
                     setIsOnline(val);
                   }}
                   className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"

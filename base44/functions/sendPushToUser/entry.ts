@@ -113,7 +113,7 @@ async function sendWebPush(subscription, payload) {
       'Authorization': authHeader,
       'Content-Type': 'application/octet-stream',
       'Content-Encoding': 'aes128gcm',
-      'TTL': '60',
+      'TTL': persistent ? '120' : '60',
     },
     body,
   });
@@ -131,20 +131,26 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     // Permite chamada por service role interno (automations) ou por usuário autenticado
-    let userId, title, body, type, url;
+    let userId, title, body, type, url, rideId, persistent;
     try {
       const b = await req.json();
       userId = b.userId || b.toUserId;
       title  = b.title;
       body   = b.body;
       type   = b.type ?? 'default';
-      url    = b.url ?? '/';
+      url    = b.url ?? '/DriverDashboard';
+      rideId = b.rideId ?? null;
+      persistent = b.persistent ?? false;
     } catch {
       return Response.json({ error: 'JSON inválido' }, { status: 400 });
     }
 
-    if (!userId || !title || !body) {
-      return Response.json({ error: 'userId, title e body são obrigatórios' }, { status: 400 });
+    if (!userId) {
+      return Response.json({ error: 'userId é obrigatório' }, { status: 400 });
+    }
+
+    if (type !== 'ride_offer_cancelled' && (!title || !body)) {
+      return Response.json({ error: 'title e body são obrigatórios' }, { status: 400 });
     }
 
     // Buscar subscription do usuário
@@ -153,7 +159,16 @@ Deno.serve(async (req) => {
 
     if (sub && VAPID_PUBLIC && VAPID_PRIVATE) {
       try {
-        const payload = JSON.stringify({ title, body, type, url, tag: `cd-${type}-${Date.now()}` });
+        const tag = rideId ? `ride-offer-${rideId}` : `cd-${type}-${Date.now()}`;
+        const payload = JSON.stringify({
+          title,
+          body,
+          type,
+          url,
+          rideId,
+          persistent,
+          tag,
+        });
         await sendWebPush(sub, payload);
         console.log(`[sendPushToUser] Web Push enviado para ${userId}`);
         return Response.json({ success: true, method: 'webpush' });

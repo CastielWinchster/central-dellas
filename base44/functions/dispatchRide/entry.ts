@@ -209,20 +209,34 @@ Deno.serve(async (req) => {
       offer_expires_at: expiresAt.toISOString()
     });
 
-    // Notificar motoristas próximas sobre nova corrida disponível
+    // Notificar motoristas (in-app + push em segundo plano com alerta contínuo)
     try {
-      const notifyPromises = nearbyDrivers.map(driver =>
+      const notifyTitle = rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!';
+      const notifyBody = `${resolvedPickupText || 'Origem'} → ${resolvedDropoffText || 'destino'}`;
+      const driverIds = nearbyDrivers.map((d) => d.driver_id);
+
+      const notifyPromises = driverIds.map((driverId) =>
         base44.asServiceRole.entities.Notification.create({
-          user_id: driver.driver_id,
-          title: rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!',
-        message: `${resolvedPickupText || 'Origem'} → ${resolvedDropoffText || 'destino'}`,
+          user_id: driverId,
+          title: notifyTitle,
+          message: notifyBody,
           type: 'ride',
           is_read: false,
           is_persistent: false,
         })
       );
       await Promise.allSettled(notifyPromises);
-      console.log(`[dispatchRide] ${nearbyDrivers.length} motoristas notificadas`);
+
+      base44.asServiceRole.functions
+        .invoke('notifyDriversOfRide', {
+          rideId: ride.id,
+          driverIds,
+          title: notifyTitle,
+          body: notifyBody,
+        })
+        .catch((err) => console.warn('[dispatchRide] notifyDriversOfRide:', err.message));
+
+      console.log(`[dispatchRide] ${driverIds.length} motoristas notificadas (in-app + push)`);
     } catch (notifyErr) {
       console.warn('[dispatchRide] Falha ao notificar motoristas:', notifyErr.message);
     }

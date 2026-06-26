@@ -68,6 +68,22 @@ Deno.serve(async (req) => {
             .filter(o => o.id !== offerId && (o.status === 'sent' || o.status === 'seen'))
             .map(o => base44.asServiceRole.entities.RideOffer.update(o.id, { status: 'expired' }))
         );
+
+        // Parar alertas push nas outras motoristas
+        const otherDriverIds = [...new Set(
+          allOffers
+            .map(o => o.driver_id)
+            .filter(id => id && id !== driver.id)
+        )];
+        await Promise.all(otherDriverIds.map(userId =>
+          base44.asServiceRole.functions.invoke('sendPushToUser', {
+            userId,
+            type: 'ride_offer_cancelled',
+            rideId,
+            title: 'Corrida indisponível',
+            body: 'Esta corrida já foi aceita por outra motorista.',
+          }).catch(() => {})
+        ));
       }
     }
 
