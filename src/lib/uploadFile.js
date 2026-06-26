@@ -17,6 +17,17 @@ function readFileAsBase64(file) {
   });
 }
 
+function extractInvokeError(err, response) {
+  return (
+    response?.data?.error
+    ?? response?.error
+    ?? err?.response?.data?.error
+    ?? err?.data?.error
+    ?? err?.message
+    ?? 'Erro desconhecido no upload'
+  );
+}
+
 /**
  * Envia arquivo para Supabase Storage via função serverless (não usa créditos base44).
  * @param {File} file
@@ -27,17 +38,22 @@ export async function uploadFileToStorage(file, folder = 'misc') {
   if (!file) throw new Error('Arquivo não informado');
 
   const fileBase64 = await readFileAsBase64(file);
-  const response = await base44.functions.invoke('uploadFile', {
-    fileBase64,
-    fileName: file.name || 'upload',
-    mimeType: file.type || 'application/octet-stream',
-    folder,
-  });
+
+  let response;
+  try {
+    response = await base44.functions.invoke('uploadFile', {
+      fileBase64,
+      fileName: file.name || 'upload',
+      mimeType: file.type || 'application/octet-stream',
+      folder,
+    });
+  } catch (err) {
+    throw new Error(extractInvokeError(err));
+  }
 
   const file_url = response?.data?.file_url ?? response?.file_url;
   if (!file_url) {
-    const message = response?.data?.error ?? response?.error ?? 'Servidor não retornou URL do arquivo';
-    throw new Error(message);
+    throw new Error(extractInvokeError(null, response));
   }
 
   return file_url;

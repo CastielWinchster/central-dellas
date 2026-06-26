@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClient } from 'npm:@supabase/supabase-js@2.49.8';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_PREFIXES = ['image/', 'audio/', 'application/pdf'];
@@ -9,9 +10,21 @@ function sanitizeFileName(name: string): string {
   return cleaned || 'upload';
 }
 
-function buildPublicUrl(supabaseUrl: string, bucket: string, path: string): string {
-  const encodedPath = path.split('/').map(encodeURIComponent).join('/');
-  return `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${encodedPath}`;
+function decodeBase64ToBytes(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function getSupabaseConfig() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim();
+  const serviceKey = (
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    ?? Deno.env.get('SUPABASE_SECRET_KEY')
+  )?.trim();
+  const bucket = Deno.env.get('SUPABASE_STORAGE_BUCKET')?.trim();
+  return { supabaseUrl, serviceKey, bucket };
 }
 
 Deno.serve(async (req) => {
@@ -23,12 +36,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const bucket = Deno.env.get('SUPABASE_STORAGE_BUCKET');
+    const { supabaseUrl, serviceKey, bucket } = getSupabaseConfig();
 
     if (!supabaseUrl || !serviceKey || !bucket) {
-      console.error('[uploadFile] Supabase não configurado');
+      console.error('[uploadFile] Supabase não configurado', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!serviceKey,
+        hasBucket: !!bucket,
+      });
       return Response.json({ error: 'Storage não configurado no servidor' }, { status: 500 });
     }
 
@@ -39,7 +54,13 @@ Deno.serve(async (req) => {
     }
 
     const normalizedBase64 = fileBase64.replace(/^data:[^;]+;base64,/, '');
-    const binary = Uint8Array.from(atob(normalizedBase64), (c) => c.charCodeAt(0));
+    let binary: Uint8Array;
+
+    try {
+      binary = decodeBase64ToBytes(normalizedBase64);
+    } catch {
+      return Response.json({ error: 'Arquivo inválido (base64 corrompido)' }, { status: 400 });
+    }
 
     if (binary.byteLength === 0) {
       return Response.json({ error: 'Arquivo vazio' }, { status: 400 });
@@ -58,26 +79,25 @@ Deno.serve(async (req) => {
     const safeName = sanitizeFileName(fileName);
     const storagePath = `${safeFolder}/${user.id}/${Date.now()}-${safeName}`;
 
-    const uploadRes = await fetch(
-      `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/${bucket}/${storagePath}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${serviceKey}`,
-          'Content-Type': type,
-          'x-upsert': 'true',
-        },
-        body: binary,
-      }
-    );
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
-    if (!uploadRes.ok) {
-      const detail = await uploadRes.text();
-      console.error('[uploadFile] Supabase erro:', uploadRes.status, detail);
-      return Response.json({ error: 'Falha ao enviar arquivo para o storage' }, { status: 502 });
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(storagePath, binary, { contentType: type, upsert: true });
+
+    if (uploadError) {
+      console.error('[uploadFile] Supabase upload erro:', uploadError.message);
+      return Response.json(
+        { error: uploadError.message || 'Falha ao enviar arquivo para o storage' },
+        { status: 502 }
+      );
     }
 
-    const file_url = buildPublicUrl(supabaseUrl, bucket, storagePath);
+    const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+    const file_url = publicData.publicUrl;
+
     return Response.json({ file_url });
   } catch (error) {
     console.error('[uploadFile] Erro:', error?.message || error);

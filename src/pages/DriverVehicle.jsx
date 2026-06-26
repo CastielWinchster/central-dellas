@@ -125,8 +125,12 @@ export default function DriverVehicle() {
       const msg = String(err?.message || '');
       if (msg.includes('limit of integrations')) {
         toast.error('Limite mensal de uploads atingido no plano. Faça upgrade para enviar novas fotos.');
+      } else if (msg.includes('Storage não configurado')) {
+        toast.error('Upload não configurado no servidor. Verifique os Secrets do Supabase.');
+      } else if (msg.includes('Invalid JWT') || msg.includes('apikey')) {
+        toast.error('Chave do Supabase inválida. Confira a Secret key nos Secrets.');
       } else {
-        toast.error('Erro ao fazer upload da foto. Tente novamente.');
+        toast.error(msg.length > 120 ? 'Erro ao fazer upload da foto. Tente novamente.' : msg);
       }
     } finally {
       setUploading(false);
