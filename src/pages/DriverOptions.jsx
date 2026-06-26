@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 
 export default function DriverOptions() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function DriverOptions() {
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'profiles');
       await base44.auth.updateMe({ photo_url: file_url });
       setUser(prev => ({ ...prev, photo_url: file_url }));
       toast.success('Foto atualizada!');

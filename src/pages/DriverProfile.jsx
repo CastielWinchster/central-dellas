@@ -11,6 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 
 export default function DriverProfile() {
   const [user, setUser] = useState(null);
@@ -37,7 +38,7 @@ export default function DriverProfile() {
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'profiles');
       await base44.auth.updateMe({ photo_url: file_url });
       setUser(prev => ({ ...prev, photo_url: file_url }));
       toast.success('Foto atualizada!');

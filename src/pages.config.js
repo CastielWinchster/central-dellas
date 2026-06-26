@@ -51,10 +51,8 @@ import AdminPanel from './pages/AdminPanel';
 import BlockedUsers from './pages/BlockedUsers';
 import CustomSignup from './pages/CustomSignup';
 import DriverDashboard from './pages/DriverDashboard';
-import DriverDocuments from './pages/DriverDocuments';
 import DriverOptions from './pages/DriverOptions';
 import DriverProfile from './pages/DriverProfile';
-import DriverRegistration from './pages/DriverRegistration';
 import Earnings from './pages/Earnings';
 import FavoriteDrivers from './pages/FavoriteDrivers';
 import FavoritePlaces from './pages/FavoritePlaces';
@@ -83,10 +81,8 @@ export const PAGES = {
     "BlockedUsers": BlockedUsers,
     "CustomSignup": CustomSignup,
     "DriverDashboard": DriverDashboard,
-    "DriverDocuments": DriverDocuments,
     "DriverOptions": DriverOptions,
     "DriverProfile": DriverProfile,
-    "DriverRegistration": DriverRegistration,
     "Earnings": Earnings,
     "FavoriteDrivers": FavoriteDrivers,
     "FavoritePlaces": FavoritePlaces,

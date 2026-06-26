@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 
 export default function ChatbotFloat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,12 +14,6 @@ export default function ChatbotFloat() {
   const [isTyping, setIsTyping] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [registrationMode, setRegistrationMode] = useState(null);
-  const [documentsCollected, setDocumentsCollected] = useState({
-    cnh: null,
-    comprovante: null,
-    crlv: null
-  });
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -47,26 +42,9 @@ export default function ChatbotFloat() {
       }, 500);
     };
 
-    const handleOpenForRegistration = (event) => {
-      const { step, message } = event.detail;
-      
-      setIsOpen(true);
-      setRegistrationMode('documents');
-      
-      setTimeout(() => {
-        setMessages([{
-          role: 'assistant',
-          content: message,
-          timestamp: new Date()
-        }]);
-      }, 300);
-    };
-
     window.addEventListener('openChatWithCode', handleOpenWithCode);
-    window.addEventListener('openDeliaForRegistration', handleOpenForRegistration);
     return () => {
       window.removeEventListener('openChatWithCode', handleOpenWithCode);
-      window.removeEventListener('openDeliaForRegistration', handleOpenForRegistration);
     };
   }, []);
 
@@ -125,86 +103,6 @@ export default function ChatbotFloat() {
       timestamp: new Date()
     }]);
 
-    // Detectar opção 1 ou 2 em modo de cadastro
-    const isOption1 = registrationMode === 'documents' && 
-                       (userMessage === '1' || userMessage.includes('opção 1') || 
-                        userMessage.includes('opcao 1') || userMessage.includes('tentar') || 
-                        userMessage.includes('nova foto'));
-    
-    const isOption2 = registrationMode === 'documents' && 
-                       (userMessage === '2' || userMessage.includes('opção 2') || 
-                        userMessage.includes('opcao 2') || userMessage.includes('manual') ||
-                        userMessage.includes('enviar assim'));
-
-    if (isOption1) {
-      // Limpar último anexo e pedir nova foto
-      const nextDoc = !documentsCollected.cnh ? 'cnh' :
-                      !documentsCollected.comprovante ? 'comprovante' : 'crlv';
-      
-      // Emitir evento para limpar erro na UI
-      window.dispatchEvent(new CustomEvent('clearDocumentError', { detail: { docType: nextDoc } }));
-
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: '📸 Sem problemas! Pode me mandar a nova foto por aqui mesmo.',
-        timestamp: new Date()
-      }]);
-      setIsTyping(false);
-      return;
-    }
-
-    if (isOption2) {
-      // AÇÃO SIMPLIFICADA - Apenas marcar como análise manual
-      try {
-        // Determinar qual documento está sendo processado
-        const nextDoc = !documentsCollected.cnh ? 'cnh' :
-                        !documentsCollected.comprovante ? 'comprovante' : 'crlv';
-        
-        // Marcar como coletado para análise manual (sem precisar do arquivo)
-        setDocumentsCollected(prev => ({ 
-          ...prev, 
-          [nextDoc]: { manual: true, verified: true } 
-        }));
-
-        // Emitir evento para atualizar UI
-        window.dispatchEvent(new CustomEvent('documentManualReview', {
-          detail: { docType: nextDoc }
-        }));
-
-        // Responder e pedir próximo documento IMEDIATAMENTE
-        const responses = {
-          cnh: '✅ **Recebido!** Já encaminhei sua CNH para nossa equipe conferir manualmente. Enquanto eles olham, vamos adiantar o resto?\n\n📸 Me envie agora uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).',
-          comprovante: '✅ **Recebido!** Comprovante enviado para análise manual.\n\n📸 Agora me envie o **CRLV-e** do veículo.',
-          crlv: '🎉 **Perfeito!** Todos os documentos foram recebidos e enviados para análise.\n\nAgora vá para a próxima etapa para tirar sua selfie!'
-        };
-
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: responses[nextDoc],
-          timestamp: new Date()
-        }]);
-
-        // Se terminou, fechar
-        if (nextDoc === 'crlv') {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('documentsComplete'));
-            setIsOpen(false);
-          }, 2000);
-        }
-      } catch (error) {
-        console.error('Erro:', error);
-        // Mesmo com erro, responder para não travar
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '✅ Recebido! Enviando para análise manual.\n\n📸 Pode me enviar o próximo documento.',
-          timestamp: new Date()
-        }]);
-      }
-      setIsTyping(false);
-      return;
-    }
-
-    // Modo normal com agente
     if (conversation) {
       try {
         await base44.agents.addMessage(conversation, {
@@ -247,15 +145,12 @@ export default function ChatbotFloat() {
     setIsTyping(true);
 
     try {
-      // Upload do arquivo
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'chat');
 
-      // Adicionar mensagem do usuário com preview
       const reader = new FileReader();
       reader.onload = async (e) => {
         const preview = e.target.result;
         
-        // Adicionar mensagem com imagem
         setMessages(prev => [...prev, {
           role: 'user',
           content: file.type === 'application/pdf' ? '📄 Documento enviado' : '📸 Foto enviada',
@@ -265,11 +160,7 @@ export default function ChatbotFloat() {
           timestamp: new Date()
         }]);
 
-        // Se estiver em modo de cadastro de documentos
-        if (registrationMode === 'documents') {
-          await handleDocumentRegistration(file_url, file.type);
-        } else if (conversation) {
-          // Modo normal de chat com agente
+        if (conversation) {
           if (file.type.startsWith('image/')) {
             const visionResult = await analyzeDocumentWithVision(file_url);
             await base44.agents.addMessage(conversation, {
@@ -294,77 +185,6 @@ export default function ChatbotFloat() {
       setIsTyping(false);
     } finally {
       setUploadingFile(false);
-    }
-  };
-
-  const handleDocumentRegistration = async (fileUrl, fileType) => {
-    try {
-      // Determinar qual documento está sendo enviado
-      const nextDoc = !documentsCollected.cnh ? 'cnh' :
-                      !documentsCollected.comprovante ? 'comprovante' :
-                      !documentsCollected.crlv ? 'crlv' : null;
-
-      if (!nextDoc) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '✅ Todos os documentos já foram coletados! Finalizando cadastro...',
-          timestamp: new Date()
-        }]);
-        setIsTyping(false);
-        return;
-      }
-
-      // Processar com Google Vision
-      const visionResult = await analyzeDocumentWithVision(fileUrl);
-      const user = await base44.auth.me();
-
-      if (visionResult.text && visionResult.text.length > 20) {
-        // Sucesso na leitura
-        setDocumentsCollected(prev => ({ ...prev, [nextDoc]: { url: fileUrl, verified: true } }));
-        
-        // Salvar no banco
-        await base44.entities.DriverRegistration.update(user.id, {
-          [`${nextDoc}_photo`]: fileUrl,
-          [`${nextDoc}_data`]: { extracted_text: visionResult.text }
-        });
-
-        // Próximo documento
-        const nextMessage = nextDoc === 'cnh' 
-          ? '✅ **Perfeito!** Consegui ler seus dados da CNH.\n\n📸 Agora me envie uma foto do seu **Comprovante de Residência** (conta de água, luz, telefone - últimos 3 meses).'
-          : nextDoc === 'comprovante'
-          ? '✅ **Ótimo!** Comprovante recebido.\n\n📸 Por último, me envie o **CRLV-e** do veículo.'
-          : '🎉 **Todos os documentos recebidos!**\n\nAgora preciso de uma **selfie sua** para confirmar sua identidade. Por favor, vá para a próxima etapa!';
-
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: nextMessage,
-          timestamp: new Date()
-        }]);
-
-        // Se terminou, avançar
-        if (nextDoc === 'crlv') {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('documentsComplete'));
-            setIsOpen(false);
-          }, 2000);
-        }
-      } else {
-        // Falha na leitura - oferecer análise manual
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '😕 A foto ficou um pouco borrada para mim.\n\n❓ Você quer:\n\n1️⃣ **Tentar enviar de novo** (tire outra foto)\n2️⃣ **Enviar assim mesmo** para nossa equipe analisar manualmente\n\nDigite **1** ou **2**',
-          timestamp: new Date()
-        }]);
-      }
-    } catch (error) {
-      console.error('Erro ao processar documento:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: '❌ Ocorreu um erro ao processar. Pode tentar enviar novamente?',
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsTyping(false);
     }
   };
 

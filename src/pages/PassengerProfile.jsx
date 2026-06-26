@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { useAuthUser } from '@/components/AuthGuard';
@@ -134,7 +135,7 @@ export default function PassengerProfile() {
     
     try {
       setSaving(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'profiles');
       
       const profileData = {
         full_name: formState.full_name || user.full_name,

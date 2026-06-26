@@ -8,6 +8,7 @@ import { Car, ArrowLeft, Camera, Loader2, Pencil, Power, X, Check } from 'lucide
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 
 const CATEGORY_LABELS = { standard: 'Padrão', premium: 'Premium', suv: 'SUV' };
 const CURRENT_YEAR = new Date().getFullYear();
@@ -110,7 +111,7 @@ export default function DriverVehicle() {
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'vehicles');
       if (!file_url) throw new Error('Servidor não retornou URL da foto');
 
       // Só confirma o preview quando o upload deu certo e temos uma URL real para salvar.

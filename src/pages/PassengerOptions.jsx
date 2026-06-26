@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/lib/uploadFile';
 import DeleteAccountDialog from '../components/DeleteAccountDialog';
 
 export default function PassengerOptions() {
@@ -24,7 +25,7 @@ export default function PassengerOptions() {
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const file_url = await uploadFileToStorage(file, 'profiles');
       await base44.auth.updateMe({ photo_url: file_url });
 
       // Sincroniza também a entidade UserProfile, se existir
