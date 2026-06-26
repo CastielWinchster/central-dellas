@@ -63,12 +63,13 @@ export default function Reports() {
       // Top motoristas
       const driverStats = {};
       completedRides.forEach(ride => {
-        if (ride.driver_id) {
-          if (!driverStats[ride.driver_id]) {
-            driverStats[ride.driver_id] = { rides: 0, revenue: 0 };
+        const driverId = ride.assigned_driver_id || ride.driver_id;
+        if (driverId) {
+          if (!driverStats[driverId]) {
+            driverStats[driverId] = { rides: 0, revenue: 0 };
           }
-          driverStats[ride.driver_id].rides++;
-          driverStats[ride.driver_id].revenue += ride.final_price || 0;
+          driverStats[driverId].rides++;
+          driverStats[driverId].revenue += ride.final_price || 0;
         }
       });
 

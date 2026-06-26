@@ -1,5 +1,5 @@
 // Service Worker da CentralDellas
-const CACHE_NAME = 'centraldellas-v1';
+const CACHE_NAME = 'centraldellas-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

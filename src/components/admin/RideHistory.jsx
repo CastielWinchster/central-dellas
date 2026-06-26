@@ -29,15 +29,26 @@ export default function RideHistory() {
       const allRides = await base44.entities.Ride.list('-created_date', 500);
       setRides(allRides);
 
-      // Carregar nomes de usuários (passageiras e motoristas) em lote
       const ids = new Set();
-      allRides.forEach(r => {
+      allRides.forEach((r) => {
         if (r.passenger_id) ids.add(r.passenger_id);
         if (r.assigned_driver_id) ids.add(r.assigned_driver_id);
       });
-      const users = await base44.entities.User.list('-created_date', 1000);
+
       const map = {};
-      users.forEach(u => { map[u.id] = u.full_name || u.email || 'Usuária'; });
+      if (ids.size > 0) {
+        try {
+          const res = await base44.functions.invoke('getUsersByIds', {
+            userIds: Array.from(ids),
+          });
+          const users = res.data?.users || {};
+          Object.entries(users).forEach(([id, info]) => {
+            map[id] = info.name || info.email || 'Usuária';
+          });
+        } catch (nameError) {
+          console.error('Error loading user names:', nameError);
+        }
+      }
       setUserMap(map);
 
       setLoading(false);
