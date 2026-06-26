@@ -73,7 +73,15 @@ export default function DriverVehicle() {
     setShowModal(true);
   };
 
+  // Libera blob URLs locais para evitar vazamento de memória
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
   const handleRemovePhoto = () => {
+    if (photoPreview && photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
     setFormData((p) => ({ ...p, photo_url: '' }));
     setPhotoPreview('');
     if (photoInputRef.current) photoInputRef.current.value = '';
@@ -95,31 +103,25 @@ export default function DriverVehicle() {
       return;
     }
 
-    const previousPreview = photoPreview;
-
-    // Preview local imediato — mantido mesmo após upload (evita cache CDN da URL antiga)
-    const localPreview = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Falha ao ler imagem'));
-      reader.readAsDataURL(file);
-    });
+    // Preview local imediato via blob URL — mantido durante e após o upload.
+    // NUNCA revertemos para a foto antiga: a imagem que a usuária vê é sempre a que ela escolheu.
+    const localPreview = URL.createObjectURL(file);
     setPhotoPreview(localPreview);
+    if (photoInputRef.current) photoInputRef.current.value = '';
 
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       if (!file_url) throw new Error('Servidor não retornou URL da foto');
 
+      // Guarda a URL final para salvar, mas o preview continua sendo o blob local (sem cache CDN).
       setFormData((p) => ({ ...p, photo_url: file_url }));
       toast.success('Foto carregada! Toque em Salvar para confirmar.');
     } catch (err) {
       console.error('[DriverVehicle] Erro no upload:', err);
-      setPhotoPreview(previousPreview);
       toast.error('Erro ao fazer upload da foto. Tente novamente.');
     } finally {
       setUploading(false);
-      if (photoInputRef.current) photoInputRef.current.value = '';
     }
   };
 
