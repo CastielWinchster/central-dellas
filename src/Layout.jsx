@@ -113,7 +113,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: 'Opções', icon: Settings, page: 'DriverOptions' }
   ];
 
-  const isDriverPage = ['DriverDashboard', 'AvailableRides', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
+  const isDriverPage = ['DriverDashboard', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
 
   // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
   useEffect(() => {

@@ -5,7 +5,7 @@ import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
-  Car, Power, MapPin, Clock, DollarSign, Star, 
+  Car, Power, Clock, DollarSign, Star, 
   TrendingUp, Users, ChevronRight, Bell, Shield,
   Navigation, CheckCircle, XCircle, Wallet
 } from 'lucide-react';
@@ -739,16 +739,6 @@ export default function DriverDashboard() {
               <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
                 <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Ações Rápidas</h3>
                 <div className="space-y-3">
-                  <Link to={createPageUrl('AvailableRides')}>
-                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-[#F22998]" />
-                        <span className="text-[#F2F2F2]">Ver Corridas Disponíveis</span>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
-                    </button>
-                  </Link>
-                  
                   <Link to={createPageUrl('Earnings')}>
                     <button className="w-full flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors group">
                       <div className="flex items-center gap-3">
