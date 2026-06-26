@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,18 @@ const CATEGORY_LABELS = { standard: 'Padrão', premium: 'Premium', suv: 'SUV' };
 const CURRENT_YEAR = new Date().getFullYear();
 const EMPTY_FORM = { brand: '', model: '', plate: '', year: '', color: '', category: 'standard', photo_url: '' };
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+function withCacheBust(url) {
+  if (!url || url.startsWith('data:')) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}v=${Date.now()}`;
+}
+
+function extractFileUrl(result) {
+  return result?.file_url ?? result?.data?.file_url ?? null;
+}
+
 export default function DriverVehicle() {
   const [user, setUser] = useState(null);
   const [vehicle, setVehicle] = useState(null);
@@ -20,8 +32,10 @@ export default function DriverVehicle() {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
+  const [photoPreview, setPhotoPreview] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const photoInputRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -42,6 +56,7 @@ export default function DriverVehicle() {
 
   const openCreate = () => {
     setFormData(EMPTY_FORM);
+    setPhotoPreview('');
     setIsEditing(false);
     setShowModal(true);
   };
@@ -56,6 +71,7 @@ export default function DriverVehicle() {
       category: vehicle.category || 'standard',
       photo_url: vehicle.photo_url || '',
     });
+    setPhotoPreview(vehicle.photo_url ? withCacheBust(vehicle.photo_url) : '');
     setIsEditing(true);
     setShowModal(true);
   };
@@ -63,14 +79,47 @@ export default function DriverVehicle() {
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione uma imagem (JPG, PNG ou WEBP)');
+      if (photoInputRef.current) photoInputRef.current.value = '';
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error('Imagem muito grande (máx. 10MB)');
+      if (photoInputRef.current) photoInputRef.current.value = '';
+      return;
+    }
+
+    const previousPhotoUrl = formData.photo_url;
+
+    // Preview imediato — motorista vê a foto antes do upload terminar
+    const localPreview = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Falha ao ler imagem'));
+      reader.readAsDataURL(file);
+    });
+    setPhotoPreview(localPreview);
+
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(p => ({ ...p, photo_url: file_url }));
-    } catch {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const file_url = extractFileUrl(result);
+      if (!file_url) throw new Error('Servidor não retornou URL da foto');
+
+      setFormData((p) => ({ ...p, photo_url: file_url }));
+      setPhotoPreview(withCacheBust(file_url));
+      toast.success('Foto carregada!');
+    } catch (err) {
+      console.error('[DriverVehicle] Erro no upload:', err);
+      setPhotoPreview(previousPhotoUrl ? withCacheBust(previousPhotoUrl) : '');
       toast.error('Erro ao fazer upload da foto');
+    } finally {
+      setUploading(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
     }
-    setUploading(false);
   };
 
   const handleSave = async () => {
@@ -91,7 +140,7 @@ export default function DriverVehicle() {
         plate: formData.plate.trim().toUpperCase(),
         ...(yearNum && { year: yearNum }),
         ...(formData.color.trim() && { color: formData.color.trim() }),
-        ...(formData.photo_url && { photo_url: formData.photo_url }),
+        photo_url: formData.photo_url || null,
         category: formData.category,
       };
 
@@ -104,7 +153,10 @@ export default function DriverVehicle() {
       }
 
       const vehicles = await base44.entities.Vehicle.filter({ driver_id: user.id });
-      setVehicle(vehicles[0] || null);
+      const saved = isEditing && vehicle
+        ? vehicles.find((v) => v.id === vehicle.id) || vehicles[0]
+        : vehicles[0];
+      setVehicle(saved || null);
       setShowModal(false);
     } catch (err) {
       console.error('Erro ao salvar veículo:', err);
@@ -181,7 +233,12 @@ export default function DriverVehicle() {
             <Card className="bg-[#1A1A1A] border-[#F22998]/30 rounded-3xl overflow-hidden">
               {vehicle.photo_url ? (
                 <div className="w-full h-52 overflow-hidden">
-                  <img src={vehicle.photo_url} alt="Foto do veículo" className="w-full h-full object-cover" />
+                  <img
+                    key={vehicle.photo_url}
+                    src={withCacheBust(vehicle.photo_url)}
+                    alt="Foto do veículo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               ) : (
                 <div className="w-full h-36 bg-[#F22998]/5 flex items-center justify-center">
@@ -271,15 +328,27 @@ export default function DriverVehicle() {
                 <div>
                   <label className="text-sm text-[#F2F2F2]/60 mb-2 block">Foto do veículo</label>
                   <div className="flex items-center gap-4">
-                    {formData.photo_url ? (
-                      <img src={formData.photo_url} alt="Veículo" className="w-28 h-18 h-16 object-cover rounded-xl border border-[#F22998]/30" />
+                    {photoPreview ? (
+                      <img
+                        key={photoPreview}
+                        src={photoPreview}
+                        alt="Veículo"
+                        className="w-28 h-16 object-cover rounded-xl border border-[#F22998]/30 flex-shrink-0"
+                      />
                     ) : (
                       <div className="w-24 h-16 rounded-xl border border-dashed border-[#F22998]/30 bg-[#F22998]/5 flex items-center justify-center flex-shrink-0">
                         <Car className="w-8 h-8 text-[#F22998]/30" />
                       </div>
                     )}
                     <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#F22998]/30 text-[#F22998] text-sm cursor-pointer hover:bg-[#F22998]/10 transition-colors">
-                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/*"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={uploading}
+                      />
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                       {uploading ? 'Enviando...' : 'Escolher foto'}
                     </label>
