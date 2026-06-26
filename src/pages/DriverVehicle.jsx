@@ -15,14 +15,10 @@ const EMPTY_FORM = { brand: '', model: '', plate: '', year: '', color: '', categ
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
-function withCacheBust(url) {
-  if (!url || url.startsWith('data:')) return url;
+function withCacheBust(url, version) {
+  if (!url || url.startsWith('data:') || url.startsWith('blob:')) return url;
   const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}v=${Date.now()}`;
-}
-
-function extractFileUrl(result) {
-  return result?.file_url ?? result?.data?.file_url ?? null;
+  return `${url}${sep}v=${version}`;
 }
 
 export default function DriverVehicle() {
@@ -33,6 +29,7 @@ export default function DriverVehicle() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [photoVersion, setPhotoVersion] = useState(0);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const photoInputRef = useRef(null);
@@ -71,9 +68,15 @@ export default function DriverVehicle() {
       category: vehicle.category || 'standard',
       photo_url: vehicle.photo_url || '',
     });
-    setPhotoPreview(vehicle.photo_url ? withCacheBust(vehicle.photo_url) : '');
+    setPhotoPreview(vehicle.photo_url ? withCacheBust(vehicle.photo_url, photoVersion) : '');
     setIsEditing(true);
     setShowModal(true);
+  };
+
+  const handleRemovePhoto = () => {
+    setFormData((p) => ({ ...p, photo_url: '' }));
+    setPhotoPreview('');
+    if (photoInputRef.current) photoInputRef.current.value = '';
   };
 
   const handlePhotoUpload = async (e) => {
@@ -92,9 +95,9 @@ export default function DriverVehicle() {
       return;
     }
 
-    const previousPhotoUrl = formData.photo_url;
+    const previousPreview = photoPreview;
 
-    // Preview imediato — motorista vê a foto antes do upload terminar
+    // Preview local imediato — mantido mesmo após upload (evita cache CDN da URL antiga)
     const localPreview = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -105,17 +108,15 @@ export default function DriverVehicle() {
 
     setUploading(true);
     try {
-      const result = await base44.integrations.Core.UploadFile({ file });
-      const file_url = extractFileUrl(result);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       if (!file_url) throw new Error('Servidor não retornou URL da foto');
 
       setFormData((p) => ({ ...p, photo_url: file_url }));
-      setPhotoPreview(withCacheBust(file_url));
-      toast.success('Foto carregada!');
+      toast.success('Foto carregada! Toque em Salvar para confirmar.');
     } catch (err) {
       console.error('[DriverVehicle] Erro no upload:', err);
-      setPhotoPreview(previousPhotoUrl ? withCacheBust(previousPhotoUrl) : '');
-      toast.error('Erro ao fazer upload da foto');
+      setPhotoPreview(previousPreview);
+      toast.error('Erro ao fazer upload da foto. Tente novamente.');
     } finally {
       setUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -152,11 +153,14 @@ export default function DriverVehicle() {
         toast.success('Veículo cadastrado!');
       }
 
+      const nextPhotoUrl = formData.photo_url || null;
       const vehicles = await base44.entities.Vehicle.filter({ driver_id: user.id });
       const saved = isEditing && vehicle
         ? vehicles.find((v) => v.id === vehicle.id) || vehicles[0]
         : vehicles[0];
-      setVehicle(saved || null);
+      setVehicle(saved ? { ...saved, photo_url: nextPhotoUrl ?? saved.photo_url } : null);
+      setPhotoVersion((v) => v + 1);
+      setPhotoPreview('');
       setShowModal(false);
     } catch (err) {
       console.error('Erro ao salvar veículo:', err);
@@ -234,8 +238,8 @@ export default function DriverVehicle() {
               {vehicle.photo_url ? (
                 <div className="w-full h-52 overflow-hidden">
                   <img
-                    key={vehicle.photo_url}
-                    src={withCacheBust(vehicle.photo_url)}
+                    key={`${vehicle.photo_url}-${photoVersion}`}
+                    src={withCacheBust(vehicle.photo_url, photoVersion)}
                     alt="Foto do veículo"
                     className="w-full h-full object-cover"
                   />
@@ -340,18 +344,30 @@ export default function DriverVehicle() {
                         <Car className="w-8 h-8 text-[#F22998]/30" />
                       </div>
                     )}
-                    <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#F22998]/30 text-[#F22998] text-sm cursor-pointer hover:bg-[#F22998]/10 transition-colors">
-                      <input
-                        ref={photoInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/*"
-                        className="hidden"
-                        onChange={handlePhotoUpload}
-                        disabled={uploading}
-                      />
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                      {uploading ? 'Enviando...' : 'Escolher foto'}
-                    </label>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#F22998]/30 text-[#F22998] text-sm cursor-pointer hover:bg-[#F22998]/10 transition-colors">
+                        <input
+                          ref={photoInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/*"
+                          className="hidden"
+                          onChange={handlePhotoUpload}
+                          disabled={uploading}
+                        />
+                        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                        {uploading ? 'Enviando...' : 'Escolher foto'}
+                      </label>
+                      {photoPreview && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          disabled={uploading || saving}
+                          className="text-xs text-[#F2F2F2]/50 hover:text-red-400 transition-colors text-left"
+                        >
+                          Remover foto
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
