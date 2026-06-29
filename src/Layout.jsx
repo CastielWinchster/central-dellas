@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { useAuthUser } from '@/components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
-import { useNotifications, subscribeToPush } from '@/hooks/useNotifications';
+import { useNotifications, subscribeToPush, ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import NotificationToast from './components/NotificationToast';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -114,9 +114,28 @@ function LayoutContent({ children, currentPageName }) {
   useEffect(() => {
     if (!user) return;
     const delay = isDriverUser || isDriverPage ? 500 : 3000;
-    const timer = setTimeout(() => subscribeToPush(), delay);
+    const register = () => {
+      if (isDriverUser || isDriverPage) {
+        ensureDriverPushSubscription();
+      } else {
+        subscribeToPush();
+      }
+    };
+    const timer = setTimeout(register, delay);
     return () => clearTimeout(timer);
   }, [user?.id, isDriverUser, isDriverPage]);
+
+  // Revalidar push quando motorista volta ao app (TWA / mobile)
+  useEffect(() => {
+    if (!user || !isDriverUser) return;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        ensureDriverPushSubscription();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [user?.id, isDriverUser]);
 
   // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
   useEffect(() => {

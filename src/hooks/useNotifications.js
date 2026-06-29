@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 
-// Sons via Web Audio API (sem arquivos externos)
 function createNotificationSound(type = 'default') {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,66 +29,88 @@ function createNotificationSound(type = 'default') {
       oscillator.start(ctx.currentTime);
       oscillator.stop(ctx.currentTime + 0.3);
     }
-  } catch (e) {
-    // AudioContext não disponível — silencioso
+  } catch {
+    // AudioContext indisponível
   }
 }
 
-// Vibração via Vibration API
 function vibrate(type = 'default') {
   if (!navigator.vibrate) return;
-  if (type === 'ride')         navigator.vibrate([200, 100, 200, 100, 400]);
+  if (type === 'ride') navigator.vibrate([200, 100, 200, 100, 400]);
   else if (type === 'message') navigator.vibrate([100, 50, 100]);
-  else                         navigator.vibrate([150, 100, 150]);
+  else navigator.vibrate([150, 100, 150]);
 }
 
-// Helper: converte chave VAPID base64 para Uint8Array
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
-  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-// Inscrever usuário no Web Push e salvar subscription no backend
-export async function subscribeToPush() {
+/**
+ * Inscreve (ou revalida) Web Push e salva subscription no backend.
+ * Idempotente — seguro chamar ao abrir app, ficar online ou voltar do segundo plano.
+ */
+export async function subscribeToPush(options = {}) {
+  const { requestPermission = false } = options;
+
   try {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
-
-    const reg = await navigator.serviceWorker.ready;
-    const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-
-    if (!VAPID_PUBLIC) {
-      console.warn('[Push] VITE_VAPID_PUBLIC_KEY não configurada — push em segundo plano desativado');
-      return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return { ok: false, reason: 'unsupported' };
     }
 
-    const subscription = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
-    });
+    const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!VAPID_PUBLIC) {
+      console.warn('[Push] VITE_VAPID_PUBLIC_KEY não configurada');
+      return { ok: false, reason: 'no_vapid' };
+    }
 
-    // Enviar subscription ao backend via SDK
-    await base44.functions.invoke('savePushToken', { subscription });
-    console.log('[Push] Inscrito com sucesso');
+    let permission = Notification.permission;
+    if (permission === 'default' && requestPermission) {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== 'granted') {
+      return { ok: false, reason: permission === 'denied' ? 'denied' : 'not_granted' };
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    let subscription = await reg.pushManager.getSubscription();
+    const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC);
+
+    if (!subscription) {
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appServerKey,
+      });
+    }
+
+    await base44.functions.invoke('savePushToken', { subscription: subscription.toJSON() });
+    console.log('[Push] Inscrição salva no servidor');
+    return { ok: true };
   } catch (err) {
     console.warn('[Push] Falha na inscrição:', err.message);
+    return { ok: false, reason: err.message };
   }
+}
+
+/** Pede permissão explicitamente (ex.: ao ficar online como motorista) */
+export async function ensureDriverPushSubscription() {
+  const first = await subscribeToPush({ requestPermission: true });
+  if (first.ok || first.reason === 'denied') return first;
+  return subscribeToPush({ requestPermission: false });
 }
 
 export function useNotifications(userId) {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount]     = useState(0);
-  const [toastQueue, setToastQueue]       = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [toastQueue, setToastQueue] = useState([]);
 
   const pushToast = useCallback((notification) => {
     const toast = { ...notification, toastId: Date.now() };
-    setToastQueue(q => [...q, toast]);
+    setToastQueue((q) => [...q, toast]);
     setTimeout(() => {
-      setToastQueue(q => q.filter(t => t.toastId !== toast.toastId));
+      setToastQueue((q) => q.filter((t) => t.toastId !== toast.toastId));
     }, 5000);
   }, []);
 
@@ -102,7 +123,7 @@ export function useNotifications(userId) {
     pushToast(notification);
 
     if (Notification?.permission === 'granted') {
-      new Notification('CentralDellas 🚗', {
+      new Notification(notification.title || 'CentralDellas 🚗', {
         body: notification.message || notification.title,
         icon: '/favicon.ico',
         badge: '/favicon.ico',
@@ -118,10 +139,10 @@ export function useNotifications(userId) {
       const data = await base44.entities.Notification.filter(
         { user_id: userId },
         '-created_date',
-        30
+        30,
       );
       setNotifications(data);
-      setUnreadCount(data.filter(n => !n.is_read).length);
+      setUnreadCount(data.filter((n) => !n.is_read).length);
       return data;
     } catch (e) {
       console.error('[useNotifications]', e);
@@ -135,18 +156,16 @@ export function useNotifications(userId) {
     const seenIds = new Set();
     let initialized = false;
 
-    // 1. Carregar histórico PRIMEIRO para popular seenIds
     const loadInitial = async () => {
       try {
         const data = await base44.entities.Notification.filter(
           { user_id: userId },
           '-created_date',
-          30
+          30,
         );
         setNotifications(data);
-        setUnreadCount(data.filter(n => !n.is_read).length);
-        // CRÍTICO: marcar todos os IDs já existentes como vistos ANTES de inicializar
-        data.forEach(n => seenIds.add(n.id));
+        setUnreadCount(data.filter((n) => !n.is_read).length);
+        data.forEach((n) => seenIds.add(n.id));
       } catch (e) {
         console.error('[useNotifications]', e);
       } finally {
@@ -156,15 +175,14 @@ export function useNotifications(userId) {
 
     loadInitial();
 
-    // 2. Subscribe — só processa eventos APÓS load inicial E se não for duplicata
     const unsub = base44.entities.Notification.subscribe((event) => {
       if (!initialized) return;
       if (event.type === 'create' && event.data?.user_id === userId) {
         const newNotif = event.data;
-        if (seenIds.has(newNotif.id)) return; // ignorar duplicata
+        if (seenIds.has(newNotif.id)) return;
         seenIds.add(newNotif.id);
-        setNotifications(prev => [newNotif, ...prev]);
-        setUnreadCount(prev => prev + 1);
+        setNotifications((prev) => [newNotif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
         handleNewNotification(newNotif);
       }
     });
@@ -174,20 +192,32 @@ export function useNotifications(userId) {
 
   const markAsRead = useCallback(async (notifId) => {
     await base44.entities.Notification.update(notifId, { is_read: true }).catch(() => {});
-    setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, is_read: true } : n));
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setNotifications((prev) => prev.map((n) => (n.id === notifId ? { ...n, is_read: true } : n)));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   }, []);
 
   const markAllAsRead = useCallback(async () => {
-    const unread = notifications.filter(n => !n.is_read);
-    await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true }).catch(() => {})));
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    const unread = notifications.filter((n) => !n.is_read);
+    await Promise.all(
+      unread.map((n) => base44.entities.Notification.update(n.id, { is_read: true }).catch(() => {})),
+    );
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);
   }, [notifications]);
 
   const dismissToast = useCallback((toastId) => {
-    setToastQueue(q => q.filter(t => t.toastId !== toastId));
+    setToastQueue((q) => q.filter((t) => t.toastId !== toastId));
   }, []);
 
-  return { notifications, setNotifications, unreadCount, setUnreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast, reload: loadNotifications };
+  return {
+    notifications,
+    setNotifications,
+    unreadCount,
+    setUnreadCount,
+    toastQueue,
+    markAsRead,
+    markAllAsRead,
+    dismissToast,
+    reload: loadNotifications,
+  };
 }

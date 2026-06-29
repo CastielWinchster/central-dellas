@@ -762,11 +762,20 @@ export default function RequestRide() {
         return true;
       }
 
-      if (rideData.status === 'expired' || rideData.status === 'cancelled') {
+      if (rideData.status === 'cancelled') {
         stopRidePolling();
         clearActiveRide();
         setSearchStatusMessage('');
-        toast.error('Nenhuma motorista aceitou sua corrida');
+        toast.info('Busca cancelada');
+        setStep('options');
+        return true;
+      }
+
+      if (rideData.status === 'expired') {
+        stopRidePolling();
+        clearActiveRide();
+        setSearchStatusMessage('');
+        toast.error('Nenhuma motorista aceitou a tempo. Tente novamente em instantes.');
         setStep('options');
         return true;
       }

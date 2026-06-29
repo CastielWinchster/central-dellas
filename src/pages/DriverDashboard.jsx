@@ -18,7 +18,7 @@ import RideOfferModal from '../components/driver/RideOfferModal';
 
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
-import { subscribeToPush } from '@/hooks/useNotifications';
+import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -398,7 +398,7 @@ export default function DriverDashboard() {
   }, [isOnline, user]);
 
   useEffect(() => {
-    if (user && isOnline) subscribeToPush();
+    if (user && isOnline) ensureDriverPushSubscription();
   }, [user, isOnline]);
   
   const handleAcceptOffer = async (offer, ride, driverConfirmedPrice) => {
@@ -540,7 +540,7 @@ export default function DriverDashboard() {
                   onCheckedChange={(val) => {
                     if (val) {
                       localStorage.setItem('driver_is_online', 'true');
-                      subscribeToPush();
+                      ensureDriverPushSubscription();
                     } else {
                       localStorage.removeItem('driver_is_online');
                     }

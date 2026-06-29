@@ -1,5 +1,5 @@
 // Service Worker da CentralDellas
-const CACHE_NAME = 'centraldellas-v3';
+const CACHE_NAME = 'centraldellas-v4';
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const activeRideAlerts = new Map();
 

@@ -9,16 +9,17 @@ Deno.serve(async (req) => {
     const { subscription } = await req.json();
     if (!subscription) return Response.json({ error: 'subscription required' }, { status: 400 });
 
-    const existing = await base44.entities.UserPreferences.filter({ user_id: user.id });
-    const subStr = JSON.stringify(subscription);
+    const subStr = typeof subscription === 'string' ? subscription : JSON.stringify(subscription);
+
+    const existing = await base44.asServiceRole.entities.UserPreferences.filter({ user_id: user.id });
 
     if (existing.length > 0) {
-      await base44.entities.UserPreferences.update(existing[0].id, {
+      await base44.asServiceRole.entities.UserPreferences.update(existing[0].id, {
         push_subscription: subStr,
         push_enabled: true,
       });
     } else {
-      await base44.entities.UserPreferences.create({
+      await base44.asServiceRole.entities.UserPreferences.create({
         user_id: user.id,
         push_subscription: subStr,
         push_enabled: true,

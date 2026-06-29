@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
+import { toBrasiliaDateFull } from '@/utils/dateUtils';
 
 // Retorna data no formato YYYY-MM-DD no fuso local
 function toDateInput(d) {
@@ -220,7 +221,7 @@ export default function RideHistory() {
                   )}
                   <div className="flex items-center gap-1 text-[#F2F2F2]/60 text-xs">
                     <Clock className="w-3 h-3" />
-                    <span>{new Date(ride.created_date).toLocaleString('pt-BR')}</span>
+                    <span>{toBrasiliaDateFull(ride.created_date)}</span>
                   </div>
                 </div>
               </div>
