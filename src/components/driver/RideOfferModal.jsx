@@ -17,6 +17,9 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
   const [rejecting, setRejecting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
   const [showPriceValidation, setShowPriceValidation] = useState(false);
+  const isCustomPrice = ride?.is_custom_price || ride?.is_intercity;
+  const systemPrice = Number(ride?.agreed_price ?? ride?.estimated_price ?? 0) || 0;
+  const formattedPrice = systemPrice.toFixed(2).replace('.', ',');
   const eta = calcOfferEta(offer.distance_km);
   
   // Countdown
@@ -35,8 +38,14 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
     return () => clearInterval(interval);
   }, [offer.expires_at, onClose]);
   
-  const handleAcceptClick = () => {
-    // Abrir modal de validação de preço ANTES de aceitar
+  const handleAcceptClick = async () => {
+    // Corridas com preço calculado: aceitar direto (sem digitar valor)
+    if (!isCustomPrice) {
+      setAccepting(true);
+      await onAccept(offer, ride, systemPrice);
+      setAccepting(false);
+      return;
+    }
     setShowPriceValidation(true);
   };
 
@@ -60,7 +69,6 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
     {showPriceValidation && (
       <PriceValidationModal
         ride={ride}
-        offer={offer}
         onValidated={handlePriceValidated}
         onCancel={() => setShowPriceValidation(false)}
       />
@@ -157,7 +165,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">
                 <DollarSign className="w-5 h-5 text-[#F22998] mx-auto mb-1" />
                 <p className="text-xs text-[#F2F2F2]/60">Ganho</p>
-                <p className="font-bold text-[#F2F2F2]">R$ {ride.estimated_price}</p>
+                <p className="font-bold text-[#F2F2F2]">R$ {formattedPrice}</p>
               </div>
             </div>
             

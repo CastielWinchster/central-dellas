@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, AlertCircle, Check, X, Lock, ShieldAlert } from 'lucide-react';
+import { AlertCircle, Check, X, Lock, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 const TOLERANCE = 0.10; // ±10%
 const MAX_ATTEMPTS = 3;
 const BLOCK_MINUTES = 5;
 
-export default function PriceValidationModal({ ride, offer, onValidated, onCancel }) {
+function rideSystemPrice(ride) {
+  const raw = ride?.agreed_price ?? ride?.estimated_price ?? 0;
+  return Number(raw) || 0;
+}
+
+export default function PriceValidationModal({ ride, onValidated, onCancel }) {
   const [priceInput, setPriceInput] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -18,7 +22,7 @@ export default function PriceValidationModal({ ride, offer, onValidated, onCance
   const [error, setError] = useState('');
 
   const isCustomPrice = ride?.is_custom_price || ride?.is_intercity;
-  const systemPrice = ride?.agreed_price || ride?.estimated_price || 0;
+  const systemPrice = rideSystemPrice(ride);
 
   const handlePriceChange = (e) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -65,38 +69,18 @@ export default function PriceValidationModal({ ride, offer, onValidated, onCance
       }
 
       if (valid) {
-        // Salvar validação no banco
-        await base44.entities.Ride.update(ride.id, {
-          driver_confirmed_price: price,
-          price_validation_attempts: (ride.price_validation_attempts || 0) + 1,
-          price_validated_at: new Date().toISOString(),
-        });
+        // Preço é persistido em acceptRideOffer (service role) — não atualizar Ride aqui (RLS bloqueia antes do aceite)
         toast.success('✅ Valor confirmado!');
         onValidated(price);
       } else {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
 
-        // Registrar tentativa no banco
-        await base44.entities.Ride.update(ride.id, {
-          price_validation_attempts: (ride.price_validation_attempts || 0) + 1,
-        });
-
         if (newAttempts >= MAX_ATTEMPTS) {
           const until = new Date(Date.now() + BLOCK_MINUTES * 60 * 1000);
           setBlocked(true);
           setBlockUntil(until);
           setError(`❌ 3 tentativas incorretas. Aguarde ${BLOCK_MINUTES} minutos.`);
-          // Notificar admin
-          try {
-            await base44.entities.Notification.create({
-              user_id: 'admin',
-              title: '⚠️ Tentativas de fraude detectadas',
-              message: `Motorista tentou ${MAX_ATTEMPTS}x com valores incorretos na corrida ${ride.id}`,
-              type: 'system',
-              is_persistent: true,
-            });
-          } catch (e) {}
         } else {
           setError(`${validationMsg} (Tentativa ${newAttempts}/${MAX_ATTEMPTS})`);
         }
