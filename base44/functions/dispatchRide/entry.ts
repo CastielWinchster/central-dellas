@@ -1,23 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { assignDriversToRide, calculateDistance } from '../_shared/rideDispatch.ts';
 
-// Calcular distância Haversine
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+const MAX_DISTANCE_KM = 150;
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Autenticar usuário
     let user;
     try {
       user = await base44.auth.me();
@@ -30,13 +19,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    console.log(`[dispatchRide] Usuário autenticado: ${user.id} (${user.email})`);
-
     const body = await req.json();
     const {
       pickupLat,
       pickupLng,
-      pickupText,  pickup_text,
+      pickupText, pickup_text,
       dropoffLat,
       dropoffLng,
       dropoffText, dropoff_text,
@@ -51,7 +38,6 @@ Deno.serve(async (req) => {
       paymentMethod,
     } = body;
 
-    // Aceitar tanto pickupText quanto pickup_text (compatibilidade)
     const resolvedPickupText = pickupText || pickup_text;
     const resolvedDropoffText = dropoffText || dropoff_text;
 
@@ -59,23 +45,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
 
-    // ── VALIDAÇÃO DE DISTÂNCIA MÁXIMA (linha de defesa no backend) ──────────
-    const MAX_DISTANCE_KM = 150; // bloqueio absoluto acima de 150km
     const straightLineDistance = calculateDistance(pickupLat, pickupLng, dropoffLat, dropoffLng);
-    console.log(`[dispatchRide] Distância em linha reta: ${straightLineDistance.toFixed(1)} km`);
-
     if (straightLineDistance > MAX_DISTANCE_KM) {
-      console.warn(`[dispatchRide] BLOQUEADO: distância ${straightLineDistance.toFixed(1)} km excede limite de ${MAX_DISTANCE_KM} km`);
       return Response.json({
         success: false,
-        error: `Corrida não permitida: distância de ${straightLineDistance.toFixed(1)} km excede o limite de ${MAX_DISTANCE_KM} km. Entre em contato pelo WhatsApp para corridas de longa distância.`,
-        distance_km: parseFloat(straightLineDistance.toFixed(1))
+        error: `Corrida não permitida: distância de ${straightLineDistance.toFixed(1)} km excede o limite de ${MAX_DISTANCE_KM} km.`,
+        distance_km: parseFloat(straightLineDistance.toFixed(1)),
       }, { status: 400 });
     }
-    // ────────────────────────────────────────────────────────────────────────
 
-    // Criar corrida via asServiceRole (RLS create = null, sem restrição)
-    console.log('[dispatchRide] Criando corrida para passenger_id:', user.id);
     let ride;
     try {
       ride = await base44.asServiceRole.entities.Ride.create({
@@ -104,154 +82,19 @@ Deno.serve(async (req) => {
 
     console.log(`[dispatchRide] Corrida criada: ${ride.id}`);
 
-    // Buscar motoristas ONLINE E COM SWITCH LIGADO (is_available + is_online)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    let onlineDrivers = [];
-    try {
-      // CRÍTICO: exige is_available=true (switch ligado) E is_online=true
-      const byOnline = await base44.asServiceRole.entities.DriverPresence.filter({
-        is_available: true,
-        is_online: true,
-        last_seen_at: { $gte: fiveMinutesAgo }
-      });
-      onlineDrivers = byOnline;
-      console.log(`[dispatchRide] is_available+is_online (últimos 5min): ${onlineDrivers.length}`);
+    const dispatchResult = await assignDriversToRide(base44, ride);
 
-      // Fallback: tolerar lag de rede mas MANTER is_available obrigatório
-      if (onlineDrivers.length === 0) {
-        const byAvailableNoTime = await base44.asServiceRole.entities.DriverPresence.filter({
-          is_available: true,
-          is_online: true,
-        });
-        onlineDrivers = byAvailableNoTime;
-        console.log(`[dispatchRide] Fallback is_available+is_online sem tempo: ${onlineDrivers.length}`);
-      }
-
-      // Normalizar coordenadas
-      onlineDrivers = onlineDrivers.map(d => ({
-        ...d,
-        lat: d.lat ?? d.current_lat,
-        lng: d.lng ?? d.current_lng,
-      })).filter(d => d.lat != null && d.lng != null);
-
-      console.log(`[dispatchRide] Motoristas disponíveis com coordenadas: ${onlineDrivers.length}`);
-
-    } catch (e) {
-      console.warn('[dispatchRide] Não foi possível buscar DriverPresence:', e.message);
-    }
-
-    console.log(`[dispatchRide] Motoristas online: ${onlineDrivers.length}`);
-
-    if (onlineDrivers.length === 0) {
-      // Sem motoristas: corrida fica como 'requested' para aparecer na lista
-      return Response.json({
-        success: true,
-        message: 'No drivers found, ride is pending.',
-        ride: { id: ride.id, status: 'requested', offers_count: 0 }
-      });
-    }
-
-    // Filtrar por proximidade — raio expansivo: 5km → 8km → 12km
-    let nearbyDrivers = onlineDrivers
-      .map(d => ({ ...d, distance: calculateDistance(pickupLat, pickupLng, d.lat, d.lng) }))
-      .filter(d => d.distance <= 5);
-
-    if (nearbyDrivers.length === 0) {
-      nearbyDrivers = onlineDrivers
-        .map(d => ({ ...d, distance: calculateDistance(pickupLat, pickupLng, d.lat, d.lng) }))
-        .filter(d => d.distance <= 8);
-      if (nearbyDrivers.length > 0) {
-        await base44.asServiceRole.entities.Ride.update(ride.id, { search_radius_km: 8 });
-      }
-    }
-
-    if (nearbyDrivers.length === 0) {
-      nearbyDrivers = onlineDrivers
-        .map(d => ({ ...d, distance: calculateDistance(pickupLat, pickupLng, d.lat, d.lng) }))
-        .filter(d => d.distance <= 12);
-      if (nearbyDrivers.length > 0) {
-        await base44.asServiceRole.entities.Ride.update(ride.id, { search_radius_km: 12 });
-      }
-    }
-
-    if (nearbyDrivers.length === 0) {
-      // Nenhum motorista no raio de 12km — corrida fica como 'requested' (não expira imediatamente)
-      console.log(`[dispatchRide] Nenhum motorista em 12km. Corrida ${ride.id} permanece como 'requested'.`);
-      return Response.json({
-        success: true,
-        message: 'No drivers found, ride is pending.',
-        ride: { id: ride.id, status: 'requested', offers_count: 0 }
-      });
-    }
-
-    nearbyDrivers.sort((a, b) => a.distance - b.distance);
-    console.log(`[dispatchRide] Motoristas próximas: ${nearbyDrivers.length}`);
-
-    // Criar ofertas
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30000); // 30 segundos
-
-    const offerPromises = nearbyDrivers.map(driver =>
-      base44.asServiceRole.entities.RideOffer.create({
-        ride_id: ride.id,
-        driver_id: driver.driver_id,
-        status: 'sent',
-        sent_at: now.toISOString(),
-        expires_at: expiresAt.toISOString(),
-        distance_km: parseFloat(driver.distance.toFixed(2))
-      })
-    );
-
-    await Promise.all(offerPromises);
-
-    await base44.asServiceRole.entities.Ride.update(ride.id, {
-      status: 'assigned',
-      offer_expires_at: expiresAt.toISOString()
-    });
-
-    // Notificar motoristas (in-app + push em segundo plano com alerta contínuo)
-    try {
-      const notifyTitle = rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!';
-      const notifyBody = `${resolvedPickupText || 'Origem'} → ${resolvedDropoffText || 'destino'}`;
-      const driverIds = nearbyDrivers.map((d) => d.driver_id);
-
-      const notifyPromises = driverIds.map((driverId) =>
-        base44.asServiceRole.entities.Notification.create({
-          user_id: driverId,
-          title: notifyTitle,
-          message: notifyBody,
-          type: 'ride',
-          is_read: false,
-          is_persistent: false,
-        })
-      );
-      await Promise.allSettled(notifyPromises);
-
-      base44.asServiceRole.functions
-        .invoke('notifyDriversOfRide', {
-          rideId: ride.id,
-          driverIds,
-          title: notifyTitle,
-          body: notifyBody,
-        })
-        .catch((err) => console.warn('[dispatchRide] notifyDriversOfRide:', err.message));
-
-      console.log(`[dispatchRide] ${driverIds.length} motoristas notificadas (in-app + push)`);
-    } catch (notifyErr) {
-      console.warn('[dispatchRide] Falha ao notificar motoristas:', notifyErr.message);
-    }
-
-    // Registrar uso do cupom se foi aplicado
     if (couponCode) {
       try {
         const normalizedCode = couponCode.trim().replace(/\s+/g, '').toLowerCase();
         const allPromos = await base44.asServiceRole.entities.PromoCode.filter({ is_active: true });
-        const promo = allPromos.find(p => p.code.trim().replace(/\s+/g, '').toLowerCase() === normalizedCode);
+        const promo = allPromos.find(
+          (p) => p.code.trim().replace(/\s+/g, '').toLowerCase() === normalizedCode,
+        );
         if (promo) {
           await base44.asServiceRole.entities.PromoCode.update(promo.id, {
-            current_uses: (promo.current_uses || 0) + 1
+            current_uses: (promo.current_uses || 0) + 1,
           });
-          console.log('[dispatchRide] Cupom registrado:', promo.code, '| Usos:', (promo.current_uses || 0) + 1);
         }
       } catch (promoErr) {
         console.warn('[dispatchRide] Erro ao registrar cupom:', promoErr.message);
@@ -262,17 +105,13 @@ Deno.serve(async (req) => {
       success: true,
       ride: {
         id: ride.id,
-        status: 'assigned',
-        offers_count: nearbyDrivers.length,
-        expires_at: expiresAt.toISOString()
-      }
+        status: dispatchResult.status,
+        offers_count: dispatchResult.offers_count,
+        expires_at: dispatchResult.expires_at,
+      },
     });
-
   } catch (error) {
-    console.error('[dispatchRide] Erro geral:', error.message, '| status:', error.status);
-    return Response.json({
-      error: 'Erro ao processar corrida',
-      details: error.message
-    }, { status: 500 });
+    console.error('[dispatchRide] Erro geral:', error.message);
+    return Response.json({ error: 'Erro ao processar corrida', details: error.message }, { status: 500 });
   }
 });

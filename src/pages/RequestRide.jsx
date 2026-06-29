@@ -643,6 +643,7 @@ export default function RequestRide() {
 
   const [currentRide, setCurrentRide] = useState(null);
   const [searchingDrivers, setSearchingDrivers] = useState(false);
+  const [searchStatusMessage, setSearchStatusMessage] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   const LONG_RIDE_THRESHOLD_KM = 35;
@@ -684,6 +685,12 @@ export default function RequestRide() {
       
       if (response.data.success) {
         setCurrentRide(response.data.ride);
+        const count = response.data.ride?.offers_count ?? 0;
+        setSearchStatusMessage(
+          count > 0
+            ? `Notificamos ${count} motorista${count > 1 ? 's' : ''} próxima${count > 1 ? 's' : ''}. Aguardando aceite...`
+            : 'Nenhuma motorista online no momento. Tentando novamente automaticamente...'
+        );
         startRidePolling(response.data.ride.id);
         // Limpar estados persistidos após corrida confirmada
         ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
@@ -708,6 +715,31 @@ export default function RequestRide() {
   const pollTimeoutRef = useRef(null);
   const pollNavigatedRef = useRef(false);
   const activeRideIdRef = useRef(null);
+  const cancellingSearchRef = useRef(false);
+
+  const handleCancelSearch = async () => {
+    if (cancellingSearchRef.current) return;
+    cancellingSearchRef.current = true;
+
+    const rideId = activeRideIdRef.current;
+    stopRidePolling();
+    pollNavigatedRef.current = true;
+
+    if (rideId) {
+      try {
+        await base44.functions.invoke('cancelRideSearch', { rideId });
+      } catch (err) {
+        console.error('[CancelSearch] Erro ao cancelar corrida:', err);
+      }
+    }
+
+    clearActiveRide();
+    setCurrentRide(null);
+    setSearchStatusMessage('');
+    setStep('options');
+    toast.info('Busca cancelada');
+    cancellingSearchRef.current = false;
+  };
 
   // Verifica o status da corrida uma vez. Retorna true se já navegou/encerrou.
   const checkRideStatusOnce = async (rideId) => {
@@ -724,7 +756,6 @@ export default function RequestRide() {
           console.error('[Polling] status accepted sem assigned_driver_id, aguardando...');
           return false;
         }
-        // Encerrar polling e navegar — a tela de destino carrega tudo pelo id da URL
         pollNavigatedRef.current = true;
         stopRidePolling();
         navigate(`/ActiveRidePassenger?id=${rideId}`);
@@ -734,12 +765,23 @@ export default function RequestRide() {
       if (rideData.status === 'expired' || rideData.status === 'cancelled') {
         stopRidePolling();
         clearActiveRide();
+        setSearchStatusMessage('');
         toast.error('Nenhuma motorista aceitou sua corrida');
         setStep('options');
         return true;
       }
 
-      console.log('[Polling] Aguardando... status atual:', rideData.status);
+      const offersCount = rideData.offers_count ?? 0;
+      if (offersCount > 0) {
+        setSearchStatusMessage(
+          `Notificamos ${offersCount} motorista${offersCount > 1 ? 's' : ''} próxima${offersCount > 1 ? 's' : ''}. Aguardando aceite...`
+        );
+      } else if (rideData.redispatched) {
+        setSearchStatusMessage('Ampliando busca... tentando novamente.');
+      } else {
+        setSearchStatusMessage('Procurando motoristas online na região...');
+      }
+
       return false;
     } catch (error) {
       console.error('[Polling] Erro na consulta:', error);
@@ -908,6 +950,12 @@ export default function RequestRide() {
 
             if (response.data?.success) {
               setCurrentRide(response.data.ride);
+              const count = response.data.ride?.offers_count ?? 0;
+              setSearchStatusMessage(
+                count > 0
+                  ? `Notificamos ${count} motorista${count > 1 ? 's' : ''} próxima${count > 1 ? 's' : ''}. Aguardando aceite...`
+                  : 'Nenhuma motorista online no momento. Tentando novamente automaticamente...'
+              );
               startRidePolling(response.data.ride.id);
               toast.success('✅ Corrida solicitada! Buscando motorista...');
               ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
@@ -1397,7 +1445,9 @@ export default function RequestRide() {
                       className="w-20 h-20 mx-auto mb-6 rounded-full border-4 border-[#F22998]/20 border-t-[#F22998]"
                     />
                     <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2">Buscando motorista...</h2>
-                    <p className="text-[#F2F2F2]/60">Aguarde enquanto encontramos a melhor opção para você</p>
+                    <p className="text-[#F2F2F2]/60">
+                      {searchStatusMessage || 'Aguarde enquanto encontramos a melhor opção para você'}
+                    </p>
                     
                     <div className="mt-8 flex items-center justify-center gap-2">
                       <Shield className="w-5 h-5 text-[#F22998]" />
@@ -1405,7 +1455,7 @@ export default function RequestRide() {
                     </div>
 
                     <button
-                      onClick={() => { stopRidePolling(); clearActiveRide(); pollNavigatedRef.current = true; setStep('options'); }}
+                      onClick={handleCancelSearch}
                       className="mt-6 text-sm text-[#F2F2F2]/40 hover:text-[#F2F2F2]/70 transition-colors"
                     >
                       Cancelar busca

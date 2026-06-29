@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const INTERVAL_MS = 8000;
-const MAX_DURATION_MS = 48000;
+const MAX_DURATION_MS = 52000;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

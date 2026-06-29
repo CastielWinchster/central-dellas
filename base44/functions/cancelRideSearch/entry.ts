@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { maybeRedispatchRide } from '../_shared/rideDispatch.ts';
+import { cancelRideSearch } from '../_shared/rideDispatch.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
     const rides = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
     if (rides.length === 0) {
-      return Response.json({ found: false });
+      return Response.json({ error: 'Corrida não encontrada' }, { status: 404 });
     }
 
     const ride = rides[0];
@@ -26,22 +26,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const { ride: updatedRide, redispatched, offers_count, expired } = await maybeRedispatchRide(
-      base44,
-      ride,
-    );
+    if (['accepted', 'arrived', 'in_progress', 'picked_up', 'in_transit', 'delivered', 'completed'].includes(ride.status)) {
+      return Response.json({ error: 'Corrida já em andamento' }, { status: 409 });
+    }
 
-    return Response.json({
-      found: true,
-      status: updatedRide.status,
-      assigned_driver_id: updatedRide.assigned_driver_id || null,
-      offers_count: offers_count ?? 0,
-      redispatched: redispatched ?? false,
-      expired: expired ?? false,
-      offer_expires_at: updatedRide.offer_expires_at || null,
-    });
+    if (ride.status === 'cancelled' || ride.status === 'expired') {
+      return Response.json({ success: true, already_cancelled: true });
+    }
+
+    await cancelRideSearch(base44, ride);
+
+    return Response.json({ success: true });
   } catch (error) {
-    console.error('[getRideStatus] Erro:', error.message);
+    console.error('[cancelRideSearch] Erro:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

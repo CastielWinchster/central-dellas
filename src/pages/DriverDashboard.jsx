@@ -339,48 +339,56 @@ export default function DriverDashboard() {
         const now = new Date().toISOString();
         const offers = await base44.entities.RideOffer.filter({
           driver_id: user.id,
-          status: 'sent',
-          expires_at: { $gte: now }
+          expires_at: { $gte: now },
         });
-        
-        if (offers.length > 0) {
-          const offer = offers[0];
 
-          // Já está processando ou já foi exibida nesta sessão
-          if (processingOfferRef.current === offer.id) return;
-          if (shownOfferIdsRef.current.has(offer.id)) return;
+        const pending = offers.filter(
+          (o) =>
+            (o.status === 'sent' || o.status === 'seen') &&
+            !shownOfferIdsRef.current.has(o.id) &&
+            processingOfferRef.current !== o.id,
+        );
 
-          processingOfferRef.current = offer.id;
-          shownOfferIdsRef.current.add(offer.id);
-          
-          // Buscar dados da corrida
-          const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
-          if (rides.length === 0) return;
-          const ride = rides[0];
+        if (pending.length === 0) return;
 
-          // Se a corrida já foi cancelada/expirada/aceita, ignorar e deletar a oferta
-          if (!['requested', 'assigned'].includes(ride.status)) {
-            await base44.entities.RideOffer.update(offer.id, { status: 'expired' });
-            return;
-          }
-          
-          // Buscar dados da passageira
-          const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
-          
-          setRideOffer(offer);
-          setOfferRide(ride);
-          setOfferPassenger(passengers[0] || null);
-          
-          // Marcar como vista
+        pending.sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
+        const offer = pending[0];
+
+        processingOfferRef.current = offer.id;
+
+        const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
+        if (rides.length === 0) {
+          processingOfferRef.current = null;
+          return;
+        }
+        const ride = rides[0];
+
+        if (!['requested', 'assigned'].includes(ride.status)) {
+          await base44.entities.RideOffer.update(offer.id, { status: 'expired' });
+          processingOfferRef.current = null;
+          return;
+        }
+
+        const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
+
+        setRideOffer(offer);
+        setOfferRide(ride);
+        setOfferPassenger(passengers[0] || null);
+        shownOfferIdsRef.current.add(offer.id);
+
+        if (offer.status === 'sent') {
           await base44.entities.RideOffer.update(offer.id, { status: 'seen' });
         }
+
+        processingOfferRef.current = null;
       } catch (error) {
         console.error('Erro ao verificar ofertas:', error);
+        processingOfferRef.current = null;
       }
     };
-    
+
     checkOffers();
-    offerPollingRef.current = setInterval(checkOffers, 3500);
+    offerPollingRef.current = setInterval(checkOffers, 2000);
     
     return () => {
       if (offerPollingRef.current) {
