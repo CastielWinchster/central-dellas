@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toBrasiliaTime } from '@/utils/dateUtils';
+import { toast } from 'sonner';
 import ChatMessage from '../components/chat/ChatMessage';
 import TypingIndicator from '../components/chat/TypingIndicator';
 import SmartReplies from '../components/chat/SmartReplies';

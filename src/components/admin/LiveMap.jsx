@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Car, MapPin, RefreshCw, Radio } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { nowBrasiliaTime } from '@/utils/dateUtils';
+import { MAPBOX_CONFIG, loadMapboxToken } from '@/components/utils/mapboxConfig';
 
 const ORLANDIA = [-47.8867, -20.7197]; // [lng, lat]
 

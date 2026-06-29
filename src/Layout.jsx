@@ -386,7 +386,10 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Toast de notificações em tempo real */}
       <NotificationToast toasts={toastQueue} onDismiss={dismissToast} />
-      <DriverRideOfferLayer userId={user?.id} enabled={isDriverUser} />
+      {/* Sempre habilitado para qualquer usuária logada — o próprio layer só ativa
+          quando a motorista está online (driver_is_online no localStorage),
+          então não dependemos mais de user_type/role estarem corretos. */}
+      <DriverRideOfferLayer userId={user?.id} enabled={!!user?.id} />
 
       {/* Bottom Navigation - Mobile */}
       {user && (
