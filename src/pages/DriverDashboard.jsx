@@ -16,11 +16,12 @@ import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
+import { isDriverOnlineLocal, setDriverOnlineLocal } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [isOnline, setIsOnline] = useState(() => localStorage.getItem('driver_is_online') === 'true');
+  const [isOnline, setIsOnline] = useState(false);
   const [todayStats, setTodayStats] = useState({
     rides: 0,
     earnings: 0,
@@ -69,12 +70,16 @@ export default function DriverDashboard() {
           await base44.auth.updateMe({ user_type: 'both' });
         }
         
-        // Verificar presença existente
-        const existingPresence = await base44.entities.DriverPresence.filter({ driver_id: userData.id });
-        if (existingPresence.length > 0) {
-          setPresenceRecord(existingPresence[0]);
-          presenceRecordRef.current = existingPresence[0];
-          // Não restaura isOnline=true do banco — motorista sempre começa offline ao entrar
+        // Presença existente vem via função (contorna RLS)
+        try {
+          const session = await base44.functions.invoke('getDriverRideOffers', {});
+          const sessionData = session?.data || session;
+          if (sessionData?.presence) {
+            setPresenceRecord(sessionData.presence);
+            presenceRecordRef.current = sessionData.presence;
+          }
+        } catch (_) {
+          // não bloqueia carregamento
         }
 
         // Buscar corridas reais de hoje
@@ -98,6 +103,10 @@ export default function DriverDashboard() {
     };
     loadUser();
   }, []);
+
+  useEffect(() => {
+    if (user?.id) setIsOnline(isDriverOnlineLocal(user.id));
+  }, [user?.id]);
 
   // Sincronizar ref com state para uso dentro do effect sem causar re-render
   useEffect(() => {
@@ -140,37 +149,27 @@ export default function DriverDashboard() {
       setCurrentLocation({ lat: latitude, lng: longitude });
       lastLocationRef.current = { lat: latitude, lng: longitude };
 
-      // Criar/atualizar presença usando a ref (não o state, para não gerar dependência)
-      let record = presenceRecordRef.current;
+      // Criar/atualizar presença via função (contorna RLS)
       try {
-        if (!record) {
-          record = await base44.entities.DriverPresence.create({
-            driver_id: user.id,
-            is_online: true,
-            is_available: true,
-            lat: latitude,
-            lng: longitude,
-            accuracy,
-            heading,
-            speed,
-            last_seen_at: new Date().toISOString()
-          });
-          presenceRecordRef.current = record;
-          setPresenceRecord(record);
-        } else {
-          await base44.entities.DriverPresence.update(record.id, {
-            is_online: true,
-            is_available: true,
-            lat: latitude,
-            lng: longitude,
-            accuracy,
-            heading,
-            speed,
-            last_seen_at: new Date().toISOString()
-          });
+        const res = await base44.functions.invoke('setDriverPresence', {
+          isOnline: true,
+          lat: latitude,
+          lng: longitude,
+          accuracy,
+          heading,
+          speed,
+        });
+        const data = res?.data || res;
+        if (data?.presence) {
+          presenceRecordRef.current = data.presence;
+          setPresenceRecord(data.presence);
         }
       } catch (dbError) {
         console.error('Erro ao salvar presença:', dbError);
+        toast.error('Não foi possível ficar online. Tente novamente.');
+        setDriverOnlineLocal(user.id, false);
+        setIsOnline(false);
+        return;
       }
 
       // Iniciar watchPosition se disponível
@@ -200,19 +199,17 @@ export default function DriverDashboard() {
             if (now - lastGpsUpdateRef.current < 5000) return;
             lastGpsUpdateRef.current = now;
 
-            const currentRecord = presenceRecordRef.current;
-            if (currentRecord) {
-              try {
-                await base44.entities.DriverPresence.update(currentRecord.id, {
-                  lat, lng,
-                  accuracy: acc || 0,
-                  heading: h || 0,
-                  speed: s || 0,
-                  last_seen_at: new Date().toISOString()
-                });
-              } catch (error) {
-                console.error('Erro ao atualizar localização:', error);
-              }
+            try {
+              await base44.functions.invoke('setDriverPresence', {
+                isOnline: true,
+                lat,
+                lng,
+                accuracy: acc || 0,
+                heading: h || 0,
+                speed: s || 0,
+              });
+            } catch (error) {
+              console.error('Erro ao atualizar localização:', error);
             }
           },
           (error) => {
@@ -224,15 +221,10 @@ export default function DriverDashboard() {
 
       // Atualizar timestamp a cada 3 segundos
       updateIntervalRef.current = setInterval(async () => {
-        const currentRecord = presenceRecordRef.current;
-        if (currentRecord) {
-          try {
-            await base44.entities.DriverPresence.update(currentRecord.id, {
-              last_seen_at: new Date().toISOString()
-            });
-          } catch (error) {
-            console.error('Erro ao atualizar timestamp:', error);
-          }
+        try {
+          await base44.functions.invoke('setDriverPresence', { isOnline: true });
+        } catch (error) {
+          console.error('Erro ao atualizar timestamp:', error);
         }
       }, 3000);
 
@@ -248,18 +240,11 @@ export default function DriverDashboard() {
         clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
       }
-      const currentRecord = presenceRecordRef.current;
-      if (currentRecord) {
-        try {
-          await base44.entities.DriverPresence.update(currentRecord.id, {
-            is_online: false,
-            is_available: false,
-            last_seen_at: new Date().toISOString()
-          });
-          toast.info('Você está offline');
-        } catch (error) {
-          console.error('Erro ao atualizar status offline:', error);
-        }
+      try {
+        await base44.functions.invoke('setDriverPresence', { isOnline: false });
+        toast.info('Você está offline');
+      } catch (error) {
+        console.error('Erro ao atualizar status offline:', error);
       }
     };
 
@@ -403,13 +388,13 @@ export default function DriverDashboard() {
                 <Switch
                   checked={isOnline}
                   onCheckedChange={(val) => {
+                    if (!user?.id) return;
                     if (val) {
-                      localStorage.setItem('driver_is_online', 'true');
+                      setDriverOnlineLocal(user.id, true);
                       ensureDriverPushSubscription();
                     } else {
-                      localStorage.removeItem('driver_is_online');
+                      setDriverOnlineLocal(user.id, false);
                     }
-                    window.dispatchEvent(new CustomEvent('driver-online-changed'));
                     setIsOnline(val);
                   }}
                   className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"

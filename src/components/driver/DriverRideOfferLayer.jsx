@@ -4,15 +4,15 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
+import { isDriverOnlineLocal } from '@/lib/driverSession';
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
+ * Usa getDriverRideOffers (service role) para contornar RLS das entidades.
  */
 export default function DriverRideOfferLayer({ userId, enabled }) {
   const navigate = useNavigate();
-  const [isOnline, setIsOnline] = useState(
-    () => localStorage.getItem('driver_is_online') === 'true',
-  );
+  const [isOnline, setIsOnline] = useState(() => isDriverOnlineLocal(userId));
   const [rideOffer, setRideOffer] = useState(null);
   const [offerRide, setOfferRide] = useState(null);
   const [offerPassenger, setOfferPassenger] = useState(null);
@@ -25,16 +25,22 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
   useRideAlert(!!rideOffer && enabled && isOnline);
 
   useEffect(() => {
-    const syncOnline = () => {
-      setIsOnline(localStorage.getItem('driver_is_online') === 'true');
-    };
+    shownOfferIdsRef.current = new Set();
+    setRideOffer(null);
+    setOfferRide(null);
+    setOfferPassenger(null);
+    setIsOnline(isDriverOnlineLocal(userId));
+  }, [userId]);
+
+  useEffect(() => {
+    const syncOnline = () => setIsOnline(isDriverOnlineLocal(userId));
     window.addEventListener('storage', syncOnline);
     window.addEventListener('driver-online-changed', syncOnline);
     return () => {
       window.removeEventListener('storage', syncOnline);
       window.removeEventListener('driver-online-changed', syncOnline);
     };
-  }, []);
+  }, [userId]);
 
   const clearOffer = useCallback(() => {
     setRideOffer(null);
@@ -45,50 +51,40 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
 
   const checkOffers = useCallback(async () => {
     if (!enabled || !userId || !isOnline) return;
-    if (processingOfferRef.current) return;
+    if (processingOfferRef.current || rideOffer) return;
 
     try {
-      const now = new Date().toISOString();
-      const offers = await base44.entities.RideOffer.filter({
-        driver_id: userId,
-        expires_at: { $gte: now },
-      });
+      const response = await base44.functions.invoke('getDriverRideOffers', {});
+      const data = response?.data || response;
 
-      const pending = offers.filter(
-        (o) =>
-          (o.status === 'sent' || o.status === 'seen') &&
-          !shownOfferIdsRef.current.has(o.id) &&
-          processingOfferRef.current !== o.id,
+      if (!data?.success) {
+        console.warn('[DriverRideOfferLayer] Resposta inválida:', data);
+        return;
+      }
+
+      if (data.isOnlineDb === false && isDriverOnlineLocal(userId)) {
+        console.warn('[DriverRideOfferLayer] Local online mas DB offline — re-sincronizando presença');
+        await base44.functions.invoke('setDriverPresence', { isOnline: true }).catch(() => {});
+      }
+
+      const pending = (data.offers || []).filter(
+        (item) => item?.offer?.id && !shownOfferIdsRef.current.has(item.offer.id),
       );
+
+      console.log(`[DriverRideOfferLayer] poll user=${userId} online=${isOnline} ofertas=${pending.length}`);
 
       if (pending.length === 0) return;
 
-      pending.sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
-      const offer = pending[0];
+      const { offer, ride, passenger } = pending[0];
       processingOfferRef.current = offer.id;
-
-      const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
-      if (rides.length === 0) {
-        processingOfferRef.current = null;
-        return;
-      }
-      const ride = rides[0];
-
-      if (!['requested', 'assigned'].includes(ride.status)) {
-        await base44.entities.RideOffer.update(offer.id, { status: 'expired' });
-        processingOfferRef.current = null;
-        return;
-      }
-
-      const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
 
       setRideOffer(offer);
       setOfferRide(ride);
-      setOfferPassenger(passengers[0] || null);
+      setOfferPassenger(passenger || null);
       shownOfferIdsRef.current.add(offer.id);
 
       if (offer.status === 'sent') {
-        await base44.entities.RideOffer.update(offer.id, { status: 'seen' });
+        await base44.functions.invoke('respondRideOffer', { offerId: offer.id, status: 'seen' }).catch(() => {});
       }
 
       processingOfferRef.current = null;
@@ -96,7 +92,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
       console.error('[DriverRideOfferLayer] Erro ao verificar ofertas:', error);
       processingOfferRef.current = null;
     }
-  }, [enabled, userId, isOnline]);
+  }, [enabled, userId, isOnline, rideOffer]);
 
   checkOffersRef.current = checkOffers;
 
@@ -125,21 +121,9 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     };
     navigator.serviceWorker?.addEventListener('message', onSwMessage);
 
-    let unsubOffer = () => {};
-    try {
-      unsubOffer = base44.entities.RideOffer.subscribe((event) => {
-        if (event.type === 'create' && event.data?.driver_id === userId) {
-          onAlert();
-        }
-      });
-    } catch (_) {
-      // subscribe indisponível — polling cobre
-    }
-
     return () => {
       window.removeEventListener('driver-ride-offer-alert', onAlert);
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
-      unsubOffer();
     };
   }, [enabled, userId]);
 
@@ -175,10 +159,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
 
   const handleRejectOffer = async (offer) => {
     try {
-      await base44.entities.RideOffer.update(offer.id, {
-        status: 'rejected',
-        responded_at: new Date().toISOString(),
-      });
+      await base44.functions.invoke('respondRideOffer', { offerId: offer.id, status: 'rejected' });
       toast.info('Corrida recusada');
     } catch (error) {
       console.error('[DriverRideOfferLayer] Erro ao recusar:', error);

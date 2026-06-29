@@ -16,6 +16,7 @@ import NotificationBell from './components/NotificationBell';
 import { useNotifications, subscribeToPush, ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
+import { clearDriverSessionLocal } from '@/lib/driverSession';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
@@ -361,6 +362,7 @@ function LayoutContent({ children, currentPageName }) {
               {user && (
                 <button
                   onClick={async () => {
+                    clearDriverSessionLocal(user?.id);
                     base44.auth.logout();
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
