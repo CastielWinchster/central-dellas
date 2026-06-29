@@ -14,10 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
-import RideOfferModal from '../components/driver/RideOfferModal';
-
 import AvailableRidesList from '../components/driver/AvailableRidesList';
-import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 
 export default function DriverDashboard() {
@@ -37,20 +34,12 @@ export default function DriverDashboard() {
   const watchIdRef = useRef(null);
   const lastLocationRef = useRef(null);
   const updateIntervalRef = useRef(null);
-  const [rideOffer, setRideOffer] = useState(null);
-  const [offerRide, setOfferRide] = useState(null);
-  const [offerPassenger, setOfferPassenger] = useState(null);
-  const offerPollingRef = useRef(null);
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const shownOfferIdsRef = useRef(new Set()); // IDs de ofertas já exibidas nesta sessão
   const [acceptedRide, setAcceptedRide] = useState(null);
   const [passengerUser, setPassengerUser] = useState(null);
   const lastGpsUpdateRef = useRef(0);
-  const processingOfferRef = useRef(null);
-
-  useRideAlert(!!rideOffer);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -325,133 +314,9 @@ export default function DriverDashboard() {
     return () => clearInterval(etaIntervalRef.current);
   }, [selectedRide, currentLocation]);
 
-  // Polling de ofertas quando online
-  useEffect(() => {
-    if (!isOnline || !user) {
-      if (offerPollingRef.current) {
-        clearInterval(offerPollingRef.current);
-      }
-      return;
-    }
-    
-    const checkOffers = async () => {
-      try {
-        const now = new Date().toISOString();
-        const offers = await base44.entities.RideOffer.filter({
-          driver_id: user.id,
-          expires_at: { $gte: now },
-        });
-
-        const pending = offers.filter(
-          (o) =>
-            (o.status === 'sent' || o.status === 'seen') &&
-            !shownOfferIdsRef.current.has(o.id) &&
-            processingOfferRef.current !== o.id,
-        );
-
-        if (pending.length === 0) return;
-
-        pending.sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
-        const offer = pending[0];
-
-        processingOfferRef.current = offer.id;
-
-        const rides = await base44.entities.Ride.filter({ id: offer.ride_id });
-        if (rides.length === 0) {
-          processingOfferRef.current = null;
-          return;
-        }
-        const ride = rides[0];
-
-        if (!['requested', 'assigned'].includes(ride.status)) {
-          await base44.entities.RideOffer.update(offer.id, { status: 'expired' });
-          processingOfferRef.current = null;
-          return;
-        }
-
-        const passengers = await base44.entities.User.filter({ id: ride.passenger_id });
-
-        setRideOffer(offer);
-        setOfferRide(ride);
-        setOfferPassenger(passengers[0] || null);
-        shownOfferIdsRef.current.add(offer.id);
-
-        if (offer.status === 'sent') {
-          await base44.entities.RideOffer.update(offer.id, { status: 'seen' });
-        }
-
-        processingOfferRef.current = null;
-      } catch (error) {
-        console.error('Erro ao verificar ofertas:', error);
-        processingOfferRef.current = null;
-      }
-    };
-
-    checkOffers();
-    offerPollingRef.current = setInterval(checkOffers, 2000);
-    
-    return () => {
-      if (offerPollingRef.current) {
-        clearInterval(offerPollingRef.current);
-      }
-    };
-  }, [isOnline, user]);
-
   useEffect(() => {
     if (user && isOnline) ensureDriverPushSubscription();
   }, [user, isOnline]);
-  
-  const handleAcceptOffer = async (offer, ride, driverConfirmedPrice) => {
-    try {
-      const response = await base44.functions.invoke('acceptRideOffer', {
-        rideId: ride.id,
-        offerId: offer.id,
-        driverConfirmedPrice: driverConfirmedPrice ?? null,
-      });
-      
-      const responseData = response?.data || response;
-      if (responseData.success) {
-        toast.success('🎉 Corrida aceita!');
-        cancelRideAlert(ride.id);
-        const acceptedRideData = responseData?.ride || ride;
-        localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
-        setRideOffer(null);
-        setOfferRide(null);
-        setOfferPassenger(null);
-        processingOfferRef.current = null;
-        navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
-      } else if (responseData.expired) {
-        toast.warning('Oferta expirada');
-        setRideOffer(null);
-      } else {
-        toast.error(responseData.error || 'Não foi possível aceitar');
-        setRideOffer(null);
-      }
-    } catch (error) {
-      console.error('Erro ao aceitar:', error);
-      toast.error('Erro ao aceitar corrida');
-      setRideOffer(null);
-    }
-  };
-  
-  const handleRejectOffer = async (offer) => {
-    try {
-      await base44.entities.RideOffer.update(offer.id, {
-        status: 'rejected',
-        responded_at: new Date().toISOString()
-      });
-      toast.info('Corrida recusada');
-    } catch (error) {
-      console.error('Erro ao recusar:', error);
-    } finally {
-      cancelRideAlert(offer?.ride_id);
-      setRideOffer(null);
-      setOfferRide(null);
-      setOfferPassenger(null);
-      processingOfferRef.current = null;
-      // shownOfferIdsRef mantém o ID para não reexibir
-    }
-  };
 
   const handleAcceptRide = async () => {
     setPendingRide(null);
@@ -544,6 +409,7 @@ export default function DriverDashboard() {
                     } else {
                       localStorage.removeItem('driver_is_online');
                     }
+                    window.dispatchEvent(new CustomEvent('driver-online-changed'));
                     setIsOnline(val);
                   }}
                   className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
@@ -814,23 +680,6 @@ export default function DriverDashboard() {
         rideStatus={acceptedRide?.status || 'accepted'}
       />
 
-
-      {/* Ride Offer Modal */}
-      {rideOffer && offerRide && (
-        <RideOfferModal
-          offer={rideOffer}
-          ride={offerRide}
-          passenger={offerPassenger}
-          onAccept={handleAcceptOffer}
-          onReject={handleRejectOffer}
-          onClose={() => {
-            setRideOffer(null);
-            setOfferRide(null);
-            setOfferPassenger(null);
-            processingOfferRef.current = null;
-            }}
-            />
-      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, MapPin, RefreshCw, Radio } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { MAPBOX_CONFIG, loadMapboxToken } from '@/components/utils/mapboxConfig';
+import { nowBrasiliaTime } from '@/utils/dateUtils';
 
 const ORLANDIA = [-47.8867, -20.7197]; // [lng, lat]
 
@@ -167,7 +167,7 @@ export default function LiveMap() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[#F2F2F2]/60 text-sm">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          Atualizado às {lastUpdate.toLocaleTimeString('pt-BR')}
+          Atualizado às {nowBrasiliaTime({ seconds: true })}
         </div>
         <Button
           onClick={load}

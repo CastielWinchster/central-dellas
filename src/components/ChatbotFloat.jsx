@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { uploadFileToStorage } from '@/lib/uploadFile';
+import { toBrasiliaTime } from '@/utils/dateUtils';
 
 export default function ChatbotFloat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -303,10 +304,7 @@ export default function ChatbotFloat() {
                     <div className={`text-xs mt-1 ${
                       message.role === 'user' ? 'text-white/60' : 'text-[#F2F2F2]/40'
                     }`}>
-                      {new Date(message.timestamp).toLocaleTimeString('pt-BR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
+                      {toBrasiliaTime(message.timestamp instanceof Date ? message.timestamp.toISOString() : message.timestamp)}
                     </div>
                   </div>
                 </div>

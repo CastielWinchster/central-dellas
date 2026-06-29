@@ -2,23 +2,22 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Flag, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toBrasiliaTime, parseAppDate } from '@/utils/dateUtils';
 
 export default function ChatMessage({ message, isOwn, onReport }) {
   const [showReport, setShowReport] = useState(false);
 
   const formatTime = (date) => {
     const now = new Date();
-    const msgDate = new Date(date);
+    const msgDate = parseAppDate(date);
+    if (!msgDate) return '';
     const diffMs = now - msgDate;
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 1) return 'agora';
     if (diffMins < 60) return `${diffMins} min atrás`;
-    
-    return msgDate.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+
+    return toBrasiliaTime(date);
   };
 
   const renderContent = () => {

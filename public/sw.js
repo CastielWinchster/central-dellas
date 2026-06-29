@@ -1,5 +1,5 @@
 // Service Worker da CentralDellas
-const CACHE_NAME = 'centraldellas-v4';
+const CACHE_NAME = 'centraldellas-v5';
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const activeRideAlerts = new Map();
 
@@ -49,6 +49,18 @@ function showRideOfferNotification(data) {
   });
 }
 
+function notifyOpenClients(data) {
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'ride_offer_push',
+        rideId: data.rideId,
+        url: data.url || '/DriverDashboard',
+      });
+    });
+  });
+}
+
 function startRideAlertLoop(data) {
   const rideId = data.rideId;
   if (!rideId) {
@@ -83,7 +95,9 @@ self.addEventListener('push', (event) => {
   }
 
   if (data.type === 'ride_offer' || data.persistent) {
-    event.waitUntil(startRideAlertLoop(data));
+    event.waitUntil(
+      Promise.all([startRideAlertLoop(data), notifyOpenClients(data)]),
+    );
     return;
   }
 
@@ -114,6 +128,9 @@ self.addEventListener('notificationclick', (event) => {
   const url = event.notification.data?.url || '/DriverDashboard';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      clientList.forEach((client) => {
+        client.postMessage({ type: 'ride_offer_push', rideId, url });
+      });
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(url);
@@ -121,7 +138,7 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
       return self.clients.openWindow(url);
-    })
+    }),
   );
 });
 

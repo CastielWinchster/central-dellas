@@ -5,6 +5,7 @@ import { Bell, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { toBrasiliaDateFull } from '@/utils/dateUtils';
 
 export default function Notifications() {
   const [user, setUser] = useState(null);
@@ -173,7 +174,7 @@ export default function Notifications() {
                             {notification.message}
                           </p>
                           <p className="text-[#F2F2F2]/40 text-xs">
-                            {new Date(notification.created_date).toLocaleString('pt-BR')}
+                            {toBrasiliaDateFull(notification.created_date)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">

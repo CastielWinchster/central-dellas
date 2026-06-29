@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { format, startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fns';
+import { toBrasiliaDateMedium } from '@/utils/dateUtils';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const COMMISSION_RATE = 0.12;
@@ -444,7 +444,7 @@ export default function Earnings() {
                       <div className="min-w-0">
                         <p className="font-medium text-[#F2F2F2] truncate">{ride.dropoff_text || 'Destino'}</p>
                         <p className="text-sm text-[#F2F2F2]/50">
-                          {format(new Date(ride.created_date), "dd 'de' MMM, HH:mm", { locale: ptBR })}
+                          {toBrasiliaDateMedium(ride.created_date)}
                         </p>
                       </div>
                     </div>

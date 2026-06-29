@@ -4,20 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
-import { toBrasiliaDateFull } from '@/utils/dateUtils';
-
-// Retorna data no formato YYYY-MM-DD no fuso local
-function toDateInput(d) {
-  const dt = new Date(d);
-  const off = dt.getTimezoneOffset();
-  const local = new Date(dt.getTime() - off * 60000);
-  return local.toISOString().slice(0, 10);
-}
+import { toBrasiliaDateFull, toBrasiliaDateInput, todayBrasiliaDateInput } from '@/utils/dateUtils';
 
 export default function RideHistory() {
   const [rides, setRides] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDate, setSelectedDate] = useState(toDateInput(new Date()));
+  const [selectedDate, setSelectedDate] = useState(todayBrasiliaDateInput());
   const [loading, setLoading] = useState(true);
   const [userMap, setUserMap] = useState({});
 
@@ -67,7 +59,7 @@ export default function RideHistory() {
     return rides.filter(ride => {
       // Filtro de data
       if (selectedDate) {
-        if (toDateInput(ride.created_date) !== selectedDate) return false;
+        if (toBrasiliaDateInput(ride.created_date) !== selectedDate) return false;
       }
       // Filtro de busca
       if (searchTerm) {

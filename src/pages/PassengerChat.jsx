@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import { toBrasiliaTime } from '@/utils/dateUtils';
 import ChatMessage from '../components/chat/ChatMessage';
 import TypingIndicator from '../components/chat/TypingIndicator';
 import SmartReplies from '../components/chat/SmartReplies';
@@ -400,7 +400,7 @@ export default function PassengerChat() {
               <span>{sysMsg.icon}</span>
               <span>{sysMsg.text}</span>
               <span className="text-xs">
-                {new Date(sysMsg.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                {toBrasiliaTime(sysMsg.time)}
               </span>
             </div>
           </motion.div>

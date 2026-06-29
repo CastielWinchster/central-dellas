@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { toBrasiliaDateFull } from '@/utils/dateUtils';
 
 export default function EmergencyButton({ ride, user }) {
   const [isPressed, setIsPressed] = useState(false);
@@ -49,7 +50,7 @@ export default function EmergencyButton({ ride, user }) {
                 ALERTA DE EMERGÊNCIA ATIVADO
                 
                 Passageira: ${user.full_name}
-                Horário: ${new Date().toLocaleString('pt-BR')}
+                Horário: ${toBrasiliaDateFull(new Date().toISOString())}
                 
                 Contato de emergência: ${contact.name} - ${contact.phone}
                 

@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Ticket, Plus, Trash2, Percent, DollarSign } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { toBrasiliaDateOnly } from '@/utils/dateUtils';
 
 const EMPTY = {
   code: '',
@@ -185,7 +186,7 @@ export default function CouponManager() {
                     <p className="text-xs text-[#F2F2F2]/50 mt-0.5">
                       {c.discount_percentage ? `${c.discount_percentage}% off` : `R$ ${(c.discount_amount || 0).toFixed(2)} off`}
                       {c.max_uses ? ` · ${c.current_uses || 0}/${c.max_uses} usos` : ` · ${c.current_uses || 0} usos`}
-                      {c.valid_until ? ` · até ${new Date(c.valid_until).toLocaleDateString('pt-BR')}` : ''}
+                      {c.valid_until ? ` · até ${toBrasiliaDateOnly(c.valid_until)}` : ''}
                     </p>
                   </div>
                 </div>

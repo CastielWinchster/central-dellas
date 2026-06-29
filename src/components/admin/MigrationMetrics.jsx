@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Smartphone, MessageCircle, Phone, Monitor, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toBrasiliaDateShort } from '@/utils/dateUtils';
 
 export default function MigrationMetrics() {
   const [metrics, setMetrics] = useState({
@@ -209,7 +210,7 @@ export default function MigrationMetrics() {
             {metrics.trend.map((day, index) => (
               <div key={day.date} className="flex items-center gap-4">
                 <div className="w-20 text-[#F2F2F2]/60 text-xs">
-                  {new Date(day.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  {toBrasiliaDateShort(day.date)}
                 </div>
                 <div className="flex-1 relative h-8 bg-[#0D0D0D]/50 rounded-lg overflow-hidden">
                   <motion.div

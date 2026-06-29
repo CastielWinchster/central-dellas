@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { format } from 'date-fns';
+import { toBrasiliaDateOnly } from '@/utils/dateUtils';
 
 export default function BlockedUsers() {
   const [user, setUser] = useState(null);
@@ -147,7 +147,7 @@ export default function BlockedUsers() {
                           </p>
                         )}
                         <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
-                          Bloqueada em {format(new Date(block.created_date), "dd/MM/yyyy")}
+                          Bloqueada em {toBrasiliaDateOnly(block.created_date)}
                         </p>
                       </div>
                     </div>

@@ -8,8 +8,6 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toBrasiliaDate, toBrasiliaTime, toBrasiliaDateLong, toBrasiliaDateFull } from '../../utils/dateUtils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 export default function ReceiptDialog({ ride, isOpen, onClose }) {
   if (!ride) return null;
@@ -143,7 +141,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
   };
 
   const handleShare = async () => {
-    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_text || ride.pickup_address || ''}\nPara: ${ride.destination_address || ride.dropoff_text || ''}\nValor: R$ ${finalPrice.toFixed(2)}\nData: ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}`;
+    const shareText = `Recibo Central Dellas\n\nDe: ${ride.pickup_text || ride.pickup_address || ''}\nPara: ${ride.destination_address || ride.dropoff_text || ''}\nValor: R$ ${finalPrice.toFixed(2)}\nData: ${toBrasiliaDateFull(ride.created_date)}`;
     
     if (navigator.share) {
       try {
@@ -163,7 +161,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
       `📍 *Origem:* ${ride.pickup_address || ride.pickup_text || ''}\n` +
       `📍 *Destino:* ${ride.destination_address || ride.dropoff_text || ''}\n\n` +
       `💰 *Valor:* R$ ${finalPrice.toFixed(2)}\n` +
-      `📅 *Data:* ${format(new Date(ride.created_date), "dd/MM/yyyy 'às' HH:mm")}\n` +
+      `📅 *Data:* ${toBrasiliaDateFull(ride.created_date)}\n` +
       `⏱️ *Duração:* ${ride.estimated_duration || 15} min\n\n` +
       (ride.driver ? `👩‍✈️ *Motorista:* ${ride.driver.name} (⭐ ${ride.driver.rating})\n\n` : '') +
       `✨ Central Dellas - Mobilidade segura para mulheres`

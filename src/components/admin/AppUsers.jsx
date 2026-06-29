@@ -4,13 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
-
-function toDateInput(d) {
-  const dt = new Date(d);
-  const off = dt.getTimezoneOffset();
-  const local = new Date(dt.getTime() - off * 60000);
-  return local.toISOString().slice(0, 10);
-}
+import { toBrasiliaDateOnly, toBrasiliaDateInput, todayBrasiliaDateInput } from '@/utils/dateUtils';
 
 export default function AppUsers() {
   const [users, setUsers] = useState([]);
@@ -44,8 +38,8 @@ export default function AppUsers() {
   // Métricas de cadastro
   const summary = useMemo(() => {
     const total = users.length;
-    const todayStr = toDateInput(new Date());
-    const today = users.filter(u => toDateInput(u.created_date) === todayStr).length;
+    const todayStr = todayBrasiliaDateInput();
+    const today = users.filter(u => toBrasiliaDateInput(u.created_date) === todayStr).length;
     const drivers = users.filter(u => u.user_type === 'driver' || u.user_type === 'both').length;
     return { total, today, drivers };
   }, [users]);
@@ -122,7 +116,7 @@ export default function AppUsers() {
                 </div>
                 <div className="flex items-center gap-1 text-xs text-[#F2F2F2]/50">
                   <Calendar className="w-3 h-3" />
-                  <span>{new Date(u.created_date).toLocaleDateString('pt-BR')}</span>
+                  <span>{toBrasiliaDateOnly(u.created_date)}</span>
                 </div>
               </div>
             </div>

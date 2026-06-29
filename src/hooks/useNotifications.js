@@ -118,6 +118,9 @@ export function useNotifications(userId) {
     const type = notification.type === 'ride' ? 'ride'
       : notification.type === 'message' ? 'message'
       : 'default';
+    if (type === 'ride') {
+      window.dispatchEvent(new CustomEvent('driver-ride-offer-alert'));
+    }
     createNotificationSound(type);
     vibrate(type);
     pushToast(notification);

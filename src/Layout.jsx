@@ -14,6 +14,7 @@ import { useAuthUser } from '@/components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
 import { useNotifications, subscribeToPush, ensureDriverPushSubscription } from '@/hooks/useNotifications';
+import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
@@ -108,7 +109,7 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const isDriverPage = ['DriverDashboard', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
-  const isDriverUser = user?.user_type === 'driver' || user?.user_type === 'both';
+  const isDriverUser = user?.user_type === 'driver' || user?.user_type === 'both' || user?.role === 'admin';
 
   // Inscrever no Web Push — motoristas com prioridade (segundo plano)
   useEffect(() => {
@@ -385,6 +386,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Toast de notificações em tempo real */}
       <NotificationToast toasts={toastQueue} onDismiss={dismissToast} />
+      <DriverRideOfferLayer userId={user?.id} enabled={isDriverUser} />
 
       {/* Bottom Navigation - Mobile */}
       {user && (

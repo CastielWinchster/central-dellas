@@ -5,7 +5,7 @@ import { Star, Send, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
+import { toBrasiliaDateOnly } from '@/utils/dateUtils';
 
 export default function Reviews() {
   const [user, setUser] = useState(null);
@@ -185,7 +185,7 @@ export default function Reviews() {
                         {ride.destination_address}
                       </p>
                       <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}`}>
-                        {new Date(ride.completed_at).toLocaleDateString('pt-BR')}
+                        {toBrasiliaDateOnly(ride.completed_at)}
                       </p>
                     </div>
                     <Button variant="outline" className="border-[#F22998]/30 text-[#F22998]">
