@@ -37,10 +37,14 @@ export default function ActiveRidePassenger() {
   const fetchData = async () => {
     if (!rideId) return;
     try {
-      // Buscar corrida
-      const rides = await base44.entities.Ride.filter({ id: rideId });
-      if (!rides.length) return;
-      const rideData = rides[0];
+      // Buscar corrida via backend (service role) — evita falha de RLS/atraso de
+      // replicação que deixava a passageira presa em "Corrida não encontrada"
+      const res = await base44.functions.invoke('getRideDetails', { rideId });
+      if (!res.data?.found || !res.data?.ride) {
+        setLoading(false);
+        return;
+      }
+      const rideData = res.data.ride;
       setRide(rideData);
 
       // Se corrida concluída/cancelada sair
