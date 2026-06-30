@@ -1,5 +1,6 @@
-// Service Worker da CentralDellas
-const CACHE_NAME = 'centraldellas-v6';
+// Service Worker da CentralDellas — versão visível no DevTools > Application > Service Workers
+const SW_VERSION = 'centraldellas-v6';
+const CACHE_NAME = SW_VERSION;
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const activeRideAlerts = new Map();
 
@@ -81,7 +82,11 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener('push', (event) => {
@@ -145,5 +150,8 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'ride_offer_cancelled') {
     stopRideAlert(event.data.rideId);
+  }
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });

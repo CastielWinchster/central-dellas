@@ -2,15 +2,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
+import { registerServiceWorker } from '@/lib/serviceWorkerRegistration'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <App />
 )
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then(reg => console.log('[SW] Registrado:', reg.scope))
-      .catch(err => console.warn('[SW] Falha no registro:', err));
-  });
-}
+window.addEventListener('load', () => {
+  registerServiceWorker();
+});
