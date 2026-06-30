@@ -1,5 +1,5 @@
 // Service Worker da CentralDellas — versão visível no DevTools > Application > Service Workers
-const SW_VERSION = 'centraldellas-v6';
+const SW_VERSION = 'centraldellas-v7';
 const CACHE_NAME = SW_VERSION;
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const activeRideAlerts = new Map();

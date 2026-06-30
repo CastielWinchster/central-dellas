@@ -1,17 +1,21 @@
+import { SW_BUILD_ID, SW_VERSION } from '@/config/swVersion';
+
 /**
- * Registra /sw.js e força atualização quando houver nova versão publicada.
- * updateViaCache: 'none' evita que o navegador sirva sw.js velho do cache HTTP.
+ * Registra o service worker com ?build= na URL para contornar CDN que cacheia /sw.js para sempre.
+ * O JS do app usa hash no nome (index-XXX.js); sw.js não — por isso produção ficava presa na v5.
  */
 export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return null;
 
+  const swUrl = `/sw.js?build=${SW_BUILD_ID}`;
+
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
+    const registration = await navigator.serviceWorker.register(swUrl, {
       scope: '/',
       updateViaCache: 'none',
     });
 
-    console.log('[SW] Registrado:', registration.scope);
+    console.log('[SW] Registrado:', swUrl, SW_VERSION);
 
     registration.addEventListener('updatefound', () => {
       const installing = registration.installing;
