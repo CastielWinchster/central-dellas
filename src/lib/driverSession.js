@@ -18,10 +18,56 @@ export function setDriverOnlineLocal(userId, online) {
   window.dispatchEvent(new CustomEvent('driver-online-changed', { detail: { userId, online } }));
 }
 
+export function getActiveRideLocal() {
+  try {
+    const raw = localStorage.getItem('active_ride');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setActiveRideLocal(ride) {
+  if (ride?.id) {
+    localStorage.setItem('active_ride', JSON.stringify(ride));
+  } else {
+    localStorage.removeItem('active_ride');
+  }
+}
+
+export function hasActiveRideLocal() {
+  return !!getActiveRideLocal()?.id;
+}
+
 export function clearDriverSessionLocal(userId) {
   if (userId) {
     localStorage.removeItem(driverOnlineKey(userId));
   }
   localStorage.removeItem('driver_is_online');
   localStorage.removeItem('active_ride');
+}
+
+/** Marca motorista em corrida ativa — online mas indisponível para novas ofertas */
+export async function setDriverBusyOnRide(base44) {
+  try {
+    await base44.functions.invoke('setDriverPresence', {
+      isOnline: true,
+      isAvailable: false,
+    });
+  } catch (e) {
+    console.warn('[setDriverBusyOnRide]', e);
+  }
+}
+
+/** Restaura disponibilidade se ainda estiver online localmente */
+export async function setDriverAvailableIfOnline(base44, userId) {
+  if (!isDriverOnlineLocal(userId)) return;
+  try {
+    await base44.functions.invoke('setDriverPresence', {
+      isOnline: true,
+      isAvailable: true,
+    });
+  } catch (e) {
+    console.warn('[setDriverAvailableIfOnline]', e);
+  }
 }

@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
-import { isDriverOnlineLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setActiveRideLocal, setDriverBusyOnRide } from '@/lib/driverSession';
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
@@ -140,7 +140,8 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
         toast.success('🎉 Corrida aceita!');
         cancelRideAlert(ride.id);
         const acceptedRideData = responseData?.ride || ride;
-        localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
+        setActiveRideLocal(acceptedRideData);
+        await setDriverBusyOnRide(base44);
         clearOffer();
         navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
       } else if (responseData.expired) {

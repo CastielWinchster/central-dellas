@@ -6,6 +6,11 @@ import RideChat from '@/components/chat/RideChat';
 import { Phone, MessageCircle, User, MapPin, CheckCircle, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import {
+  setActiveRideLocal,
+  setDriverBusyOnRide,
+  setDriverAvailableIfOnline,
+} from '@/lib/driverSession';
 
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -45,14 +50,18 @@ export default function ActiveRideDriver() {
         const user = await base44.auth.me();
         setCurrentUser(user);
 
-        const rides = await base44.entities.Ride.filter({ id: rideId });
-        if (!rides.length) { setLoading(false); return; }
-        const rideData = rides[0];
-        setRide(rideData);
+        const res = await base44.functions.invoke('getActiveRideForDriver', { rideId });
+        const data = res?.data || res;
 
-        // Buscar passageiro
-        const passengers = await base44.entities.User.filter({ id: rideData.passenger_id });
-        setPassenger(passengers[0] || null);
+        if (!data?.found || !data?.ride) {
+          setLoading(false);
+          return;
+        }
+
+        setRide(data.ride);
+        setPassenger(data.passenger || null);
+        setActiveRideLocal(data.ride);
+        await setDriverBusyOnRide(base44);
 
         setLoading(false);
       } catch (error) {
@@ -104,13 +113,11 @@ export default function ActiveRideDriver() {
 
     // Atualizar presença no banco
     if (currentUser) {
-      base44.entities.DriverPresence.filter({ driver_id: currentUser.id }).then(rows => {
-        if (rows.length > 0) {
-          base44.entities.DriverPresence.update(rows[0].id, {
-            lat: myLocation.lat, lng: myLocation.lng,
-            last_seen_at: new Date().toISOString()
-          }).catch(() => {});
-        }
+      base44.functions.invoke('setDriverPresence', {
+        isOnline: true,
+        isAvailable: false,
+        lat: myLocation.lat,
+        lng: myLocation.lng,
       }).catch(() => {});
     }
   }, [myLocation, ride, currentUser]);
@@ -118,9 +125,9 @@ export default function ActiveRideDriver() {
   const handleCompleteRide = async () => {
     setCompleting(true);
     try {
-      await base44.entities.Ride.update(rideId, {
-        status: 'completed',
-      });
+      await base44.entities.Ride.update(rideId, { status: 'completed' });
+      setActiveRideLocal(null);
+      await setDriverAvailableIfOnline(base44, currentUser?.id);
       toast.success('✅ Corrida concluída!');
       navigate('/DriverDashboard');
     } catch (error) {
@@ -296,6 +303,8 @@ export default function ActiveRideDriver() {
                   onClick={async () => {
                     try {
                       await base44.entities.Ride.update(rideId, { status: 'cancelled' });
+                      setActiveRideLocal(null);
+                      await setDriverAvailableIfOnline(base44, currentUser?.id);
                       toast.info('Corrida cancelada.');
                       navigate('/DriverDashboard');
                     } catch (e) {

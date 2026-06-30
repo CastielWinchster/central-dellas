@@ -13,7 +13,8 @@ Deno.serve(async (req) => {
     if (!isDriver(driver)) return Response.json({ error: 'Acesso negado' }, { status: 403 });
 
     const body = await req.json();
-    const isOnline = !!body.isOnline;
+    const isOnline = body.isOnline !== false;
+    const isAvailable = 'isAvailable' in body ? !!body.isAvailable : isOnline;
 
     const presences = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });
     const now = new Date().toISOString();
@@ -21,7 +22,7 @@ Deno.serve(async (req) => {
     const payload: Record<string, unknown> = {
       driver_id: driver.id,
       is_online: isOnline,
-      is_available: isOnline,
+      is_available: isOnline && isAvailable,
       last_seen_at: now,
     };
 
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`[setDriverPresence] ${driver.email} → online=${isOnline}`);
+    console.log(`[setDriverPresence] ${driver.email} → online=${isOnline} available=${payload.is_available}`);
 
     return Response.json({ success: true, presence: record || null });
   } catch (error) {

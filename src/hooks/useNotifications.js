@@ -96,9 +96,19 @@ export async function subscribeToPush(options = {}) {
 
 /** Pede permissão explicitamente (ex.: ao ficar online como motorista) */
 export async function ensureDriverPushSubscription() {
-  const first = await subscribeToPush({ requestPermission: true });
-  if (first.ok || first.reason === 'denied') return first;
-  return subscribeToPush({ requestPermission: false });
+  const { registerAllPushChannels } = await import('@/lib/pushRegistration');
+  return registerAllPushChannels({ requestPermission: true });
+}
+
+export async function clearAllNotifications() {
+  try {
+    const res = await base44.functions.invoke('clearUserNotifications', {});
+    const data = res?.data || res;
+    return { ok: !!data?.success, deleted: data?.deleted ?? 0 };
+  } catch (err) {
+    console.error('[clearAllNotifications]', err);
+    return { ok: false, deleted: 0 };
+  }
 }
 
 export function useNotifications(userId) {
@@ -212,6 +222,15 @@ export function useNotifications(userId) {
     setToastQueue((q) => q.filter((t) => t.toastId !== toastId));
   }, []);
 
+  const clearAll = useCallback(async () => {
+    const result = await clearAllNotifications();
+    if (result.ok) {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+    return result;
+  }, []);
+
   return {
     notifications,
     setNotifications,
@@ -222,5 +241,6 @@ export function useNotifications(userId) {
     markAllAsRead,
     dismissToast,
     reload: loadNotifications,
+    clearAll,
   };
 }

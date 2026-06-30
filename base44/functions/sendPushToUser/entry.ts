@@ -6,17 +6,58 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import webpush from 'npm:web-push@3.6.7';
+import admin from 'npm:firebase-admin@12.0.0';
 
 const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_EMAIL = 'mailto:contato@centraldellas.com.br';
 
 let vapidConfigured = false;
+let fcmInitialized = false;
 
 function ensureVapid() {
   if (vapidConfigured || !VAPID_PUBLIC || !VAPID_PRIVATE) return;
   webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
   vapidConfigured = true;
+}
+
+function ensureFcm() {
+  if (fcmInitialized) return true;
+  try {
+    const json = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
+    if (!json) return false;
+    if (admin.apps.length === 0) {
+      admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
+    }
+    fcmInitialized = true;
+    return true;
+  } catch (e) {
+    console.warn('[sendPushToUser] FCM init falhou:', (e as Error).message);
+    return false;
+  }
+}
+
+async function sendFcm(
+  token: string,
+  payload: { title: string; body: string; type: string; url: string; rideId: string | null },
+) {
+  if (!ensureFcm()) return false;
+  await admin.messaging().send({
+    token,
+    notification: { title: payload.title, body: payload.body },
+    data: {
+      type: payload.type,
+      url: payload.url,
+      rideId: payload.rideId || '',
+      title: payload.title,
+      body: payload.body,
+    },
+    webpush: {
+      fcmOptions: { link: payload.url },
+    },
+    android: { priority: 'high' },
+  });
+  return true;
 }
 
 function parseSubscription(raw: unknown) {
@@ -55,6 +96,7 @@ Deno.serve(async (req) => {
     let url = '/DriverDashboard';
     let rideId: string | null = null;
     let persistent = false;
+    let skipInApp = false;
 
     try {
       const b = await req.json();
@@ -65,6 +107,7 @@ Deno.serve(async (req) => {
       url = b.url ?? '/DriverDashboard';
       rideId = b.rideId ?? null;
       persistent = b.persistent ?? false;
+      skipInApp = b.skipInApp ?? false;
     } catch {
       return Response.json({ error: 'JSON inválido' }, { status: 400 });
     }
@@ -79,6 +122,8 @@ Deno.serve(async (req) => {
 
     const prefs = await base44.asServiceRole.entities.UserPreferences.filter({ user_id: userId });
     const subscription = parseSubscription(prefs[0]?.push_subscription);
+    const fcmToken = prefs[0]?.fcm_token ? String(prefs[0].fcm_token) : null;
+    const pushPayload = { title: title!, body: body!, type, url, rideId };
 
     if (subscription && VAPID_PUBLIC && VAPID_PRIVATE) {
       try {
@@ -110,7 +155,28 @@ Deno.serve(async (req) => {
         }
       }
     } else if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
-      console.warn('[sendPushToUser] VAPID não configurado — usando fallback in-app');
+      console.warn('[sendPushToUser] VAPID não configurado — tentando FCM ou in-app');
+    }
+
+    if (fcmToken) {
+      try {
+        const sent = await sendFcm(fcmToken, pushPayload);
+        if (sent) {
+          console.log(`[sendPushToUser] FCM enviado para ${userId}`);
+          if (skipInApp || type === 'ride_offer') {
+            return Response.json({ success: true, method: 'fcm' });
+          }
+        }
+      } catch (fcmErr) {
+        console.warn('[sendPushToUser] FCM falhou:', (fcmErr as Error).message);
+        if (prefs[0]?.id && String((fcmErr as { code?: string }).code || '').includes('registration-token')) {
+          await base44.asServiceRole.entities.UserPreferences.update(prefs[0].id, { fcm_token: null });
+        }
+      }
+    }
+
+    if (skipInApp || (type === 'ride_offer' && (subscription || fcmToken))) {
+      return Response.json({ success: true, method: 'push_only' });
     }
 
     await base44.asServiceRole.entities.Notification.create({

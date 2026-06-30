@@ -16,11 +16,12 @@ import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
-import { isDriverOnlineLocal, setDriverOnlineLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [onlineReady, setOnlineReady] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [todayStats, setTodayStats] = useState({
     rides: 0,
@@ -105,7 +106,12 @@ export default function DriverDashboard() {
   }, []);
 
   useEffect(() => {
-    if (user?.id) setIsOnline(isDriverOnlineLocal(user.id));
+    if (user?.id) {
+      setIsOnline(isDriverOnlineLocal(user.id));
+      setOnlineReady(true);
+    } else {
+      setOnlineReady(false);
+    }
   }, [user?.id]);
 
   // Sincronizar ref com state para uso dentro do effect sem causar re-render
@@ -116,7 +122,7 @@ export default function DriverDashboard() {
   // Gerenciar presença online/offline
   // IMPORTANTE: presenceRecord NÃO está nas deps — usa presenceRecordRef para evitar loop
   useEffect(() => {
-    if (!user) return;
+    if (!user || !onlineReady) return;
 
     const startTracking = async () => {
       // Fallback de coordenadas caso geolocalização não esteja disponível
@@ -240,6 +246,18 @@ export default function DriverDashboard() {
         clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
       }
+      // Em corrida ativa: permanece online no mapa, só indisponível para novas ofertas
+      if (hasActiveRideLocal()) {
+        try {
+          await base44.functions.invoke('setDriverPresence', {
+            isOnline: true,
+            isAvailable: false,
+          });
+        } catch (error) {
+          console.error('Erro ao marcar indisponível:', error);
+        }
+        return;
+      }
       try {
         await base44.functions.invoke('setDriverPresence', { isOnline: false });
         toast.info('Você está offline');
@@ -265,7 +283,7 @@ export default function DriverDashboard() {
         updateIntervalRef.current = null;
       }
     };
-  }, [isOnline, user]); // presenceRecord removido das deps intencionalmente
+  }, [isOnline, user, onlineReady]); // presenceRecord removido das deps intencionalmente
   
   // Calcular distância entre dois pontos (em metros)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {

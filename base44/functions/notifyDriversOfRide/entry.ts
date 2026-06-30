@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
             rideId,
             url,
             persistent: true,
+            skipInApp: true,
           })
         )
       );

@@ -64,6 +64,14 @@
       "type": "boolean",
       "default": false,
       "description": "Web Push ativado para este usu\u00e1rio"
+    },
+    "fcm_token": {
+      "type": "string",
+      "description": "Token FCM para push nativo / Firebase Web"
+    },
+    "push_platform": {
+      "type": "string",
+      "description": "Plataforma do \u00faltimo token salvo (web, android, ios)"
     }
   },
   "required": [

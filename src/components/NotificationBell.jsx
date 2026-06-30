@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Car, MessageCircle, Trash2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,43 +23,32 @@ const TYPE_ICON = {
 
 export default function NotificationBell({
   userId,
-  // Props opcionais — se fornecidos externamente (ex: via Layout), usa-os
   notifications: extNotifications,
   unreadCount: extUnreadCount,
   markAsRead: extMarkAsRead,
   markAllAsRead: extMarkAllAsRead,
+  clearAll: extClearAll,
+  setNotifications: extSetNotifications,
+  setUnreadCount: extSetUnreadCount,
 }) {
   const [open, setOpen] = useState(false);
   const [badgePop, setBadgePop] = useState(false);
-  const [cleared, setCleared] = useState(false);
   const prevCountRef = useRef(0);
 
-  // Se props externas não fornecidas, usa hook interno
   const internal = useNotifications(extNotifications !== undefined ? null : userId);
 
-  const notifications  = cleared ? [] : (extNotifications  ?? internal.notifications);
-  const unreadCount    = cleared ? 0  : (extUnreadCount    ?? internal.unreadCount);
+  const notifications  = extNotifications  ?? internal.notifications;
+  const unreadCount    = extUnreadCount    ?? internal.unreadCount;
   const markAsRead     = extMarkAsRead     ?? internal.markAsRead;
   const markAllAsRead  = extMarkAllAsRead  ?? internal.markAllAsRead;
+  const clearAll       = extClearAll       ?? internal.clearAll;
 
-  // Resetar "cleared" quando chegarem novas notificações
-  useEffect(() => {
-    if (cleared && (extNotifications?.length > 0 || internal.notifications.length > 0)) {
-      // Não resetar — manter limpo até reload real
+  const handleClearAll = async () => {
+    const result = await clearAll();
+    if (result?.ok) {
+      extSetNotifications?.([]);
+      extSetUnreadCount?.(0);
     }
-  }, [extNotifications, internal.notifications]);
-
-  const clearAll = async () => {
-    const list = extNotifications ?? internal.notifications;
-    for (const n of list) {
-      try {
-        await base44.entities.Notification.delete(n.id);
-      } catch (e) {
-        // ignora "not found" e continua
-      }
-    }
-    setCleared(true);
-    if (internal.setNotifications) internal.setNotifications([]);
   };
 
   // Animação do badge ao receber nova notificação
@@ -114,7 +102,7 @@ export default function NotificationBell({
             )}
             {notifications.length > 0 && (
               <Button
-                onClick={clearAll}
+                onClick={handleClearAll}
                 variant="ghost"
                 size="sm"
                 className="text-red-400 hover:bg-red-500/10 text-xs"

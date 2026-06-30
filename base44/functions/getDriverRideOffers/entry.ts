@@ -47,17 +47,19 @@ Deno.serve(async (req) => {
 
     const presences = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });
     const presence = presences[0] || null;
+    const isAvailable = !!presence?.is_online && presence?.is_available !== false;
 
     console.log(
-      `[getDriverRideOffers] ${driver.email} | online=${presence?.is_online} | ofertas=${enriched.length}`,
+      `[getDriverRideOffers] ${driver.email} | online=${presence?.is_online} available=${isAvailable} | ofertas=${enriched.length}`,
     );
 
     return Response.json({
       success: true,
       isOnlineDb: !!presence?.is_online,
+      isAvailableDb: isAvailable,
       presence: presence || null,
       presenceId: presence?.id || null,
-      offers: enriched,
+      offers: isAvailable ? enriched : [],
     });
   } catch (error) {
     console.error('[getDriverRideOffers]', (error as Error).message);

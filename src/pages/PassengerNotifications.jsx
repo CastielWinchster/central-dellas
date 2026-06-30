@@ -8,12 +8,13 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import moment from 'moment';
-import NotificationSettingsPanel from '../components/NotificationSettingsPanel';
+import { clearAllNotifications } from '@/hooks/useNotifications';
 
 export default function PassengerNotifications() {
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -64,37 +65,20 @@ export default function PassengerNotifications() {
     }
   };
 
-  const handleTestNotifications = async () => {
+  const handleClearAll = async () => {
+    setClearing(true);
     try {
-      toast.loading('Enviando notificações de teste...');
-      
-      // Criar notificação de Carro
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: "Peça seu carro agora! 🚗💖✨",
-        message: "Sua viagem com total segurança e entre mulheres.",
-        type: "system",
-        is_read: false,
-        is_persistent: true
-      });
-      
-      // Criar notificação de Moto (Rotta Roza)
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: "ROTTA ROZA 🌸",
-        message: "De mulher para mulher sua segurança é nossa prioridade!\nPeça sua mototáxi agora!",
-        type: "system",
-        is_read: false,
-        is_persistent: true
-      });
-      
-      toast.dismiss();
-      toast.success('Notificações de teste criadas!');
-      await loadData();
+      const result = await clearAllNotifications();
+      if (result.ok) {
+        setNotifications([]);
+        toast.success('Todas as notificações foram removidas');
+      } else {
+        toast.error('Erro ao limpar notificações');
+      }
     } catch (error) {
-      console.error('Erro ao enviar notificações:', error);
-      toast.dismiss();
-      toast.error('Erro ao criar notificações');
+      toast.error('Erro ao limpar notificações');
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -146,20 +130,19 @@ export default function PassengerNotifications() {
             </Link>
             <h1 className="text-2xl font-bold text-[#F2F2F2]">Notificações</h1>
           </div>
-          <Button 
-            onClick={handleTestNotifications}
-            className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
-            size="sm"
-          >
-            Testar
-          </Button>
+          {notifications.length > 0 && (
+            <Button
+              onClick={handleClearAll}
+              disabled={clearing}
+              variant="outline"
+              size="sm"
+              className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              {clearing ? 'Limpando...' : 'Limpar Tudo'}
+            </Button>
+          )}
         </div>
-
-        {user && (
-          <div className="mb-6">
-            <NotificationSettingsPanel userId={user.id} />
-          </div>
-        )}
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">

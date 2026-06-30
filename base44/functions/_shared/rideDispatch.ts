@@ -126,19 +126,7 @@ async function notifyDrivers(
   const notifyTitle = rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!';
   const notifyBody = `${ride.pickup_text || 'Origem'} → ${ride.dropoff_text || 'destino'}`;
 
-  await Promise.allSettled(
-    driverIds.map((driverId) =>
-      base44.asServiceRole.entities.Notification.create({
-        user_id: driverId,
-        title: notifyTitle,
-        message: notifyBody,
-        type: 'ride',
-        is_read: false,
-        is_persistent: false,
-      }),
-    ),
-  );
-
+  // Push apenas — in-app duplicava e encheva a lista a cada re-dispatch
   base44.asServiceRole.functions
     .invoke('notifyDriversOfRide', {
       rideId: ride.id,

@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils';
 import { useAuthUser } from '@/components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
-import { useNotifications, subscribeToPush, ensureDriverPushSubscription } from '@/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
+import { registerAllPushChannels } from '@/lib/pushRegistration';
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
 import { clearDriverSessionLocal } from '@/lib/driverSession';
@@ -31,7 +32,7 @@ function LayoutContent({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasActiveDelivery, setHasActiveDelivery] = useState(false);
   const [activeDeliveryId, setActiveDeliveryId] = useState(null);
-  const { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast } = useNotifications(user?.id);
+  const { notifications, unreadCount, toastQueue, markAsRead, markAllAsRead, dismissToast, clearAll, setNotifications, setUnreadCount } = useNotifications(user?.id);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -117,11 +118,7 @@ function LayoutContent({ children, currentPageName }) {
     if (!user) return;
     const delay = isDriverUser || isDriverPage ? 500 : 3000;
     const register = () => {
-      if (isDriverUser || isDriverPage) {
-        ensureDriverPushSubscription();
-      } else {
-        subscribeToPush();
-      }
+      registerAllPushChannels({ requestPermission: isDriverUser || isDriverPage });
     };
     const timer = setTimeout(register, delay);
     return () => clearTimeout(timer);
@@ -132,7 +129,7 @@ function LayoutContent({ children, currentPageName }) {
     if (!user || !isDriverUser) return;
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
-        ensureDriverPushSubscription();
+        registerAllPushChannels({ requestPermission: false });
       }
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -279,6 +276,9 @@ function LayoutContent({ children, currentPageName }) {
                     unreadCount={unreadCount}
                     markAsRead={markAsRead}
                     markAllAsRead={markAllAsRead}
+                    clearAll={clearAll}
+                    setNotifications={setNotifications}
+                    setUnreadCount={setUnreadCount}
                   />
                   <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998]">
                     {user.photo_url ? (
