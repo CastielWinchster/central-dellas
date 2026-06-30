@@ -47,14 +47,8 @@
   ],
   "rls": {
     "create": null,
-    "read": {
-      "user_id": "{{user.id}}"
-    },
-    "update": {
-      "user_id": "{{user.id}}"
-    },
-    "delete": {
-      "user_id": "{{user.id}}"
-    }
+    "read": null,
+    "update": null,
+    "delete": null
   }
 }

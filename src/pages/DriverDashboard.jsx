@@ -16,13 +16,12 @@ import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
-import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setActiveRideLocal, clearActiveRideLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setDriverOnlineLocal } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
-  const [onlineHydrated, setOnlineHydrated] = useState(false);
   const [todayStats, setTodayStats] = useState({
     rides: 0,
     earnings: 0,
@@ -106,9 +105,7 @@ export default function DriverDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) return;
-    setIsOnline(isDriverOnlineLocal(user.id));
-    setOnlineHydrated(true);
+    if (user?.id) setIsOnline(isDriverOnlineLocal(user.id));
   }, [user?.id]);
 
   // Sincronizar ref com state para uso dentro do effect sem causar re-render
@@ -119,7 +116,7 @@ export default function DriverDashboard() {
   // Gerenciar presença online/offline
   // IMPORTANTE: presenceRecord NÃO está nas deps — usa presenceRecordRef para evitar loop
   useEffect(() => {
-    if (!user || !onlineHydrated) return;
+    if (!user) return;
 
     const startTracking = async () => {
       // Fallback de coordenadas caso geolocalização não esteja disponível
@@ -156,7 +153,6 @@ export default function DriverDashboard() {
       try {
         const res = await base44.functions.invoke('setDriverPresence', {
           isOnline: true,
-          isBusy: hasActiveRideLocal(),
           lat: latitude,
           lng: longitude,
           accuracy,
@@ -206,7 +202,6 @@ export default function DriverDashboard() {
             try {
               await base44.functions.invoke('setDriverPresence', {
                 isOnline: true,
-                isBusy: hasActiveRideLocal(),
                 lat,
                 lng,
                 accuracy: acc || 0,
@@ -227,10 +222,7 @@ export default function DriverDashboard() {
       // Atualizar timestamp a cada 3 segundos
       updateIntervalRef.current = setInterval(async () => {
         try {
-          await base44.functions.invoke('setDriverPresence', {
-            isOnline: true,
-            isBusy: hasActiveRideLocal(),
-          });
+          await base44.functions.invoke('setDriverPresence', { isOnline: true });
         } catch (error) {
           console.error('Erro ao atualizar timestamp:', error);
         }
@@ -240,8 +232,6 @@ export default function DriverDashboard() {
     };
 
     const stopTracking = async () => {
-      if (hasActiveRideLocal()) return;
-
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
@@ -260,7 +250,7 @@ export default function DriverDashboard() {
 
     if (isOnline) {
       startTracking();
-    } else if (!hasActiveRideLocal()) {
+    } else {
       stopTracking();
     }
 
@@ -275,7 +265,7 @@ export default function DriverDashboard() {
         updateIntervalRef.current = null;
       }
     };
-  }, [isOnline, user, onlineHydrated]); // presenceRecord removido das deps intencionalmente
+  }, [isOnline, user]); // presenceRecord removido das deps intencionalmente
   
   // Calcular distância entre dois pontos (em metros)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -319,7 +309,7 @@ export default function DriverDashboard() {
 
   // Chamado pelo AvailableRidesList quando aceita via lista
   const handleRideAcceptedFromList = async (acceptedRideData) => {
-    setActiveRideLocal(acceptedRideData);
+    localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
     toast.success('🎉 Corrida aceita!');
     navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
   };
@@ -329,7 +319,7 @@ export default function DriverDashboard() {
     if (acceptedRide?.id) {
       try { await base44.entities.Ride.update(acceptedRide.id, { status: 'completed' }); } catch(e) {}
     }
-    clearActiveRideLocal();
+    localStorage.removeItem('active_ride');
     setAcceptedRide(null);
     setSelectedRide(null);
     setPassengerUser(null);

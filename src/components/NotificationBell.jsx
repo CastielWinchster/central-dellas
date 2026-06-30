@@ -51,16 +51,16 @@ export default function NotificationBell({
   }, [extNotifications, internal.notifications]);
 
   const clearAll = async () => {
-    try {
-      const response = await base44.functions.invoke('clearAllNotifications', {});
-      const data = response?.data || response;
-      if (!data?.success) throw new Error(data?.error || 'Falha ao limpar');
-      setCleared(true);
-      if (internal.setNotifications) internal.setNotifications([]);
-      if (internal.setUnreadCount) internal.setUnreadCount(0);
-    } catch (e) {
-      console.warn('[NotificationBell] clearAll:', e);
+    const list = extNotifications ?? internal.notifications;
+    for (const n of list) {
+      try {
+        await base44.entities.Notification.delete(n.id);
+      } catch (e) {
+        // ignora "not found" e continua
+      }
     }
+    setCleared(true);
+    if (internal.setNotifications) internal.setNotifications([]);
   };
 
   // Animação do badge ao receber nova notificação
