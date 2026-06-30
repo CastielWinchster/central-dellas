@@ -125,7 +125,8 @@ export default function ActiveRideDriver() {
   const handleCompleteRide = async () => {
     setCompleting(true);
     try {
-      await base44.entities.Ride.update(rideId, { status: 'completed' });
+      const res = await base44.functions.invoke('updateRideStatus', { rideId, status: 'completed' });
+      if (!res.data?.success) throw new Error(res.data?.error || 'Falha ao concluir');
       setActiveRideLocal(null);
       await setDriverAvailableIfOnline(base44, currentUser?.id);
       toast.success('✅ Corrida concluída!');
@@ -302,7 +303,8 @@ export default function ActiveRideDriver() {
                 <button
                   onClick={async () => {
                     try {
-                      await base44.entities.Ride.update(rideId, { status: 'cancelled' });
+                      const res = await base44.functions.invoke('updateRideStatus', { rideId, status: 'cancelled' });
+                      if (!res.data?.success) throw new Error(res.data?.error || 'Falha ao cancelar');
                       setActiveRideLocal(null);
                       await setDriverAvailableIfOnline(base44, currentUser?.id);
                       toast.info('Corrida cancelada.');
