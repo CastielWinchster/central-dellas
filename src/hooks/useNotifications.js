@@ -208,6 +208,21 @@ export function useNotifications(userId) {
     setUnreadCount(0);
   }, [notifications]);
 
+  const clearAll = useCallback(async () => {
+    if (!userId) return false;
+    try {
+      const response = await base44.functions.invoke('clearAllNotifications', {});
+      const data = response?.data || response;
+      if (!data?.success) return false;
+      setNotifications([]);
+      setUnreadCount(0);
+      return true;
+    } catch (e) {
+      console.error('[useNotifications] clearAll:', e);
+      return false;
+    }
+  }, [userId]);
+
   const dismissToast = useCallback((toastId) => {
     setToastQueue((q) => q.filter((t) => t.toastId !== toastId));
   }, []);
@@ -220,6 +235,7 @@ export function useNotifications(userId) {
     toastQueue,
     markAsRead,
     markAllAsRead,
+    clearAll,
     dismissToast,
     reload: loadNotifications,
   };

@@ -6,6 +6,7 @@ import RideChat from '@/components/chat/RideChat';
 import { Phone, MessageCircle, User, MapPin, CheckCircle, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { setActiveRideLocal, clearActiveRideLocal, getActiveRideLocal } from '@/lib/driverSession';
 
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -40,20 +41,25 @@ export default function ActiveRideDriver() {
   // Buscar dados da corrida
   useEffect(() => {
     const fetchData = async () => {
-      if (!rideId) return;
+      const id = rideId || getActiveRideLocal()?.id;
+      if (!id) { setLoading(false); return; }
+
       try {
         const user = await base44.auth.me();
         setCurrentUser(user);
 
-        const rides = await base44.entities.Ride.filter({ id: rideId });
-        if (!rides.length) { setLoading(false); return; }
-        const rideData = rides[0];
-        setRide(rideData);
+        const response = await base44.functions.invoke('getActiveRide', { rideId: id });
+        const data = response?.data || response;
 
-        // Buscar passageiro
-        const passengers = await base44.entities.User.filter({ id: rideData.passenger_id });
-        setPassenger(passengers[0] || null);
+        if (!data?.success || !data.found) {
+          clearActiveRideLocal();
+          setLoading(false);
+          return;
+        }
 
+        setRide(data.ride);
+        setPassenger(data.passenger || null);
+        setActiveRideLocal(data.ride);
         setLoading(false);
       } catch (error) {
         console.error('[ActiveRideDriver]', error);
@@ -104,13 +110,11 @@ export default function ActiveRideDriver() {
 
     // Atualizar presença no banco
     if (currentUser) {
-      base44.entities.DriverPresence.filter({ driver_id: currentUser.id }).then(rows => {
-        if (rows.length > 0) {
-          base44.entities.DriverPresence.update(rows[0].id, {
-            lat: myLocation.lat, lng: myLocation.lng,
-            last_seen_at: new Date().toISOString()
-          }).catch(() => {});
-        }
+      base44.functions.invoke('setDriverPresence', {
+        isOnline: true,
+        isBusy: true,
+        lat: myLocation.lat,
+        lng: myLocation.lng,
       }).catch(() => {});
     }
   }, [myLocation, ride, currentUser]);
@@ -121,6 +125,8 @@ export default function ActiveRideDriver() {
       await base44.entities.Ride.update(rideId, {
         status: 'completed',
       });
+      clearActiveRideLocal();
+      await base44.functions.invoke('setDriverPresence', { isOnline: true, isBusy: false }).catch(() => {});
       toast.success('✅ Corrida concluída!');
       navigate('/DriverDashboard');
     } catch (error) {
@@ -296,6 +302,8 @@ export default function ActiveRideDriver() {
                   onClick={async () => {
                     try {
                       await base44.entities.Ride.update(rideId, { status: 'cancelled' });
+                      clearActiveRideLocal();
+                      await base44.functions.invoke('setDriverPresence', { isOnline: true, isBusy: false }).catch(() => {});
                       toast.info('Corrida cancelada.');
                       navigate('/DriverDashboard');
                     } catch (e) {

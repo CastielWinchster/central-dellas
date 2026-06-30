@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
-import { isDriverOnlineLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, hasActiveRideLocal, setActiveRideLocal } from '@/lib/driverSession';
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
@@ -51,6 +51,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
 
   const checkOffers = useCallback(async () => {
     if (!enabled || !userId || !isOnline) return;
+    if (hasActiveRideLocal()) return;
     if (processingOfferRef.current || rideOffer) return;
 
     try {
@@ -64,7 +65,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
 
       if (data.isOnlineDb === false && isDriverOnlineLocal(userId)) {
         console.warn('[DriverRideOfferLayer] Local online mas DB offline — re-sincronizando presença');
-        await base44.functions.invoke('setDriverPresence', { isOnline: true }).catch(() => {});
+        await base44.functions.invoke('setDriverPresence', { isOnline: true, isBusy: hasActiveRideLocal() }).catch(() => {});
       }
 
       const pending = (data.offers || []).filter(
@@ -140,7 +141,8 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
         toast.success('🎉 Corrida aceita!');
         cancelRideAlert(ride.id);
         const acceptedRideData = responseData?.ride || ride;
-        localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
+        setActiveRideLocal(acceptedRideData);
+        await base44.functions.invoke('setDriverPresence', { isOnline: true, isBusy: true }).catch(() => {});
         clearOffer();
         navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
       } else if (responseData.expired) {
@@ -169,7 +171,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     }
   };
 
-  if (!enabled || !isOnline || !rideOffer || !offerRide) return null;
+  if (!enabled || !isOnline || hasActiveRideLocal() || !rideOffer || !offerRide) return null;
 
   return (
     <RideOfferModal

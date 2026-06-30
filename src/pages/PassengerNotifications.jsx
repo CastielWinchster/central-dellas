@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import moment from 'moment';
-import NotificationSettingsPanel from '../components/NotificationSettingsPanel';
 
 export default function PassengerNotifications() {
   const [user, setUser] = useState(null);
@@ -61,6 +60,18 @@ export default function PassengerNotifications() {
       toast.success('Notificação removida');
     } catch (error) {
       toast.error('Erro ao remover');
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const response = await base44.functions.invoke('clearAllNotifications', {});
+      const data = response?.data || response;
+      if (!data?.success) throw new Error(data?.error || 'Falha ao limpar');
+      setNotifications([]);
+      toast.success('Todas as notificações foram removidas!');
+    } catch (error) {
+      toast.error('Erro ao limpar notificações');
     }
   };
 
@@ -146,20 +157,27 @@ export default function PassengerNotifications() {
             </Link>
             <h1 className="text-2xl font-bold text-[#F2F2F2]">Notificações</h1>
           </div>
-          <Button 
-            onClick={handleTestNotifications}
-            className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
-            size="sm"
-          >
-            Testar
-          </Button>
-        </div>
-
-        {user && (
-          <div className="mb-6">
-            <NotificationSettingsPanel userId={user.id} />
+          <div className="flex items-center gap-2">
+            {notifications.length > 0 && (
+              <Button
+                onClick={handleClearAll}
+                variant="outline"
+                size="sm"
+                className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Limpar tudo
+              </Button>
+            )}
+            <Button 
+              onClick={handleTestNotifications}
+              className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
+              size="sm"
+            >
+              Testar
+            </Button>
           </div>
-        )}
+        </div>
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">

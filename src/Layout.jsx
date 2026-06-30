@@ -15,6 +15,7 @@ import { useAuthUser } from '@/components/AuthGuard';
 import NotificationBell from './components/NotificationBell';
 import { useNotifications, subscribeToPush, ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
+import ActiveRideGuard from './components/driver/ActiveRideGuard';
 import NotificationToast from './components/NotificationToast';
 import { clearDriverSessionLocal } from '@/lib/driverSession';
 
@@ -388,6 +389,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Toast de notificações em tempo real */}
       <NotificationToast toasts={toastQueue} onDismiss={dismissToast} />
+      <ActiveRideGuard userId={user?.id} enabled={isDriverUser || !!user?.id} />
       {/* Sempre habilitado para qualquer usuária logada — o próprio layer só ativa
           quando a motorista está online (driver_is_online no localStorage),
           então não dependemos mais de user_type/role estarem corretos. */}

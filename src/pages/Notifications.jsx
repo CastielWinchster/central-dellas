@@ -67,15 +67,15 @@ export default function Notifications() {
   };
 
   const clearAllNotifications = async () => {
-    for (const n of notifications) {
-      try {
-        await base44.entities.Notification.delete(n.id);
-      } catch (e) {
-        // ignora "not found" e continua
-      }
+    try {
+      const response = await base44.functions.invoke('clearAllNotifications', {});
+      const data = response?.data || response;
+      if (!data?.success) throw new Error(data?.error || 'Falha ao limpar');
+      setNotifications([]);
+      toast.success('Todas as notificações foram removidas!');
+    } catch (error) {
+      toast.error('Erro ao limpar notificações');
     }
-    setNotifications([]);
-    toast.success('Todas as notificações foram removidas!');
   };
 
   const filteredNotifications = filter === 'all' 

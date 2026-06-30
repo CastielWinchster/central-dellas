@@ -14,14 +14,15 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const isOnline = !!body.isOnline;
+    const isBusy = !!body.isBusy;
 
     const presences = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });
     const now = new Date().toISOString();
 
     const payload: Record<string, unknown> = {
       driver_id: driver.id,
-      is_online: isOnline,
-      is_available: isOnline,
+      is_online: isOnline || isBusy,
+      is_available: isOnline && !isBusy,
       last_seen_at: now,
     };
 
