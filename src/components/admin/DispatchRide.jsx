@@ -201,9 +201,9 @@ export default function DispatchRide({ onRideDispatched }) {
   };
 
   return (
-    <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6">
+    <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
       <h2 className="text-xl font-bold text-[#F2F2F2] mb-6 flex items-center gap-2">
-        <Phone className="w-6 h-6 text-[#F22998]" />
+        <Phone className="w-6 h-6 text-[#A855F7]" />
         Despacho Manual de Corrida
       </h2>
 
@@ -218,12 +218,12 @@ export default function DispatchRide({ onRideDispatched }) {
               placeholder="+55 11 99999-9999"
               value={formData.passenger_phone}
               onChange={(e) => setFormData({ ...formData, passenger_phone: e.target.value })}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
             <Button
               onClick={searchPassengerByPhone}
               disabled={searchingPhone || !formData.passenger_phone}
-              className="bg-[#F22998] hover:bg-[#BF3B79]"
+              className="bg-[#A855F7] hover:bg-[#7C3AED]"
             >
               <Search className="w-4 h-4 mr-2" />
               {searchingPhone ? 'Buscando...' : 'Buscar'}
@@ -245,7 +245,7 @@ export default function DispatchRide({ onRideDispatched }) {
             placeholder="Nome completo"
             value={formData.passenger_name}
             onChange={(e) => setFormData({ ...formData, passenger_name: e.target.value })}
-            className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+            className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
           />
         </div>
 
@@ -261,13 +261,13 @@ export default function DispatchRide({ onRideDispatched }) {
               value={formData.pickup_address}
               onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
               onBlur={() => geocodeAddress(formData.pickup_address, true)}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-[#F2F2F2]/80 font-semibold flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#F22998]" />
+              <MapPin className="w-4 h-4 text-[#A855F7]" />
               Destino *
             </label>
             <Input
@@ -275,7 +275,7 @@ export default function DispatchRide({ onRideDispatched }) {
               value={formData.destination_address}
               onChange={(e) => setFormData({ ...formData, destination_address: e.target.value })}
               onBlur={() => geocodeAddress(formData.destination_address, false)}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
         </div>
@@ -283,17 +283,17 @@ export default function DispatchRide({ onRideDispatched }) {
         {/* Motorista */}
         <div className="space-y-2">
           <label className="text-sm text-[#F2F2F2]/80 font-semibold flex items-center gap-2">
-            <Car className="w-4 h-4 text-[#F22998]" />
+            <Car className="w-4 h-4 text-[#A855F7]" />
             Motorista Disponível * ({availableDrivers.length} online)
           </label>
           <Select
             value={formData.driver_id}
             onValueChange={(value) => setFormData({ ...formData, driver_id: value })}
           >
-            <SelectTrigger className="bg-[#0D0D0D] border-[#F22998]/20 text-white">
+            <SelectTrigger className="bg-[#0D0D0D] border-[#A855F7]/20 text-white">
               <SelectValue placeholder="Selecione uma motorista" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0D0D0D] border-[#F22998]/20">
+            <SelectContent className="bg-[#0D0D0D] border-[#A855F7]/20">
               {availableDrivers.map((driver) => (
                 <SelectItem key={driver.id} value={driver.id} className="text-white">
                   {driver.full_name} {driver.vehicle_model && `- ${driver.vehicle_model}`}
@@ -312,10 +312,10 @@ export default function DispatchRide({ onRideDispatched }) {
             value={formData.payment_method}
             onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
           >
-            <SelectTrigger className="bg-[#0D0D0D] border-[#F22998]/20 text-white">
+            <SelectTrigger className="bg-[#0D0D0D] border-[#A855F7]/20 text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0D0D0D] border-[#F22998]/20">
+            <SelectContent className="bg-[#0D0D0D] border-[#A855F7]/20">
               <SelectItem value="cash" className="text-white">Dinheiro</SelectItem>
               <SelectItem value="pix" className="text-white">PIX</SelectItem>
               <SelectItem value="credit_card" className="text-white">Cartão de Crédito</SelectItem>
@@ -332,7 +332,7 @@ export default function DispatchRide({ onRideDispatched }) {
             placeholder="Informações adicionais (ex: idade avançada, bagagem extra)"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+            className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
           />
         </div>
 
@@ -340,7 +340,7 @@ export default function DispatchRide({ onRideDispatched }) {
         <Button
           onClick={dispatchRide}
           disabled={loading}
-          className="w-full py-6 bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90 text-white font-bold text-lg"
+          className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] hover:opacity-90 text-white font-bold text-lg"
         >
           <Send className="w-5 h-5 mr-2" />
           {loading ? 'Despachando...' : 'Despachar Corrida'}

@@ -127,17 +127,17 @@ export default function Reports() {
   return (
     <div className="space-y-6">
       {/* Period Selector */}
-      <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-4">
+      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4">
         <div className="flex items-center justify-between">
           <h3 className="text-[#F2F2F2] font-semibold flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#F22998]" />
+            <Calendar className="w-5 h-5 text-[#A855F7]" />
             Período
           </h3>
           <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-40 bg-[#0D0D0D] border-[#F22998]/20 text-white">
+            <SelectTrigger className="w-40 bg-[#0D0D0D] border-[#A855F7]/20 text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0D0D0D] border-[#F22998]/20">
+            <SelectContent className="bg-[#0D0D0D] border-[#A855F7]/20">
               <SelectItem value="today" className="text-white">Hoje</SelectItem>
               <SelectItem value="week" className="text-white">Última Semana</SelectItem>
               <SelectItem value="month" className="text-white">Último Mês</SelectItem>
@@ -149,7 +149,7 @@ export default function Reports() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {reportCards.map((card, index) => (
-          <Card key={index} className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6">
+          <Card key={index} className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mb-3`}>
               <card.icon className="w-6 h-6 text-white" />
             </div>
@@ -162,23 +162,23 @@ export default function Reports() {
       {/* Additional Stats */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Completion Rate */}
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6">
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
           <h3 className="text-[#F2F2F2] font-semibold mb-4">Taxa de Conclusão</h3>
           <div className="flex items-center gap-4">
             <div className="flex-1 h-4 bg-[#0D0D0D] rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-[#BF3B79] to-[#F22998]"
+                className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7]"
                 style={{ width: `${stats.completionRate}%` }}
               />
             </div>
-            <span className="text-2xl font-bold text-[#F22998]">
+            <span className="text-2xl font-bold text-[#A855F7]">
               {stats.completionRate}%
             </span>
           </div>
         </Card>
 
         {/* Top Drivers */}
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6">
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
           <h3 className="text-[#F2F2F2] font-semibold mb-4 flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500" />
             Top 5 Motoristas
@@ -187,13 +187,13 @@ export default function Reports() {
             {stats.topDrivers.map((driver, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#F22998] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-6 h-6 rounded-full bg-[#A855F7] flex items-center justify-center text-white text-xs font-bold">
                     {index + 1}
                   </div>
                   <span className="text-[#F2F2F2] text-sm">{driver.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-[#F22998] font-semibold text-sm">
+                  <p className="text-[#A855F7] font-semibold text-sm">
                     R$ {driver.revenue.toFixed(2)}
                   </p>
                   <p className="text-[#F2F2F2]/60 text-xs">{driver.rides} corridas</p>

@@ -70,16 +70,16 @@ export default function ActiveRide({ ride, onComplete }) {
       />
 
       {/* Driver Info */}
-      <Card className={`p-4 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white'}`}>
+      <Card className={`p-4 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white'}`}>
         <div className="flex items-center gap-4">
           {driver?.photo_url ? (
             <img 
               src={driver.photo_url} 
               alt={driver.full_name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-[#F22998]"
+              className="w-16 h-16 rounded-full object-cover border-2 border-[#A855F7]"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
               <span className="text-white text-xl font-bold">
                 {driver?.full_name?.charAt(0) || 'M'}
               </span>
@@ -105,7 +105,7 @@ export default function ActiveRide({ ride, onComplete }) {
             </Button>
             <Button
               size="icon"
-              className="rounded-full bg-[#F22998] hover:bg-[#BF3B79]"
+              className="rounded-full bg-[#A855F7] hover:bg-[#7C3AED]"
             >
               <MessageCircle className="w-5 h-5" />
             </Button>
@@ -133,7 +133,7 @@ export default function ActiveRide({ ride, onComplete }) {
       </Card>
 
       {/* Route Info */}
-      <Card className={`p-4 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white'}`}>
+      <Card className={`p-4 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white'}`}>
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-green-500" />
@@ -142,7 +142,7 @@ export default function ActiveRide({ ride, onComplete }) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-[#F22998]" />
+            <div className="w-3 h-3 rounded-full bg-[#A855F7]" />
             <p className={`text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
               {ride.destination_address}
             </p>

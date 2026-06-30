@@ -265,7 +265,7 @@ export default function OfflineTracker({ rideId, isActive }) {
       {/* Indicador de rastreamento ativo */}
       {isOnline && trackingPoints.length > 0 && (
         <div className="fixed bottom-24 right-4 z-40">
-          <div className="px-3 py-2 rounded-full bg-[#F22998]/90 backdrop-blur-sm text-white flex items-center gap-2 shadow-lg">
+          <div className="px-3 py-2 rounded-full bg-[#A855F7]/90 backdrop-blur-sm text-white flex items-center gap-2 shadow-lg">
             <MapPin className="w-4 h-4" />
             <span className="text-xs font-medium">{trackingPoints.length} pts</span>
           </div>

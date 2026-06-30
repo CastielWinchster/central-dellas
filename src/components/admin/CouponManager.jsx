@@ -86,9 +86,9 @@ export default function CouponManager() {
   return (
     <div className="space-y-4">
       {/* Form */}
-      <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-5">
+      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-5">
         <h3 className="font-bold text-[#F2F2F2] mb-4 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-[#F22998]" /> Novo Cupom
+          <Plus className="w-5 h-5 text-[#A855F7]" /> Novo Cupom
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -97,14 +97,14 @@ export default function CouponManager() {
               placeholder="EX: BEMVINDA10"
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs text-[#F2F2F2]/70 font-medium">Tipo de Desconto</label>
             <Select value={form.discount_type} onValueChange={(v) => setForm({ ...form, discount_type: v })}>
-              <SelectTrigger className="bg-[#0D0D0D] border-[#F22998]/20 text-white"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-[#0D0D0D] border-[#F22998]/20">
+              <SelectTrigger className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-[#0D0D0D] border-[#A855F7]/20">
                 <SelectItem value="percentage" className="text-white">Porcentagem (%)</SelectItem>
                 <SelectItem value="amount" className="text-white">Valor fixo (R$)</SelectItem>
               </SelectContent>
@@ -120,7 +120,7 @@ export default function CouponManager() {
               min="0"
               value={form.discount_value}
               onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
           <div className="space-y-1.5">
@@ -129,7 +129,7 @@ export default function CouponManager() {
               type="date"
               value={form.valid_until}
               onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
           <div className="space-y-1.5">
@@ -140,7 +140,7 @@ export default function CouponManager() {
               placeholder="Ilimitado"
               value={form.max_uses}
               onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
-              className="bg-[#0D0D0D] border-[#F22998]/20 text-white"
+              className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
             />
           </div>
           <div className="flex items-center gap-3 pt-6">
@@ -151,7 +151,7 @@ export default function CouponManager() {
         <Button
           onClick={createCoupon}
           disabled={saving}
-          className="w-full mt-4 bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90 text-white font-bold"
+          className="w-full mt-4 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] hover:opacity-90 text-white font-bold"
         >
           <Plus className="w-4 h-4 mr-2" />
           {saving ? 'Criando...' : 'Criar Cupom'}
@@ -159,9 +159,9 @@ export default function CouponManager() {
       </Card>
 
       {/* List */}
-      <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-5">
+      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-5">
         <h3 className="font-bold text-[#F2F2F2] mb-4 flex items-center gap-2">
-          <Ticket className="w-5 h-5 text-[#F22998]" /> Cupons ({coupons.length})
+          <Ticket className="w-5 h-5 text-[#A855F7]" /> Cupons ({coupons.length})
         </h3>
         {loading ? (
           <p className="text-[#F2F2F2]/60">Carregando...</p>
@@ -170,10 +170,10 @@ export default function CouponManager() {
         ) : (
           <div className="space-y-2">
             {coupons.map((c) => (
-              <div key={c.id} className="flex items-center justify-between bg-[#0D0D0D] rounded-xl p-4 border border-[#F22998]/10">
+              <div key={c.id} className="flex items-center justify-between bg-[#0D0D0D] rounded-xl p-4 border border-[#A855F7]/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#F22998]/15 flex items-center justify-center">
-                    {c.discount_percentage ? <Percent className="w-5 h-5 text-[#F22998]" /> : <DollarSign className="w-5 h-5 text-[#F22998]" />}
+                  <div className="w-10 h-10 rounded-lg bg-[#A855F7]/15 flex items-center justify-center">
+                    {c.discount_percentage ? <Percent className="w-5 h-5 text-[#A855F7]" /> : <DollarSign className="w-5 h-5 text-[#A855F7]" />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">

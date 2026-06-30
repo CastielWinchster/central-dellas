@@ -138,7 +138,7 @@ export default function ActiveDeliveryDriver() {
     return (
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-[#F22998]/20 border-t-[#F22998] animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#A855F7]/20 border-t-[#A855F7] animate-spin mx-auto mb-4" />
           <p className="text-white">Carregando entrega...</p>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function ActiveDeliveryDriver() {
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center text-white">
           <p>Entrega não encontrada</p>
-          <button onClick={() => navigate('/DriverDashboard')} className="mt-4 text-[#F22998]">Voltar</button>
+          <button onClick={() => navigate('/DriverDashboard')} className="mt-4 text-[#A855F7]">Voltar</button>
         </div>
       </div>
     );
@@ -184,7 +184,7 @@ export default function ActiveDeliveryDriver() {
         {/* Distância até coleta */}
         {distToPickup != null && ride.status === 'accepted' && (
           <div className="absolute top-4 right-4 z-10">
-            <div className="bg-[#0D0D0D]/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-lg border border-[#F22998]/20">
+            <div className="bg-[#0D0D0D]/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-lg border border-[#A855F7]/20">
               <p className="text-xs text-gray-400 mb-0.5">Até coleta</p>
               <p className="text-xl font-bold leading-none">{distToPickup.toFixed(1)} km</p>
             </div>
@@ -197,7 +197,7 @@ export default function ActiveDeliveryDriver() {
 
         {/* Cliente */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full border-2 border-[#A855F7] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
             {(() => {
               const foto = passenger?.photo_url || passenger?.profile_picture || passenger?.avatar || null;
               const nome = passenger?.full_name || passenger?.name || 'Cliente';
@@ -228,7 +228,7 @@ export default function ActiveDeliveryDriver() {
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5">
-            <MapPin className="w-3.5 h-3.5 text-[#F22998] mt-0.5 flex-shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#A855F7] mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Entrega</p>
               <p className="text-white text-sm">{ride.dropoff_text}</p>

@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Car, MessageCircle, Bell } from 'lucide-react';
 
 const TYPE_CONFIG = {
-  ride:    { icon: Car,           color: 'from-pink-600 to-pink-900',  label: 'Corrida' },
+  ride:    { icon: Car,           color: 'from-purple-600 to-purple-900',  label: 'Corrida' },
   message: { icon: MessageCircle, color: 'from-blue-600 to-blue-900',  label: 'Mensagem' },
   default: { icon: Bell,          color: 'from-gray-700 to-gray-900',  label: 'Aviso' },
 };

@@ -10,7 +10,7 @@ export default function DocUploadField({ label, value, onChange, uploading }) {
       <div
         onClick={() => !uploading && inputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all
-          ${value ? 'border-[#F22998]/60 bg-[#F22998]/5' : 'border-[#F22998]/20 hover:border-[#F22998]/50 hover:bg-[#F22998]/5'}
+          ${value ? 'border-[#A855F7]/60 bg-[#A855F7]/5' : 'border-[#A855F7]/20 hover:border-[#A855F7]/50 hover:bg-[#A855F7]/5'}
           ${uploading ? 'opacity-60 cursor-wait' : ''}
         `}
       >
@@ -23,7 +23,7 @@ export default function DocUploadField({ label, value, onChange, uploading }) {
         />
 
         {uploading ? (
-          <Loader2 className="w-6 h-6 text-[#F22998] animate-spin" />
+          <Loader2 className="w-6 h-6 text-[#A855F7] animate-spin" />
         ) : value ? (
           <>
             <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -33,8 +33,8 @@ export default function DocUploadField({ label, value, onChange, uploading }) {
           </>
         ) : (
           <>
-            <div className="w-10 h-10 rounded-full bg-[#F22998]/10 flex items-center justify-center">
-              <Upload className="w-5 h-5 text-[#F22998]/70" />
+            <div className="w-10 h-10 rounded-full bg-[#A855F7]/10 flex items-center justify-center">
+              <Upload className="w-5 h-5 text-[#A855F7]/70" />
             </div>
             <p className="text-xs text-[#F2F2F2]/40 text-center">Toque para selecionar</p>
           </>

@@ -14,9 +14,9 @@ function driverMarkerEl(busy) {
   const el = document.createElement('div');
   el.style.cssText = `
     width: 36px; height: 36px; border-radius: 50%;
-    background: ${busy ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#BF3B79,#F22998)'};
+    background: ${busy ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#7C3AED,#A855F7)'};
     border: 3px solid #fff; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 2px 12px ${busy ? 'rgba(16,185,129,0.6)' : 'rgba(242,41,152,0.5)'};
+    box-shadow: 0 2px 12px ${busy ? 'rgba(16,185,129,0.6)' : 'rgba(168,85,247,0.5)'};
     ${busy ? 'animation: glow-pulse 1.8s infinite;' : ''}
   `;
   el.innerHTML = `<svg width="17" height="17" fill="white" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`;
@@ -143,7 +143,7 @@ export default function LiveMap() {
 
   const summary = [
     { icon: Radio, label: 'Motoristas Online', value: drivers.length, color: 'text-green-500', bg: 'bg-green-500/20' },
-    { icon: Car, label: 'Disponíveis', value: idleCount, color: 'text-[#F22998]', bg: 'bg-[#F22998]/20' },
+    { icon: Car, label: 'Disponíveis', value: idleCount, color: 'text-[#A855F7]', bg: 'bg-[#A855F7]/20' },
     { icon: MapPin, label: 'Em Corrida', value: busyCount, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
   ];
 
@@ -151,7 +151,7 @@ export default function LiveMap() {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         {summary.map((s, i) => (
-          <Card key={i} className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-4">
+          <Card key={i} className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg ${s.bg} flex items-center justify-center`}>
                 <s.icon className={`w-5 h-5 ${s.color}`} />
@@ -174,20 +174,20 @@ export default function LiveMap() {
           onClick={load}
           size="sm"
           variant="outline"
-          className="border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+          className="border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Atualizar
         </Button>
       </div>
 
-      <Card className="overflow-hidden rounded-2xl border-[#F22998]/10">
+      <Card className="overflow-hidden rounded-2xl border-[#A855F7]/10">
         <div ref={mapContainer} style={{ height: '360px', width: '100%' }} />
       </Card>
 
       {!loading && drivers.length === 0 && (
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-6 text-center">
-          <Radio className="w-10 h-10 text-[#F22998]/40 mx-auto mb-2" />
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6 text-center">
+          <Radio className="w-10 h-10 text-[#A855F7]/40 mx-auto mb-2" />
           <p className="text-[#F2F2F2]/60">Nenhuma motorista online no momento.</p>
         </Card>
       )}

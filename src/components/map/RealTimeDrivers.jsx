@@ -6,7 +6,7 @@ import L from 'leaflet';
 
 // Criar ícone de carro personalizado
 const createCarIcon = (tags = []) => {
-  let color = '#F22998'; // Rosa padrão
+  let color = '#A855F7'; // Rosa padrão
   
   if (tags.includes('aceita_pet')) {
     color = '#a855f7'; // Roxo claro
@@ -19,7 +19,7 @@ const createCarIcon = (tags = []) => {
     html: `<div style="background: ${color}; border-radius: 50%; padding: 8px; box-shadow: 0 0 20px rgba(${
       tags.includes('aceita_pet') ? '168, 85, 247' : 
       tags.includes('frete') ? '59, 130, 246' : 
-      '242, 41, 152'
+      '168, 85, 247'
     }, 0.6);">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>

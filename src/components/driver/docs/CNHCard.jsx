@@ -11,13 +11,13 @@ export default function CNHCard({ status = 'pending', data = {}, onChange, uploa
   const set = (key, val) => onChange?.({ ...data, [key]: val });
 
   return (
-    <div className="rounded-2xl bg-[#1A1A1A] border border-[#BF3B79]/30 overflow-hidden">
+    <div className="rounded-2xl bg-[#1A1A1A] border border-[#7C3AED]/30 overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-4 p-5 hover:bg-[#F22998]/5 transition-colors"
+        className="w-full flex items-center gap-4 p-5 hover:bg-[#A855F7]/5 transition-colors"
       >
-        <div className="w-12 h-12 rounded-xl bg-[#F22998]/15 flex items-center justify-center flex-shrink-0">
-          <CreditCard className="w-6 h-6 text-[#F22998]" />
+        <div className="w-12 h-12 rounded-xl bg-[#A855F7]/15 flex items-center justify-center flex-shrink-0">
+          <CreditCard className="w-6 h-6 text-[#A855F7]" />
         </div>
         <div className="flex-1 text-left">
           <p className="font-semibold text-[#F2F2F2]">CNH</p>
@@ -38,7 +38,7 @@ export default function CNHCard({ status = 'pending', data = {}, onChange, uploa
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 border-t border-[#F22998]/10 pt-4 grid gap-4">
+            <div className="px-5 pb-5 border-t border-[#A855F7]/10 pt-4 grid gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <DocUploadField
                   label="Frente da CNH"

@@ -79,8 +79,8 @@ export default function MyReviews() {
 
   const badges = [
     { icon: Award, label: 'Top Motorista', description: 'Entre as 10% melhores avaliadas', color: 'from-yellow-400 to-orange-500' },
-    { icon: Heart, label: 'Favorita', description: 'Mais de 50 corridas repetidas', color: 'from-[#BF3B79] to-[#F22998]' },
-    { icon: Sparkles, label: 'Estrela Nascente', description: '100 corridas 5 estrelas', color: 'from-purple-400 to-pink-500' }
+    { icon: Heart, label: 'Favorita', description: 'Mais de 50 corridas repetidas', color: 'from-[#7C3AED] to-[#A855F7]' },
+    { icon: Sparkles, label: 'Estrela Nascente', description: '100 corridas 5 estrelas', color: 'from-purple-400 to-purple-500' }
   ];
 
   const tags = [
@@ -111,7 +111,7 @@ export default function MyReviews() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="p-8 rounded-3xl bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]/20 mb-6">
+          <Card className="p-8 rounded-3xl bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]/20 mb-6">
             <div className="grid md:grid-cols-2 gap-8">
               {/* Average Rating */}
               <div className="text-center md:text-left">
@@ -149,7 +149,7 @@ export default function MyReviews() {
                       </div>
                       <Progress value={percentage} className="h-2 flex-1 bg-[#F2F2F2]/10">
                         <div 
-                          className="h-full bg-gradient-to-r from-[#BF3B79] to-[#F22998] rounded-full transition-all"
+                          className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-full transition-all"
                           style={{ width: `${percentage}%` }}
                         />
                       </Progress>
@@ -168,9 +168,9 @@ export default function MyReviews() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10 mb-6">
+          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10 mb-6">
             <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4 flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#F22998]" />
+              <Award className="w-5 h-5 text-[#A855F7]" />
               Conquistas
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -199,9 +199,9 @@ export default function MyReviews() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10 mb-6">
+          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10 mb-6">
             <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4 flex items-center gap-2">
-              <ThumbsUp className="w-5 h-5 text-[#F22998]" />
+              <ThumbsUp className="w-5 h-5 text-[#A855F7]" />
               Elogios Frequentes
             </h3>
             <div className="flex flex-wrap gap-3">
@@ -211,10 +211,10 @@ export default function MyReviews() {
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 + 0.4 }}
-                  className="px-4 py-2 rounded-full bg-[#F22998]/10 border border-[#F22998]/30 text-[#F2F2F2] text-sm flex items-center gap-2"
+                  className="px-4 py-2 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#F2F2F2] text-sm flex items-center gap-2"
                 >
                   {tag.label}
-                  <span className="px-2 py-0.5 rounded-full bg-[#F22998]/20 text-xs text-[#F22998]">
+                  <span className="px-2 py-0.5 rounded-full bg-[#A855F7]/20 text-xs text-[#A855F7]">
                     {tag.count}
                   </span>
                 </motion.span>
@@ -229,9 +229,9 @@ export default function MyReviews() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
+          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
             <h3 className="text-lg font-semibold text-[#F2F2F2] mb-6 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-[#F22998]" />
+              <MessageCircle className="w-5 h-5 text-[#A855F7]" />
               Últimas Avaliações
             </h3>
             
@@ -242,13 +242,13 @@ export default function MyReviews() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 + 0.5 }}
-                  className="pb-6 border-b border-[#F22998]/10 last:border-0 last:pb-0"
+                  className="pb-6 border-b border-[#A855F7]/10 last:border-0 last:pb-0"
                 >
                   <div className="flex items-start gap-4">
                     <img
                       src={review.passenger.photo}
                       alt={review.passenger.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-[#F22998]"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-[#A855F7]"
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
@@ -268,7 +268,7 @@ export default function MyReviews() {
                       </div>
                       
                       <div className="relative mb-3">
-                        <Quote className="absolute -left-1 -top-1 w-4 h-4 text-[#F22998]/30" />
+                        <Quote className="absolute -left-1 -top-1 w-4 h-4 text-[#A855F7]/30" />
                         <p className="text-[#F2F2F2]/80 pl-4">{review.comment}</p>
                       </div>
                       
@@ -276,7 +276,7 @@ export default function MyReviews() {
                         {review.tags.map((tag, tagIndex) => (
                           <span 
                             key={tagIndex}
-                            className="px-3 py-1 rounded-full bg-[#F22998]/10 text-[#F22998] text-xs"
+                            className="px-3 py-1 rounded-full bg-[#A855F7]/10 text-[#A855F7] text-xs"
                           >
                             ✨ {tag}
                           </span>

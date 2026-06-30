@@ -83,22 +83,22 @@ export default function WelcomeCouponModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#F22998]/30 overflow-hidden"
+            className="relative max-w-md w-full bg-[#1a1a1a]/95 backdrop-blur-xl rounded-3xl border border-[#A855F7]/30 overflow-hidden"
           >
             {/* Decoração de fundo */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#F22998]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#BF3B79]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#A855F7]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#7C3AED]/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Botão fechar */}
             <button
               onClick={dismiss}
-              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#F22998]/10 hover:bg-[#F22998]/20 flex items-center justify-center transition-colors"
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#A855F7]/10 hover:bg-[#A855F7]/20 flex items-center justify-center transition-colors"
             >
-              <X className="w-4 h-4 text-[#F22998]" />
+              <X className="w-4 h-4 text-[#A855F7]" />
             </button>
 
             <div className="relative z-10 p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
 
@@ -107,17 +107,17 @@ export default function WelcomeCouponModal() {
               </h2>
 
               {/* Card do cupom */}
-              <div className="my-6 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/30">
+              <div className="my-6 p-4 rounded-2xl bg-[#A855F7]/10 border border-[#A855F7]/30">
                 <p className="text-sm text-[#F2F2F2]/60 mb-2">Cupom de Desconto</p>
                 <div className="flex items-center justify-center gap-2">
-                  <p className="text-3xl font-bold text-[#F22998] tracking-wide">
+                  <p className="text-3xl font-bold text-[#A855F7] tracking-wide">
                     {coupon.code.toUpperCase()}
                   </p>
                   <button
                     onClick={() => { navigator.clipboard.writeText(coupon.code).catch(() => {}); toast.success('Código copiado!'); }}
-                    className="p-1.5 rounded-lg bg-[#F22998]/20 hover:bg-[#F22998]/30 transition-colors"
+                    className="p-1.5 rounded-lg bg-[#A855F7]/20 hover:bg-[#A855F7]/30 transition-colors"
                   >
-                    <Copy className="w-4 h-4 text-[#F22998]" />
+                    <Copy className="w-4 h-4 text-[#A855F7]" />
                   </button>
                 </div>
                 <p className="text-lg text-[#F2F2F2] mt-2">{subtitleText}</p>

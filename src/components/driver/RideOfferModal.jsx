@@ -91,9 +91,9 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
           className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto"
           style={{ borderRadius: '24px 24px 0 0' }}
         >
-          <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/30 to-[#F22998]/30 border-2 border-[#F22998] rounded-[24px] sm:rounded-3xl relative overflow-hidden" style={{ borderRadius: 'inherit' }}>
+          <Card className="p-6 bg-gradient-to-br from-[#7C3AED]/30 to-[#A855F7]/30 border-2 border-[#A855F7] rounded-[24px] sm:rounded-3xl relative overflow-hidden" style={{ borderRadius: 'inherit' }}>
             {/* Timer Badge */}
-            <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 rounded-full bg-[#F22998] text-white font-bold">
+            <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 rounded-full bg-[#A855F7] text-white font-bold">
               <Clock className="w-4 h-4" />
               <span>{timeLeft}s</span>
             </div>
@@ -112,7 +112,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
             
             {/* Passenger Info */}
             <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-[#0D0D0D]/50">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
                 {passenger?.photo_url ? (
                   <img src={passenger.photo_url} alt={passenger.full_name} className="w-full h-full rounded-full object-cover" />
                 ) : (
@@ -138,7 +138,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
               </div>
               
               <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/30">
-                <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1" />
+                <div className="w-3 h-3 rounded-full bg-[#A855F7] mt-1" />
                 <div className="flex-1">
                   <p className="text-xs text-[#F2F2F2]/60 mb-1">Destino</p>
                   <p className="text-[#F2F2F2] font-medium">{ride.dropoff_text}</p>
@@ -149,13 +149,13 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">
-                <MapPin className="w-5 h-5 text-[#F22998] mx-auto mb-1" />
+                <MapPin className="w-5 h-5 text-[#A855F7] mx-auto mb-1" />
                 <p className="text-xs text-[#F2F2F2]/60">Distância</p>
                 <p className="font-bold text-[#F2F2F2]">{offer.distance_km.toFixed(1)} km</p>
               </div>
               
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">
-                <Clock className="w-5 h-5 text-[#F22998] mx-auto mb-1" />
+                <Clock className="w-5 h-5 text-[#A855F7] mx-auto mb-1" />
                 <p className="text-xs text-[#F2F2F2]/60">ETA até você</p>
                 <p className="font-bold text-[#F2F2F2]">
                   {eta == null ? '—' : typeof eta === 'string' ? eta : `~${eta} min`}
@@ -163,7 +163,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
               </div>
               
               <div className="p-3 rounded-xl bg-[#0D0D0D]/30 text-center">
-                <DollarSign className="w-5 h-5 text-[#F22998] mx-auto mb-1" />
+                <DollarSign className="w-5 h-5 text-[#A855F7] mx-auto mb-1" />
                 <p className="text-xs text-[#F2F2F2]/60">Ganho</p>
                 <p className="font-bold text-[#F2F2F2]">R$ {formattedPrice}</p>
               </div>

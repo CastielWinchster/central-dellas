@@ -1034,7 +1034,7 @@ export default function RequestRide() {
                     <div className="w-px h-6 bg-gray-200" />
                     <div className="text-center">
                       <p className="text-xs text-gray-400 leading-none">Preço</p>
-                      <p className="text-sm font-bold text-[#F22998] leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
+                      <p className="text-sm font-bold text-[#A855F7] leading-tight">R$ {String(estimatedPrice ?? '0.00').replace('.', ',')}</p>
                     </div>
                   </>
                 )}
@@ -1062,7 +1062,7 @@ export default function RequestRide() {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-4"
                 >
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl overflow-visible">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl overflow-visible">
                     {/* Linha conectora visual */}
                     <div className="space-y-1" style={{ overflow: 'visible' }}>
                       <AddressSearchField
@@ -1081,12 +1081,12 @@ export default function RequestRide() {
                         icon={
                           <button
                             onClick={getCurrentLocation}
-                            className="p-1 rounded-full hover:bg-[#F22998]/10 transition-colors"
+                            className="p-1 rounded-full hover:bg-[#A855F7]/10 transition-colors"
                             title="Usar minha localização"
                           >
                             {gettingLocation
-                              ? <Loader2 className="w-4 h-4 text-[#F22998] animate-spin" />
-                              : <Crosshair className="w-4 h-4 text-[#F22998]" />
+                              ? <Loader2 className="w-4 h-4 text-[#A855F7] animate-spin" />
+                              : <Crosshair className="w-4 h-4 text-[#A855F7]" />
                             }
                           </button>
                         }
@@ -1095,8 +1095,8 @@ export default function RequestRide() {
                       {/* Divisor com ícone de seta */}
                       <div className="flex items-center gap-2 py-1 pl-3">
                         <div className="flex flex-col gap-0.5">
-                          <div className="w-px h-2 bg-[#F22998]/30 ml-[5px]" />
-                          <div className="w-px h-2 bg-[#F22998]/20 ml-[5px]" />
+                          <div className="w-px h-2 bg-[#A855F7]/30 ml-[5px]" />
+                          <div className="w-px h-2 bg-[#A855F7]/20 ml-[5px]" />
                         </div>
                       </div>
 
@@ -1107,7 +1107,7 @@ export default function RequestRide() {
                         onClear={() => { setDestinationLocation(null); setRouteDistance(null); setRouteDuration(null); setEstimatedPrice(null); }}
                         onSelect={handleDestinationSuggestionSelect}
                         placeholder="Restaurante, loja, endereço..."
-                        dotColor="#F22998"
+                        dotColor="#A855F7"
                         userLocation={pickupLocation}
                         favoritesAndRecents={favoritesAndRecents}
                         isActive={activeField === 'destination'}
@@ -1119,10 +1119,10 @@ export default function RequestRide() {
                     {/* Botão Della Entrega */}
                     <motion.button
                       onClick={() => navigate('/RequestDelivery')}
-                      animate={{ boxShadow: ['0 0 0px rgba(242,41,152,0.2)', '0 0 18px rgba(242,41,152,0.5)', '0 0 0px rgba(242,41,152,0.2)'] }}
+                      animate={{ boxShadow: ['0 0 0px rgba(168,85,247,0.2)', '0 0 18px rgba(168,85,247,0.5)', '0 0 0px rgba(168,85,247,0.2)'] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="w-full mt-5 flex items-center justify-between px-5 py-4 rounded-xl border border-[#F22998] hover:brightness-110 hover:shadow-[0_0_24px_rgba(242,41,152,0.4)] transition-all"
-                      style={{ background: 'linear-gradient(135deg, #8C0D60 0%, #BF3B79 100%)' }}
+                      className="w-full mt-5 flex items-center justify-between px-5 py-4 rounded-xl border border-[#A855F7] hover:brightness-110 hover:shadow-[0_0_24px_rgba(168,85,247,0.4)] transition-all"
+                      style={{ background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)' }}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">📦</span>
@@ -1167,21 +1167,21 @@ export default function RequestRide() {
 
                   {/* Favoritos e recentes são exibidos no dropdown do campo de destino */}
                   {favoritesAndRecents.length > 0 && (
-                    <Card className="p-4 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-2xl">
+                    <Card className="p-4 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-2xl">
                       <h3 className="text-xs font-semibold text-[#F2F2F2]/40 uppercase tracking-wider mb-3">Locais salvos</h3>
                       <div className="space-y-1">
                         {favoritesAndRecents.slice(0, 4).map((place, index) => (
                           <button
                             key={place.id || index}
                             onClick={() => handleDestinationSuggestionSelect(place)}
-                            className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F22998]/10 transition-colors text-left"
+                            className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#A855F7]/10 transition-colors text-left"
                           >
                             <span className="text-lg">{place.icon}</span>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm text-[#F2F2F2] font-medium truncate">{place.name}</p>
                               <p className="text-xs text-[#F2F2F2]/40 truncate">{place.street}</p>
                             </div>
-                            <span className="text-xs text-[#F22998]/60">{place.categoryLabel}</span>
+                            <span className="text-xs text-[#A855F7]/60">{place.categoryLabel}</span>
                           </button>
                         ))}
                       </div>
@@ -1200,7 +1200,7 @@ export default function RequestRide() {
                   className="space-y-4"
                 >
                   {/* Ride Types */}
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Escolha seu tipo de corrida</h3>
                     <div className="space-y-3">
                       {rideTypes.map((type) => (
@@ -1215,8 +1215,8 @@ export default function RequestRide() {
                           }}
                           className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
                             selectedRideType === type.id
-                              ? 'border-[#F22998] bg-[#F22998]/10'
-                              : 'border-transparent bg-[#0D0D0D] hover:border-[#F22998]/30'
+                              ? 'border-[#A855F7] bg-[#A855F7]/10'
+                              : 'border-transparent bg-[#0D0D0D] hover:border-[#A855F7]/30'
                           }`}
                         >
                           <div className="flex items-center gap-4">
@@ -1254,7 +1254,7 @@ export default function RequestRide() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-[#F22998]">R$ {String(type.price ?? '0.00').replace('.', ',')}</p>
+                            <p className="font-bold text-[#A855F7]">R$ {String(type.price ?? '0.00').replace('.', ',')}</p>
                             <p className="text-sm text-[#F2F2F2]/50">{type.time}</p>
                           </div>
                         </motion.button>
@@ -1262,7 +1262,7 @@ export default function RequestRide() {
                     </div>
 
                     {/* Filtro Aceita Pets */}
-                    <div className="mt-4 pt-4 border-t border-[#F22998]/10">
+                    <div className="mt-4 pt-4 border-t border-[#A855F7]/10">
                       <div className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D]">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
@@ -1284,7 +1284,7 @@ export default function RequestRide() {
                   </Card>
 
                   {/* Payment Methods — seletor unificado */}
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Forma de Pagamento</h3>
 
                     {/* Botão principal do seletor */}
@@ -1292,8 +1292,8 @@ export default function RequestRide() {
                       onClick={() => setShowPaymentPicker(v => !v)}
                       className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
                         paymentMethod
-                          ? 'border-[#F22998] bg-[#F22998]/10'
-                          : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#F22998]/30'
+                          ? 'border-[#A855F7] bg-[#A855F7]/10'
+                          : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#A855F7]/30'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -1307,7 +1307,7 @@ export default function RequestRide() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {paymentMethod && <Check className="w-4 h-4 text-[#F22998]" />}
+                        {paymentMethod && <Check className="w-4 h-4 text-[#A855F7]" />}
                         <ChevronDown className={`w-4 h-4 text-[#F2F2F2]/50 transition-transform ${showPaymentPicker ? 'rotate-180' : ''}`} />
                       </div>
                     </button>
@@ -1319,7 +1319,7 @@ export default function RequestRide() {
                           initial={{ opacity: 0, y: -8 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -8 }}
-                          className="mt-2 rounded-2xl overflow-hidden border border-[#F22998]/20"
+                          className="mt-2 rounded-2xl overflow-hidden border border-[#A855F7]/20"
                         >
                           {paymentOptions.map((opt) => (
                             <button
@@ -1327,8 +1327,8 @@ export default function RequestRide() {
                               onClick={() => { setPaymentMethod(opt.id); setSelectedPayment(opt.id); setShowPaymentPicker(false); }}
                               className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
                                 paymentMethod === opt.id
-                                  ? 'bg-[#F22998]/15 text-[#F22998]'
-                                  : 'bg-[#0D0D0D] text-[#F2F2F2] hover:bg-[#F22998]/10'
+                                  ? 'bg-[#A855F7]/15 text-[#A855F7]'
+                                  : 'bg-[#0D0D0D] text-[#F2F2F2] hover:bg-[#A855F7]/10'
                               }`}
                             >
                               <span className="text-xl">{opt.icon}</span>
@@ -1349,11 +1349,11 @@ export default function RequestRide() {
                           placeholder="Digite seu cupom"
                           value={couponCode}
                           onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); }}
-                          className="flex-1 bg-[#0D0D0D] text-[#F2F2F2] rounded-xl px-4 py-2 text-sm border border-[#F2F2F2]/10 focus:border-[#F22998]/50 outline-none placeholder-[#F2F2F2]/30"
+                          className="flex-1 bg-[#0D0D0D] text-[#F2F2F2] rounded-xl px-4 py-2 text-sm border border-[#F2F2F2]/10 focus:border-[#A855F7]/50 outline-none placeholder-[#F2F2F2]/30"
                         />
                         <button
                           onClick={handleApplyCoupon}
-                          className="bg-[#F22998] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#BF3B79] transition-colors"
+                          className="bg-[#A855F7] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#7C3AED] transition-colors"
                         >
                           Aplicar
                         </button>
@@ -1384,7 +1384,7 @@ export default function RequestRide() {
                   </Card>
 
                   {/* Summary and Confirm */}
-                  <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]/30 rounded-3xl">
+                  <Card className="p-6 bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]/30 rounded-3xl">
                     {isIntercity && estimatedPrice === null ? (
                       <div className="mb-4 p-4 rounded-2xl bg-orange-900/30 border border-orange-600/50">
                         <div className="flex items-center gap-2 mb-2">
@@ -1402,8 +1402,8 @@ export default function RequestRide() {
                     ) : (
                       <>
                         {isIntercity && (
-                          <div className="mb-3 pb-3 border-b border-[#F22998]/20">
-                            <p className="text-xs text-[#F22998] font-semibold">🚗 Corrida Intermunicipal</p>
+                          <div className="mb-3 pb-3 border-b border-[#A855F7]/20">
+                            <p className="text-xs text-[#A855F7] font-semibold">🚗 Corrida Intermunicipal</p>
                             <p className="text-xs text-[#F2F2F2]/50 mt-0.5">Tarifa mínima + R$ 3,00/km na cidade destino</p>
                           </div>
                         )}
@@ -1414,7 +1414,7 @@ export default function RequestRide() {
                           </div>
                           <div className="text-right">
                             <p className="text-[#F2F2F2]/60 text-sm">Tempo estimado</p>
-                            <p className="text-xl font-semibold text-[#F22998]">{estimatedTime}</p>
+                            <p className="text-xl font-semibold text-[#A855F7]">{estimatedTime}</p>
                           </div>
                         </div>
                       </>
@@ -1447,11 +1447,11 @@ export default function RequestRide() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="flex flex-col items-center justify-center py-12"
                 >
-                  <Card className="p-10 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl text-center">
+                  <Card className="p-10 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl text-center">
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="w-20 h-20 mx-auto mb-6 rounded-full border-4 border-[#F22998]/20 border-t-[#F22998]"
+                      className="w-20 h-20 mx-auto mb-6 rounded-full border-4 border-[#A855F7]/20 border-t-[#A855F7]"
                     />
                     <h2 className="text-2xl font-bold text-[#F2F2F2] mb-2">Buscando motorista...</h2>
                     <p className="text-[#F2F2F2]/60">
@@ -1459,7 +1459,7 @@ export default function RequestRide() {
                     </p>
                     
                     <div className="mt-8 flex items-center justify-center gap-2">
-                      <Shield className="w-5 h-5 text-[#F22998]" />
+                      <Shield className="w-5 h-5 text-[#A855F7]" />
                       <span className="text-sm text-[#F2F2F2]/60">Motoristas verificadas</span>
                     </div>
 
@@ -1482,14 +1482,14 @@ export default function RequestRide() {
                   exit={{ opacity: 0, y: -50 }}
                   className="space-y-4"
                 >
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                    <div className="flex items-center justify-between mb-6">
                      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm">
                        <Check className="w-4 h-4" />
                        Motorista encontrada!
                      </div>
                      {driver.eta != null && (
-                       <p className="text-[#F22998] font-semibold">
+                       <p className="text-[#A855F7] font-semibold">
                          {driver.eta} min até você
                        </p>
                      )}
@@ -1501,17 +1501,17 @@ export default function RequestRide() {
                          <img
                            src={driver.photo}
                            alt={driver.name}
-                           className="w-20 h-20 rounded-full object-cover border-2 border-[#F22998]"
+                           className="w-20 h-20 rounded-full object-cover border-2 border-[#A855F7]"
                          />
                        ) : (
-                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center border-2 border-[#F22998]">
+                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center border-2 border-[#A855F7]">
                            <span className="text-white text-2xl font-bold">
                              {driver.name?.charAt(0)?.toUpperCase() || 'M'}
                            </span>
                          </div>
                        )}
                        {driver.rating != null && (
-                         <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center text-white text-xs font-bold">
+                         <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center text-white text-xs font-bold">
                            {driver.rating.toFixed(1)}
                          </div>
                        )}
@@ -1539,7 +1539,7 @@ export default function RequestRide() {
 
                    <div className="p-4 rounded-2xl bg-[#0D0D0D] mb-6">
                      <div className="flex items-center gap-3">
-                       <Car className="w-8 h-8 text-[#F22998] flex-shrink-0" />
+                       <Car className="w-8 h-8 text-[#A855F7] flex-shrink-0" />
                        {driver.vehicle ? (
                          <div>
                            <p className="font-medium text-[#F2F2F2]">{driver.vehicle.model}</p>
@@ -1557,7 +1557,7 @@ export default function RequestRide() {
                       {driver.phone ? (
                         <a
                           href={`tel:+55${driver.phone.replace(/\D/g, '')}`}
-                          className="py-6 rounded-2xl border border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10 flex items-center justify-center font-medium transition-colors"
+                          className="py-6 rounded-2xl border border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10 flex items-center justify-center font-medium transition-colors"
                         >
                           <Phone className="w-5 h-5 mr-2" />
                           Ligar
@@ -1566,7 +1566,7 @@ export default function RequestRide() {
                         <Button
                           variant="outline"
                           disabled
-                          className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998]/40"
+                          className="py-6 rounded-2xl border-[#A855F7]/30 text-[#A855F7]/40"
                         >
                           <Phone className="w-5 h-5 mr-2" />
                           Ligar
@@ -1575,7 +1575,7 @@ export default function RequestRide() {
                       <Button 
                         variant="outline"
                         onClick={() => setIsChatOpen(true)}
-                        className="py-6 rounded-2xl border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+                        className="py-6 rounded-2xl border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
                       >
                         <MessageCircle className="w-5 h-5 mr-2" />
                         Mensagem

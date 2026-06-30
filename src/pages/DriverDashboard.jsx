@@ -354,14 +354,14 @@ export default function DriverDashboard() {
       label: 'Corridas Hoje', 
       value: todayStats.rides, 
       icon: Car, 
-      color: 'from-[#BF3B79] to-[#F22998]',
+      color: 'from-[#7C3AED] to-[#A855F7]',
       trend: null
     },
     { 
       label: 'Ganhos Hoje', 
       value: `R$ ${todayStats.earnings.toFixed(2)}`, 
       icon: DollarSign, 
-      color: 'from-[#F22998] to-[#8C0D60]',
+      color: 'from-[#A855F7] to-[#5B21B6]',
       trend: null
     },
   ];
@@ -377,14 +377,14 @@ export default function DriverDashboard() {
         >
           <Card className={`p-6 rounded-3xl border-2 transition-all duration-500 ${
             isOnline 
-              ? 'bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]' 
-              : 'bg-[#F2F2F2]/5 border-[#F22998]/10'
+              ? 'bg-gradient-to-r from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]' 
+              : 'bg-[#F2F2F2]/5 border-[#A855F7]/10'
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
                   isOnline 
-                    ? 'bg-gradient-to-br from-[#BF3B79] to-[#F22998] pulse-animation' 
+                    ? 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7] pulse-animation' 
                     : 'bg-[#F2F2F2]/10'
                 }`}>
                   <Power className={`w-8 h-8 ${isOnline ? 'text-white' : 'text-[#F2F2F2]/50'}`} />
@@ -415,7 +415,7 @@ export default function DriverDashboard() {
                     }
                     setIsOnline(val);
                   }}
-                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
+                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#7C3AED] data-[state=checked]:to-[#A855F7]"
                 />
               </div>
             </div>
@@ -430,20 +430,20 @@ export default function DriverDashboard() {
             exit={{ opacity: 0, scale: 0.9, y: -20 }}
             className="mb-6"
           >
-            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#BF3B79]/30 to-[#F22998]/30 border-2 border-[#F22998] glow-pink">
+            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#7C3AED]/30 to-[#A855F7]/30 border-2 border-[#A855F7] glow-pink">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#F22998] text-white text-sm font-medium">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#A855F7] text-white text-sm font-medium">
                   <Bell className="w-4 h-4" />
                   Nova Corrida!
                 </div>
-                <p className="text-[#F22998] font-bold">R$ {pendingRide.estimatedPrice.toFixed(2)}</p>
+                <p className="text-[#A855F7] font-bold">R$ {pendingRide.estimatedPrice.toFixed(2)}</p>
               </div>
 
               <div className="flex items-center gap-4 mb-6">
                 <img 
                   src={pendingRide.passenger.photo}
                   alt={pendingRide.passenger.name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-[#F22998]"
+                  className="w-14 h-14 rounded-full object-cover border-2 border-[#A855F7]"
                 />
                 <div>
                   <h3 className="font-bold text-[#F2F2F2]">{pendingRide.passenger.name}</h3>
@@ -460,7 +460,7 @@ export default function DriverDashboard() {
                   <p className="text-[#F2F2F2]">{pendingRide.pickup}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#F22998]" />
+                  <div className="w-3 h-3 rounded-full bg-[#A855F7]" />
                   <p className="text-[#F2F2F2]">{pendingRide.destination}</p>
                 </div>
               </div>
@@ -498,7 +498,7 @@ export default function DriverDashboard() {
           transition={{ delay: 0.2 }}
           className="mb-6"
         >
-          <Card className="rounded-3xl overflow-hidden border-[#F22998]/10 relative">
+          <Card className="rounded-3xl overflow-hidden border-[#A855F7]/10 relative">
             <MapView
               pickupLocation={selectedRide ? { lat: selectedRide.pickup_lat, lng: selectedRide.pickup_lng } : currentLocation}
               destinationLocation={selectedRide ? { lat: selectedRide.dropoff_lat, lng: selectedRide.dropoff_lng } : null}
@@ -518,14 +518,14 @@ export default function DriverDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="p-5 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 hover:border-[#F22998]/30 transition-all group">
+              <Card className="p-5 rounded-2xl bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/30 transition-all group">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-2xl font-bold text-[#F2F2F2]">{stat.value}</p>
                 <p className="text-sm text-[#F2F2F2]/50">{stat.label}</p>
                 {stat.trend && (
-                  <p className="text-xs text-[#F22998] mt-2">{stat.trend}</p>
+                  <p className="text-xs text-[#A855F7] mt-2">{stat.trend}</p>
                 )}
               </Card>
             </motion.div>
@@ -539,12 +539,12 @@ export default function DriverDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#BF3B79]/20 to-[#F22998]/20 border-2 border-[#F22998]">
+            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#7C3AED]/20 to-[#A855F7]/20 border-2 border-[#A855F7]">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-green-400 font-semibold text-sm">Corrida Aceita</span>
                 {liveEta && (
-                  <span className="ml-auto text-[#F22998] font-bold text-sm">
+                  <span className="ml-auto text-[#A855F7] font-bold text-sm">
                     {typeof liveEta === 'string' ? liveEta : `~${liveEta} min até passageira`}
                   </span>
                 )}
@@ -552,7 +552,7 @@ export default function DriverDashboard() {
 
               {/* Passageira */}
               <div className="flex items-center gap-4 mb-5">
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#F22998] flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#A855F7] flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
                   {passengerUser?.photo_url
                     ? <img src={passengerUser.photo_url} alt={passengerUser.full_name} className="w-full h-full object-cover" />
                     : <span className="text-white text-xl font-bold">{passengerUser?.full_name?.charAt(0) || 'P'}</span>
@@ -574,7 +574,7 @@ export default function DriverDashboard() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
-                  <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1 flex-shrink-0" />
+                  <div className="w-3 h-3 rounded-full bg-[#A855F7] mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Destino</p>
                     <p className="text-[#F2F2F2] text-sm">{acceptedRide.dropoff_text || acceptedRide.dropoff_address}</p>
@@ -586,7 +586,7 @@ export default function DriverDashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setIsChatOpen(true)}
-                  className="py-3 rounded-2xl border border-[#F22998]/40 text-[#F22998] hover:bg-[#F22998]/10 flex items-center justify-center gap-2 font-medium transition-colors"
+                  className="py-3 rounded-2xl border border-[#A855F7]/40 text-[#A855F7] hover:bg-[#A855F7]/10 flex items-center justify-center gap-2 font-medium transition-colors"
                 >
                   💬 Chat
                 </button>
@@ -608,7 +608,7 @@ export default function DriverDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
+            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
               <AvailableRidesList
                 onRideSelect={setSelectedRide}
                 onRideAccepted={handleRideAcceptedFromList}
@@ -627,16 +627,16 @@ export default function DriverDashboard() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
+              <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
                 <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Ações Rápidas</h3>
                 <div className="space-y-3">
                   <Link to={createPageUrl('Earnings')}>
-                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F22998]/10 transition-colors group">
+                    <button className="w-full flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#A855F7]/10 transition-colors group">
                       <div className="flex items-center gap-3">
-                        <Wallet className="w-5 h-5 text-[#F22998]" />
+                        <Wallet className="w-5 h-5 text-[#A855F7]" />
                         <span className="text-[#F2F2F2]">Meus Ganhos</span>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F22998] transition-colors" />
+                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#A855F7] transition-colors" />
                     </button>
                   </Link>
                 </div>
@@ -650,16 +650,16 @@ export default function DriverDashboard() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 }}
               >
-                <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F22998]/10">
+                <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
                   <div className="flex items-center gap-3 mb-3">
-                    <Shield className="w-6 h-6 text-[#F22998]" />
+                    <Shield className="w-6 h-6 text-[#A855F7]" />
                     <h3 className="text-lg font-semibold text-[#F2F2F2]">Suas Badges</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {['Top Motorista', 'Sempre Pontual', '100 Corridas'].map((badge, index) => (
                       <span 
                         key={index}
-                        className="px-3 py-1 rounded-full bg-[#F22998]/20 text-[#F22998] text-sm font-medium"
+                        className="px-3 py-1 rounded-full bg-[#A855F7]/20 text-[#A855F7] text-sm font-medium"
                       >
                         ✨ {badge}
                       </span>

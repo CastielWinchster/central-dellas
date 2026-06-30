@@ -13,7 +13,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { toBrasiliaTime } from '@/utils/dateUtils';
 
 const TYPE_ICON = {
-  ride:    <Car size={16} className="text-[#F22998]" />,
+  ride:    <Car size={16} className="text-[#A855F7]" />,
   message: <MessageCircle size={16} className="text-blue-400" />,
   coupon:  <span className="text-sm">🎟️</span>,
   event:   <span className="text-sm">📅</span>,
@@ -70,13 +70,13 @@ export default function NotificationBell({
   return (
     <DropdownMenu open={open} onOpenChange={handleOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="relative p-2 rounded-lg hover:bg-[#F22998]/10 transition-colors">
+        <button className="relative p-2 rounded-lg hover:bg-[#A855F7]/10 transition-colors">
           <Bell className="w-6 h-6 text-[#F2F2F2]" />
           {unreadCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className={`absolute -top-1 -right-1 w-5 h-5 bg-[#F22998] text-white text-xs rounded-full flex items-center justify-center font-bold ${badgePop ? 'badge-pop' : ''}`}
+              className={`absolute -top-1 -right-1 w-5 h-5 bg-[#A855F7] text-white text-xs rounded-full flex items-center justify-center font-bold ${badgePop ? 'badge-pop' : ''}`}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </motion.span>
@@ -85,9 +85,9 @@ export default function NotificationBell({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-96 bg-[#0D0D0D] border-[#F22998]/30 p-0 max-h-[500px] overflow-hidden"
+        className="w-96 bg-[#0D0D0D] border-[#A855F7]/30 p-0 max-h-[500px] overflow-hidden"
       >
-        <div className="p-4 border-b border-[#F22998]/20 flex items-center justify-between">
+        <div className="p-4 border-b border-[#A855F7]/20 flex items-center justify-between">
           <h3 className="font-semibold text-[#F2F2F2]">Notificações</h3>
           <div className="flex items-center gap-1">
             {unreadCount > 0 && (
@@ -95,7 +95,7 @@ export default function NotificationBell({
                 onClick={markAllAsRead}
                 variant="ghost"
                 size="sm"
-                className="text-[#F22998] hover:bg-[#F22998]/10 text-xs"
+                className="text-[#A855F7] hover:bg-[#A855F7]/10 text-xs"
               >
                 Marcar lidas
               </Button>
@@ -129,15 +129,15 @@ export default function NotificationBell({
                       markAsRead(notification.id);
                       setOpen(false);
                     }}
-                    className={`p-4 border-b border-[#F22998]/10 cursor-pointer transition-colors hover:bg-[#F22998]/5 ${
-                      !notification.is_read ? 'bg-[#F22998]/10' : ''
+                    className={`p-4 border-b border-[#A855F7]/10 cursor-pointer transition-colors hover:bg-[#A855F7]/5 ${
+                      !notification.is_read ? 'bg-[#A855F7]/10' : ''
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Ponto rosa para não lidas */}
                       <div className="flex-shrink-0 mt-1">
                         {!notification.is_read
-                          ? <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+                          ? <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
                           : <div className="w-2 h-2" />
                         }
                       </div>
@@ -160,18 +160,18 @@ export default function NotificationBell({
             </AnimatePresence>
           ) : (
             <div className="p-8 text-center">
-              <Bell className="w-12 h-12 text-[#F22998]/30 mx-auto mb-3" />
+              <Bell className="w-12 h-12 text-[#A855F7]/30 mx-auto mb-3" />
               <p className="text-[#F2F2F2]/50 text-sm">Nenhuma notificação</p>
             </div>
           )}
         </div>
 
         {notifications.length > 0 && (
-          <div className="p-3 border-t border-[#F22998]/20">
+          <div className="p-3 border-t border-[#A855F7]/20">
             <Link to={createPageUrl('Notifications')}>
               <Button
                 variant="ghost"
-                className="w-full text-[#F22998] hover:bg-[#F22998]/10"
+                className="w-full text-[#A855F7] hover:bg-[#A855F7]/10"
                 onClick={() => setOpen(false)}
               >
                 Ver todas as notificações

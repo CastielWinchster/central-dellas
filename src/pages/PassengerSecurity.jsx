@@ -92,9 +92,9 @@ export default function PassengerSecurity() {
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Alterar Senha</h1>
         </div>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
           <div className="flex items-center gap-3 mb-6">
-            <Shield className="w-8 h-8 text-[#F22998]" />
+            <Shield className="w-8 h-8 text-[#A855F7]" />
             <div>
               <h3 className="font-semibold text-[#F2F2F2]">Segurança da Conta</h3>
               <p className="text-sm text-[#F2F2F2]/60">Proteja sua conta com uma senha forte</p>
@@ -110,7 +110,7 @@ export default function PassengerSecurity() {
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] pr-10"
+                  className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] pr-10"
                   placeholder="Digite sua senha atual"
                 />
                 <button
@@ -131,7 +131,7 @@ export default function PassengerSecurity() {
                   type={showNew ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] pr-10"
+                  className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] pr-10"
                   placeholder="Digite sua nova senha"
                 />
                 <button
@@ -176,7 +176,7 @@ export default function PassengerSecurity() {
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2] pr-10"
+                  className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] pr-10"
                   placeholder="Confirme sua nova senha"
                 />
                 <button
@@ -192,7 +192,7 @@ export default function PassengerSecurity() {
 
           {/* Requirements */}
           {newPassword && (
-            <Card className="mt-4 p-4 bg-[#0D0D0D] border-[#F22998]/10 rounded-xl">
+            <Card className="mt-4 p-4 bg-[#0D0D0D] border-[#A855F7]/10 rounded-xl">
               <p className="text-xs text-[#F2F2F2]/60 mb-2 font-medium">Requisitos da senha:</p>
               <div className="space-y-1">
                 {requirements.map((req, index) => (
@@ -240,7 +240,7 @@ export default function PassengerSecurity() {
         <div className="mt-4 text-center">
           <button
             onClick={() => toast.info('Funcionalidade em breve')}
-            className="text-sm text-[#F22998] hover:text-[#BF3B79] transition-colors"
+            className="text-sm text-[#A855F7] hover:text-[#7C3AED] transition-colors"
           >
             Esqueci minha senha
           </button>

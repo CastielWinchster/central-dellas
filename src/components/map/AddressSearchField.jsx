@@ -9,7 +9,7 @@ export default function AddressSearchField({
   onSelect,
   onClear,
   placeholder,
-  dotColor = '#F22998',
+  dotColor = '#A855F7',
   icon = null,
   isActive = false,
   onFocus,
@@ -66,10 +66,10 @@ export default function AddressSearchField({
 
       <div className={`relative flex items-center transition-all duration-200 rounded-xl border ${
         isActive
-          ? 'border-[#F22998] shadow-[0_0_0_3px_rgba(242,41,152,0.15)]'
+          ? 'border-[#A855F7] shadow-[0_0_0_3px_rgba(168,85,247,0.15)]'
           : error
           ? 'border-red-500'
-          : 'border-[#F22998]/20 hover:border-[#F22998]/40'
+          : 'border-[#A855F7]/20 hover:border-[#A855F7]/40'
       } bg-[#0D0D0D]`}>
         {/* Dot colorido */}
         <div className="pl-4 pr-3 flex items-center flex-shrink-0">
@@ -94,7 +94,7 @@ export default function AddressSearchField({
           {value && (
             <button
               onMouseDown={(e) => { e.preventDefault(); handleClear(); }}
-              className="p-1 rounded-full hover:bg-[#F22998]/10 transition-colors"
+              className="p-1 rounded-full hover:bg-[#A855F7]/10 transition-colors"
             >
               <X className="w-3.5 h-3.5 text-[#F2F2F2]/40 hover:text-[#F2F2F2]/70" />
             </button>

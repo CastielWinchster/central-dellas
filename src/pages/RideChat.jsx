@@ -118,7 +118,7 @@ export default function RideChat() {
   if (loadingRide) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#F22998]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
       </div>
     );
   }
@@ -160,13 +160,13 @@ export default function RideChat() {
       {/* Header */}
       <div className={cn(
         'flex items-center gap-3 p-4 border-b shadow-sm',
-        isDark ? 'bg-[#1a1a1a] border-[#F22998]/20' : 'bg-white border-gray-200'
+        isDark ? 'bg-[#1a1a1a] border-[#A855F7]/20' : 'bg-white border-gray-200'
       )}>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
-          className="hover:bg-[#F22998]/10"
+          className="hover:bg-[#A855F7]/10"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -176,10 +176,10 @@ export default function RideChat() {
             <img
               src={otherUser.photo_url}
               alt={otherUser.full_name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-[#F22998]"
+              className="w-10 h-10 rounded-full object-cover border-2 border-[#A855F7]"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center text-white font-semibold">
               {otherUser?.full_name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
@@ -201,7 +201,7 @@ export default function RideChat() {
       >
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 animate-spin text-[#F22998]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -227,7 +227,7 @@ export default function RideChat() {
       {/* Input */}
       <div className={cn(
         'p-4 border-t',
-        isDark ? 'bg-[#1a1a1a] border-[#F22998]/20' : 'bg-white border-gray-200'
+        isDark ? 'bg-[#1a1a1a] border-[#A855F7]/20' : 'bg-white border-gray-200'
       )}>
         <div className="flex items-center gap-2 max-w-4xl mx-auto">
           <Input
@@ -239,13 +239,13 @@ export default function RideChat() {
             disabled={sending}
             className={cn(
               'flex-1',
-              isDark ? 'bg-[#0D0D0D] border-[#F22998]/30' : 'bg-gray-50'
+              isDark ? 'bg-[#0D0D0D] border-[#A855F7]/30' : 'bg-gray-50'
             )}
           />
           <Button
             onClick={handleSend}
             disabled={!inputText.trim() || sending}
-            className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
+            className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] hover:opacity-90"
           >
             {sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />

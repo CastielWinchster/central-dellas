@@ -120,7 +120,7 @@ export default function ActiveDeliveryPassenger() {
     return (
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-[#F22998]/20 border-t-[#F22998] animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#A855F7]/20 border-t-[#A855F7] animate-spin mx-auto mb-4" />
           <p className="text-white">Carregando entrega...</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function ActiveDeliveryPassenger() {
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center text-white">
           <p>Entrega não encontrada</p>
-          <button onClick={() => navigate('/RequestDelivery')} className="mt-4 text-[#F22998]">Voltar</button>
+          <button onClick={() => navigate('/RequestDelivery')} className="mt-4 text-[#A855F7]">Voltar</button>
         </div>
       </div>
     );
@@ -164,7 +164,7 @@ export default function ActiveDeliveryPassenger() {
             <div className="absolute top-4 left-4 right-4 h-0.5 bg-white/10" />
             {/* linha de progresso */}
             <div
-              className="absolute top-4 left-4 h-0.5 bg-[#F22998] transition-all duration-500"
+              className="absolute top-4 left-4 h-0.5 bg-[#A855F7] transition-all duration-500"
               style={{ width: currentStepIndex > 0 ? `${(currentStepIndex / (DELIVERY_STEPS.length - 1)) * (100 - (8 / DELIVERY_STEPS.length * 100))}%` : '0%' }}
             />
             {DELIVERY_STEPS.map((step, i) => {
@@ -173,11 +173,11 @@ export default function ActiveDeliveryPassenger() {
               return (
                 <div key={step.key} className="flex flex-col items-center gap-1 z-10">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
-                    done ? 'bg-[#F22998]' : active ? 'bg-[#F22998]/30 border-2 border-[#F22998]' : 'bg-white/10'
+                    done ? 'bg-[#A855F7]' : active ? 'bg-[#A855F7]/30 border-2 border-[#A855F7]' : 'bg-white/10'
                   } ${active ? 'animate-pulse' : ''}`}>
                     {step.icon}
                   </div>
-                  <span className={`text-[9px] font-medium text-center max-w-[52px] leading-tight ${active ? 'text-[#F22998]' : done ? 'text-white/70' : 'text-white/30'}`}>
+                  <span className={`text-[9px] font-medium text-center max-w-[52px] leading-tight ${active ? 'text-[#A855F7]' : done ? 'text-white/70' : 'text-white/30'}`}>
                     {step.label}
                   </span>
                 </div>
@@ -189,7 +189,7 @@ export default function ActiveDeliveryPassenger() {
         {/* Entregador */}
         {driver && (
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-full border-2 border-[#F22998] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full border-2 border-[#A855F7] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
               {driver.photo
                 ? <img src={driver.photo} alt={driver.name} className="w-full h-full object-cover" />
                 : <span className="text-white text-xl font-bold">{(driver?.full_name || driver?.name || 'E').charAt(0).toUpperCase()}</span>
@@ -207,7 +207,7 @@ export default function ActiveDeliveryPassenger() {
             )}
             <button
               onClick={() => setIsChatOpen(true)}
-              className="w-11 h-11 rounded-full bg-pink-600 hover:bg-pink-700 flex items-center justify-center transition-colors"
+              className="w-11 h-11 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center transition-colors"
               title="Chat com entregador"
             >
               <MessageCircle className="w-5 h-5 text-white" />
@@ -225,7 +225,7 @@ export default function ActiveDeliveryPassenger() {
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5">
-            <MapPin className="w-3.5 h-3.5 text-[#F22998] mt-0.5 flex-shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#A855F7] mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Entrega</p>
               <p className="text-white text-sm">{ride.dropoff_text}</p>
@@ -265,7 +265,7 @@ export default function ActiveDeliveryPassenger() {
           <div className="text-center py-4">
             <p className="text-3xl mb-2">🎉</p>
             <p className="text-white font-bold text-lg">Entrega realizada!</p>
-            <button onClick={() => navigate('/RequestDelivery')} className="mt-3 text-[#F22998] text-sm">Fazer nova entrega</button>
+            <button onClick={() => navigate('/RequestDelivery')} className="mt-3 text-[#A855F7] text-sm">Fazer nova entrega</button>
           </div>
         )}
       </div>

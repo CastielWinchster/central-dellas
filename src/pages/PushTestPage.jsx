@@ -40,7 +40,7 @@ export default function PushTestPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -53,12 +53,12 @@ export default function PushTestPage() {
           <p className="text-[#F2F2F2]/60">Ambiente de teste para notificações</p>
         </div>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20">
+        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20">
           <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">Enviar Notificação de Teste</h3>
           <Button
             onClick={handleSendTestPush}
             disabled={sendingPush || !user}
-            className="w-full bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90"
+            className="w-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] hover:opacity-90"
           >
             {sendingPush ? (
               <><div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2" />Enviando...</>

@@ -294,12 +294,12 @@ export default function RequestDelivery() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-24 md:pb-10">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#0D0D0D]/95 backdrop-blur-xl border-b border-[#F22998]/20 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-20 bg-[#0D0D0D]/95 backdrop-blur-xl border-b border-[#A855F7]/20 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => step === 1 ? navigate('/RequestRide') : setStep(s => s - 1)}
-          className="p-2 rounded-xl hover:bg-[#F22998]/10 transition-colors"
+          className="p-2 rounded-xl hover:bg-[#A855F7]/10 transition-colors"
         >
-          <ChevronLeft className="w-5 h-5 text-[#F22998]" />
+          <ChevronLeft className="w-5 h-5 text-[#A855F7]" />
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">📦</span>
@@ -318,18 +318,18 @@ export default function RequestDelivery() {
               <React.Fragment key={label}>
                 <div className="flex flex-col items-center gap-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                    isDone ? 'bg-[#F22998] text-white' :
-                    isActive ? 'bg-[#F22998]/20 border-2 border-[#F22998] text-[#F22998]' :
+                    isDone ? 'bg-[#A855F7] text-white' :
+                    isActive ? 'bg-[#A855F7]/20 border-2 border-[#A855F7] text-[#A855F7]' :
                     'bg-[#F2F2F2]/10 text-[#F2F2F2]/40'
                   }`}>
                     {isDone ? <Check className="w-4 h-4" /> : num}
                   </div>
-                  <span className={`text-[10px] font-medium ${isActive ? 'text-[#F22998]' : isDone ? 'text-[#F2F2F2]/60' : 'text-[#F2F2F2]/30'}`}>
+                  <span className={`text-[10px] font-medium ${isActive ? 'text-[#A855F7]' : isDone ? 'text-[#F2F2F2]/60' : 'text-[#F2F2F2]/30'}`}>
                     {label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mb-4 transition-all ${step > num ? 'bg-[#F22998]' : 'bg-[#F2F2F2]/10'}`} />
+                  <div className={`flex-1 h-0.5 mb-4 transition-all ${step > num ? 'bg-[#A855F7]' : 'bg-[#F2F2F2]/10'}`} />
                 )}
               </React.Fragment>
             );
@@ -368,7 +368,7 @@ export default function RequestDelivery() {
               >
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center gap-4 px-4 py-2.5">
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#F22998]" />
+                    <MapPin className="w-4 h-4 text-[#A855F7]" />
                     <div>
                       <p className="text-[10px] text-gray-500">Distância</p>
                       <p className="font-bold text-gray-900 text-sm">{routeDistance} km</p>
@@ -376,7 +376,7 @@ export default function RequestDelivery() {
                   </div>
                   <div className="w-px h-6 bg-gray-200" />
                   <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-[#F22998]" />
+                    <Clock className="w-4 h-4 text-[#A855F7]" />
                     <div>
                       <p className="text-[10px] text-gray-500">Tempo</p>
                       <p className="font-bold text-gray-900 text-sm">{routeDuration} min</p>
@@ -386,10 +386,10 @@ export default function RequestDelivery() {
                     <>
                       <div className="w-px h-6 bg-gray-200" />
                       <div className="flex items-center gap-1.5">
-                        <CreditCard className="w-4 h-4 text-[#F22998]" />
+                        <CreditCard className="w-4 h-4 text-[#A855F7]" />
                         <div>
                           <p className="text-[10px] text-gray-500">Estimado</p>
-                          <p className="font-bold text-[#F22998] text-sm">R$ {deliveryPrice.toFixed(2)}</p>
+                          <p className="font-bold text-[#A855F7] text-sm">R$ {deliveryPrice.toFixed(2)}</p>
                         </div>
                       </div>
                     </>
@@ -406,7 +406,7 @@ export default function RequestDelivery() {
               {/* ETAPA 1: Endereços */}
               {step === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl overflow-visible">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl overflow-visible">
                     <h2 className="text-lg font-bold text-[#F2F2F2] mb-4">Endereços de Coleta e Entrega</h2>
                     <div className="space-y-1" style={{ overflow: 'visible' }}>
                       <AddressSearchField
@@ -421,13 +421,13 @@ export default function RequestDelivery() {
                         isActive={activeField === 'pickup'}
                         onFocus={() => setActiveField('pickup')}
                         icon={
-                          <button onClick={getCurrentLocation} className="p-1 rounded-full hover:bg-[#F22998]/10 transition-colors">
-                            {gettingLocation ? <Loader2 className="w-4 h-4 text-[#F22998] animate-spin" /> : <Crosshair className="w-4 h-4 text-[#F22998]" />}
+                          <button onClick={getCurrentLocation} className="p-1 rounded-full hover:bg-[#A855F7]/10 transition-colors">
+                            {gettingLocation ? <Loader2 className="w-4 h-4 text-[#A855F7] animate-spin" /> : <Crosshair className="w-4 h-4 text-[#A855F7]" />}
                           </button>
                         }
                       />
                       <div className="py-1 pl-3">
-                        <div className="w-px h-4 bg-[#F22998]/30 ml-[5px]" />
+                        <div className="w-px h-4 bg-[#A855F7]/30 ml-[5px]" />
                       </div>
                       <AddressSearchField
                         label="Entregar em"
@@ -435,7 +435,7 @@ export default function RequestDelivery() {
                         onChange={(v) => setDestination(v)}
                         onSelect={handleDestinationSelect}
                         placeholder="Endereço do destinatário"
-                        dotColor="#F22998"
+                        dotColor="#A855F7"
                         userLocation={pickupLocation}
                         favoritesAndRecents={favoritesAndRecents}
                         isActive={activeField === 'destination'}
@@ -457,7 +457,7 @@ export default function RequestDelivery() {
               {/* ETAPA 2: Tamanho */}
               {step === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h2 className="text-lg font-bold text-[#F2F2F2] mb-4">Qual o tamanho do pacote?</h2>
                     <div className="grid grid-cols-3 gap-3">
                       {PACKAGE_SIZES.map((size) => (
@@ -468,22 +468,22 @@ export default function RequestDelivery() {
                           onClick={() => setSelectedSize(size.id)}
                           className={`p-4 rounded-2xl border-2 text-center transition-all flex flex-col gap-2 ${
                             selectedSize === size.id
-                              ? 'border-[#F22998] bg-[#F22998]/10'
-                              : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#F22998]/40'
+                              ? 'border-[#A855F7] bg-[#A855F7]/10'
+                              : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#A855F7]/40'
                           }`}
                         >
                           <span className="text-3xl">{size.emoji}</span>
                           <p className="font-bold text-[#F2F2F2] text-sm">{size.label.toUpperCase()}</p>
                           <p className="text-[10px] text-[#F2F2F2]/50 leading-tight">{size.description}</p>
-                          <p className="text-xs text-[#F22998] font-semibold">{size.weight}</p>
+                          <p className="text-xs text-[#A855F7] font-semibold">{size.weight}</p>
                         </motion.button>
                       ))}
                     </div>
 
                     {deliveryPrice && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#F22998]/10 border border-[#F22998]/20">
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-4 rounded-2xl bg-[#A855F7]/10 border border-[#A855F7]/20">
                         <p className="text-sm text-[#F2F2F2]/70">Estimativa de frete:</p>
-                        <p className="text-2xl font-bold text-[#F22998] mt-1">R$ {deliveryPrice.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-[#A855F7] mt-1">R$ {deliveryPrice.toFixed(2)}</p>
                         {routeDistance && (
                           <p className="text-xs text-[#F2F2F2]/40 mt-0.5">
                             Distância: {routeDistance} km • Tempo estimado: {routeDuration} min
@@ -507,7 +507,7 @@ export default function RequestDelivery() {
               {/* ETAPA 3: Detalhes */}
               {step === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h2 className="text-lg font-bold text-[#F2F2F2] mb-4">Detalhes do Pacote</h2>
                     <div className="space-y-4">
                       <div>
@@ -516,31 +516,31 @@ export default function RequestDelivery() {
                           value={details.contents}
                           onChange={e => setDetails(d => ({ ...d, contents: e.target.value }))}
                           placeholder="Ex: Roupas, documentos..."
-                          className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl px-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#F22998]/50 text-sm"
+                          className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl px-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#A855F7]/50 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-sm text-[#F2F2F2]/60 mb-1 block">Nome do destinatário <span className="text-[#F22998]">*</span></label>
+                        <label className="text-sm text-[#F2F2F2]/60 mb-1 block">Nome do destinatário <span className="text-[#A855F7]">*</span></label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F22998]/50" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A855F7]/50" />
                           <input
                             value={details.recipientName}
                             onChange={e => setDetails(d => ({ ...d, recipientName: e.target.value }))}
                             placeholder="Nome completo"
-                            className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl pl-10 pr-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#F22998]/50 text-sm"
+                            className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl pl-10 pr-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#A855F7]/50 text-sm"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-[#F2F2F2]/60 mb-1 block">Telefone do destinatário <span className="text-[#F22998]">*</span></label>
+                        <label className="text-sm text-[#F2F2F2]/60 mb-1 block">Telefone do destinatário <span className="text-[#A855F7]">*</span></label>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F22998]/50" />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A855F7]/50" />
                           <input
                             value={details.recipientPhone}
                             onChange={e => setDetails(d => ({ ...d, recipientPhone: e.target.value }))}
                             placeholder="(16) 99999-9999"
                             type="tel"
-                            className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl pl-10 pr-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#F22998]/50 text-sm"
+                            className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl pl-10 pr-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#A855F7]/50 text-sm"
                           />
                         </div>
                       </div>
@@ -551,7 +551,7 @@ export default function RequestDelivery() {
                           onChange={e => setDetails(d => ({ ...d, instructions: e.target.value }))}
                           placeholder="Ex: Entregar no portão lateral..."
                           rows={3}
-                          className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl px-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#F22998]/50 text-sm resize-none"
+                          className="w-full bg-[#0D0D0D] border border-[#F2F2F2]/10 rounded-xl px-4 py-3 text-[#F2F2F2] placeholder-[#F2F2F2]/30 focus:outline-none focus:border-[#A855F7]/50 text-sm resize-none"
                         />
                       </div>
                       <button
@@ -585,7 +585,7 @@ export default function RequestDelivery() {
               {step === 4 && (
                 <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                   {/* Resumo */}
-                  <Card className="p-5 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-5 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h2 className="text-lg font-bold text-[#F2F2F2] mb-4">Resumo da Entrega</h2>
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
@@ -596,7 +596,7 @@ export default function RequestDelivery() {
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#F22998] mt-1.5 flex-shrink-0" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#A855F7] mt-1.5 flex-shrink-0" />
                         <div>
                           <p className="text-xs text-[#F2F2F2]/50">Entrega</p>
                           <p className="text-sm text-[#F2F2F2]">{destination}</p>
@@ -629,7 +629,7 @@ export default function RequestDelivery() {
                   </Card>
 
                   {/* Pagamento */}
-                  <Card className="p-5 bg-[#F2F2F2]/5 border-[#F22998]/10 rounded-3xl">
+                  <Card className="p-5 bg-[#F2F2F2]/5 border-[#A855F7]/10 rounded-3xl">
                     <h3 className="text-base font-bold text-[#F2F2F2] mb-3">Forma de Pagamento</h3>
                     <div className="grid grid-cols-3 gap-3">
                       {PAYMENT_METHODS.map(m => (
@@ -637,7 +637,7 @@ export default function RequestDelivery() {
                           key={m.id}
                           onClick={() => setSelectedPayment(m.id)}
                           className={`p-3 rounded-xl border-2 transition-all text-center ${
-                            selectedPayment === m.id ? 'border-[#F22998] bg-[#F22998]/10' : 'border-transparent bg-[#0D0D0D] hover:border-[#F22998]/30'
+                            selectedPayment === m.id ? 'border-[#A855F7] bg-[#A855F7]/10' : 'border-transparent bg-[#0D0D0D] hover:border-[#A855F7]/30'
                           }`}
                         >
                           <span className="text-2xl block mb-1">{m.icon}</span>

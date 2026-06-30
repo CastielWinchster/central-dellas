@@ -84,7 +84,7 @@ export default function DriverProfile() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -107,21 +107,21 @@ export default function DriverProfile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
+          <Card className="glass-effect border-[#A855F7]/30 mb-6 bg-[#0D0D0D]">
             <CardContent className="p-6 bg-transparent">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Photo */}
                 <div className="relative">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#F22998]">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#A855F7]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
                         <User className="w-16 h-16 text-white/80" />
                       </div>
                     )}
                   </div>
-                  <label className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#F22998] flex items-center justify-center cursor-pointer hover:bg-[#BF3B79] transition-colors">
+                  <label className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#A855F7] flex items-center justify-center cursor-pointer hover:bg-[#7C3AED] transition-colors">
                     <input 
                       type="file" 
                       accept="image/*" 
@@ -158,7 +158,7 @@ export default function DriverProfile() {
                 <Button
                   onClick={() => setIsEditing(!isEditing)}
                   variant="outline"
-                  className="border-[#F22998]/30 text-[#F22998]"
+                  className="border-[#A855F7]/30 text-[#A855F7]"
                 >
                   {isEditing ? 'Cancelar' : 'Editar'}
                 </Button>
@@ -168,7 +168,7 @@ export default function DriverProfile() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-6 pt-6 border-t border-[#F22998]/20 space-y-4"
+                  className="mt-6 pt-6 border-t border-[#A855F7]/20 space-y-4"
                 >
                   <div>
                     <label className="text-sm text-[#F2F2F2]/60 mb-2 block">Telefone</label>
@@ -176,7 +176,7 @@ export default function DriverProfile() {
                       value={editData.phone || ''}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                       placeholder="(11) 99999-9999"
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                     />
                   </div>
                   <div>
@@ -185,7 +185,7 @@ export default function DriverProfile() {
                       value={editData.bio || ''}
                       onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                       placeholder="Conte um pouco sobre você"
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                     />
                   </div>
                   <Button onClick={handleSaveProfile} className="btn-gradient w-full">
@@ -203,13 +203,13 @@ export default function DriverProfile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-[#F22998]/30 mb-6 bg-[#0D0D0D]">
+          <Card className="glass-effect border-[#A855F7]/30 mb-6 bg-[#0D0D0D]">
             <CardHeader className="bg-transparent">
               <CardTitle className="text-[#F2F2F2]">Serviços Oferecidos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 bg-transparent">
               {/* Pets */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-[#F22998]/5">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-[#A855F7]/5">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <span className="text-2xl">🐾</span>
@@ -224,7 +224,7 @@ export default function DriverProfile() {
                 <Switch
                   checked={user.accepts_pets || false}
                   onCheckedChange={handleTogglePets}
-                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#BF3B79] data-[state=checked]:to-[#F22998]"
+                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#7C3AED] data-[state=checked]:to-[#A855F7]"
                 />
               </div>
             </CardContent>

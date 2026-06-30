@@ -102,7 +102,7 @@ export default function ChatMessage({ message, isOwn, onReport }) {
         <div
           className={`px-4 py-2 rounded-2xl ${
             isOwn
-              ? 'bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white'
+              ? 'bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white'
               : 'bg-[#2A2A2A] text-[#F2F2F2]'
           } break-words`}
         >
@@ -144,7 +144,7 @@ export default function ChatMessage({ message, isOwn, onReport }) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#1A1A1A] rounded-lg p-3 border border-[#F22998]/20 space-y-2"
+            className="bg-[#1A1A1A] rounded-lg p-3 border border-[#A855F7]/20 space-y-2"
           >
             <p className="text-xs text-[#F2F2F2]/60">Motivo do reporte:</p>
             {['Assédio', 'Spam', 'Conteúdo inapropriado'].map((reason) => (
@@ -156,7 +156,7 @@ export default function ChatMessage({ message, isOwn, onReport }) {
                 }}
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start text-[#F2F2F2] hover:bg-[#F22998]/10"
+                className="w-full justify-start text-[#F2F2F2] hover:bg-[#A855F7]/10"
               >
                 {reason}
               </Button>

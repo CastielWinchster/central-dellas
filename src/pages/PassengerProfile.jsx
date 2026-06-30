@@ -314,7 +314,7 @@ export default function PassengerProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -333,19 +333,19 @@ export default function PassengerProfile() {
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Meu Perfil</h1>
         </div>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#F22998]">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#A855F7]">
                 {formState.photo_url ? (
                   <img src={formState.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
                     <User className="w-12 h-12 text-white" />
                   </div>
                 )}
               </div>
-              <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#F22998] flex items-center justify-center cursor-pointer hover:bg-[#BF3B79] transition-colors">
+              <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#A855F7] flex items-center justify-center cursor-pointer hover:bg-[#7C3AED] transition-colors">
                 <Camera className="w-4 h-4 text-white" />
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
               </label>
@@ -354,14 +354,14 @@ export default function PassengerProfile() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl mb-6">
+        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-[#F2F2F2]">Informações Pessoais</h3>
             <Button
               onClick={openEditInfo}
               size="sm"
               variant="ghost"
-              className="text-[#F22998] hover:bg-[#F22998]/10"
+              className="text-[#A855F7] hover:bg-[#A855F7]/10"
             >
               <Pencil className="w-4 h-4" />
             </Button>
@@ -370,21 +370,21 @@ export default function PassengerProfile() {
           <div className="space-y-4">
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Nome Completo</label>
-              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+              <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                 {formState.full_name || '-'}
               </div>
             </div>
             
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Telefone</label>
-              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+              <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                 {formState.phone || '-'}
               </div>
             </div>
             
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Gênero</label>
-              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+              <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                 {formState.gender === 'feminino' ? 'Feminino' : 
                  formState.gender === 'masculino' ? 'Masculino' : 
                  formState.gender === 'outro' ? 'Outro' : 'Prefiro não informar'}
@@ -393,7 +393,7 @@ export default function PassengerProfile() {
             
             <div>
               <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Data de Nascimento</label>
-              <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+              <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                 {formState.birth_date ? `${new Date(formState.birth_date).toLocaleDateString('pt-BR')}${age ? ` (${age} anos)` : ''}` : '-'}
               </div>
             </div>
@@ -401,13 +401,13 @@ export default function PassengerProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Cidade</label>
-                <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                   {formState.city || '-'}
                 </div>
               </div>
               <div>
                 <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Estado</label>
-                <div className="p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]">
+                <div className="p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]">
                   {formState.state || '-'}
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function PassengerProfile() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#1A1A1A] rounded-2xl border border-[#F22998]/20 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="bg-[#1A1A1A] rounded-2xl border border-[#A855F7]/20 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-[#F2F2F2]">Editar Informações</h2>
@@ -448,7 +448,7 @@ export default function PassengerProfile() {
                   <Input
                     value={editForm.full_name}
                     onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                     placeholder="Digite seu nome"
                   />
                 </div>
@@ -458,7 +458,7 @@ export default function PassengerProfile() {
                   <Input
                     value={editForm.phone}
                     onChange={(e) => setEditForm({ ...editForm, phone: maskPhone(e.target.value) })}
-                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                     placeholder="(00) 00000-0000"
                     maxLength={15}
                   />
@@ -469,7 +469,7 @@ export default function PassengerProfile() {
                   <select
                     value={editForm.gender}
                     onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                    className="w-full p-3 bg-[#0D0D0D] border border-[#F22998]/20 rounded-xl text-[#F2F2F2]"
+                    className="w-full p-3 bg-[#0D0D0D] border border-[#A855F7]/20 rounded-xl text-[#F2F2F2]"
                   >
                     <option value="feminino">Feminino</option>
                     <option value="masculino">Masculino</option>
@@ -484,7 +484,7 @@ export default function PassengerProfile() {
                     type="date"
                     value={editForm.birth_date}
                     onChange={(e) => setEditForm({ ...editForm, birth_date: e.target.value })}
-                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                   />
                 </div>
                 
@@ -494,7 +494,7 @@ export default function PassengerProfile() {
                     <Input
                       value={editForm.city}
                       onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="Sua cidade"
                     />
                   </div>
@@ -503,7 +503,7 @@ export default function PassengerProfile() {
                     <Input
                       value={editForm.state}
                       onChange={(e) => setEditForm({ ...editForm, state: e.target.value.toUpperCase() })}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="UF"
                       maxLength={2}
                     />
@@ -515,14 +515,14 @@ export default function PassengerProfile() {
                 <Button
                   onClick={closeEdit}
                   variant="outline"
-                  className="flex-1 border-[#F22998]/20 text-[#F2F2F2]"
+                  className="flex-1 border-[#A855F7]/20 text-[#F2F2F2]"
                 >
                   Cancelar
                 </Button>
                 <Button
                   onClick={saveInfo}
                   disabled={saving}
-                  className="flex-1 bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white"
+                  className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white"
                 >
                   {saving ? 'Salvando...' : 'Salvar'}
                 </Button>

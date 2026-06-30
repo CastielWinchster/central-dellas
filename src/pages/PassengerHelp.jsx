@@ -73,7 +73,7 @@ export default function PassengerHelp() {
         {/* Contact Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           <a href="https://wa.me/5516994465137" target="_blank" rel="noopener noreferrer">
-            <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-xl hover:bg-[#F22998]/10 transition-all cursor-pointer">
+            <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-xl hover:bg-[#A855F7]/10 transition-all cursor-pointer">
               <MessageCircle className="w-8 h-8 text-green-400 mb-2" />
               <p className="text-sm font-medium text-[#F2F2F2]">WhatsApp</p>
               <p className="text-xs text-[#F2F2F2]/50">Chat ao vivo</p>
@@ -81,15 +81,15 @@ export default function PassengerHelp() {
           </a>
           
           <a href="tel:+5516994465137">
-            <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-xl hover:bg-[#F22998]/10 transition-all cursor-pointer">
-              <Phone className="w-8 h-8 text-[#F22998] mb-2" />
+            <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-xl hover:bg-[#A855F7]/10 transition-all cursor-pointer">
+              <Phone className="w-8 h-8 text-[#A855F7] mb-2" />
               <p className="text-sm font-medium text-[#F2F2F2]">Telefone</p>
               <p className="text-xs text-[#F2F2F2]/50">24h</p>
             </Card>
           </a>
           
           <a href="mailto:contato@centraldellas.com.br">
-            <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-xl hover:bg-[#F22998]/10 transition-all cursor-pointer">
+            <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-xl hover:bg-[#A855F7]/10 transition-all cursor-pointer">
               <Mail className="w-8 h-8 text-blue-400 mb-2" />
               <p className="text-sm font-medium text-[#F2F2F2]">E-mail</p>
               <p className="text-xs text-[#F2F2F2]/50">Suporte</p>
@@ -101,7 +101,7 @@ export default function PassengerHelp() {
         <div className="space-y-6">
           {faqs.map((category, catIndex) => (
             <div key={catIndex}>
-              <h3 className="text-xs font-bold text-[#BF3B79] mb-3 uppercase tracking-wider px-2">
+              <h3 className="text-xs font-bold text-[#7C3AED] mb-3 uppercase tracking-wider px-2">
                 {category.category}
               </h3>
               <div className="space-y-2">
@@ -110,13 +110,13 @@ export default function PassengerHelp() {
                   const isExpanded = expandedFaq === faqId;
                   
                   return (
-                    <Card key={faqId} className="bg-[#1A1A1A] border-[#F22998]/20 rounded-xl overflow-hidden">
+                    <Card key={faqId} className="bg-[#1A1A1A] border-[#A855F7]/20 rounded-xl overflow-hidden">
                       <button
                         onClick={() => setExpandedFaq(isExpanded ? null : faqId)}
-                        className="w-full p-4 flex items-center justify-between text-left hover:bg-[#F22998]/5 transition-colors"
+                        className="w-full p-4 flex items-center justify-between text-left hover:bg-[#A855F7]/5 transition-colors"
                       >
                         <p className="font-medium text-[#F2F2F2] pr-4">{faq.q}</p>
-                        <ChevronDown className={`w-5 h-5 text-[#F22998] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-5 h-5 text-[#A855F7] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </button>
                       
                       {isExpanded && (
@@ -138,7 +138,7 @@ export default function PassengerHelp() {
         </div>
 
         {/* Contact Info */}
-        <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/10 to-[#F22998]/10 border-[#F22998]/20 rounded-2xl mt-8">
+        <Card className="p-6 bg-gradient-to-br from-[#7C3AED]/10 to-[#A855F7]/10 border-[#A855F7]/20 rounded-2xl mt-8">
           <h3 className="font-semibold text-[#F2F2F2] mb-4">Ainda precisa de ajuda?</h3>
           <div className="space-y-2 text-sm text-[#F2F2F2]/70">
             <p>📱 WhatsApp: (16) 99446-5137</p>

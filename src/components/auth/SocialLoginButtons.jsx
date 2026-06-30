@@ -87,7 +87,7 @@ export default function SocialLoginButtons({ loading }) {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-[#F22998]/30" />
+          <span className="w-full border-t border-[#A855F7]/30" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-[#0D0D0D] px-2 text-[#F2F2F2]/60">

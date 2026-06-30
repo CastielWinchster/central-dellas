@@ -100,7 +100,7 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
           onClick={handleRefresh}
           variant="outline"
           size="sm"
-          className="border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+          className="border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
           disabled={isRefreshing}
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -125,8 +125,8 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                 <Card
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[#F22998]/10 border-[#F22998]'
-                      : 'bg-[#F2F2F2]/5 border-[#F22998]/10 hover:border-[#F22998]/40'
+                      ? 'bg-[#A855F7]/10 border-[#A855F7]'
+                      : 'bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/40'
                   }`}
                   onClick={() => onRideSelect && onRideSelect(isSelected ? null : delivery)}
                 >
@@ -143,7 +143,7 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                         )}
                       </div>
                     </div>
-                    <p className="text-lg font-bold text-[#F22998]">
+                    <p className="text-lg font-bold text-[#A855F7]">
                       R$ {delivery.estimated_price ? parseFloat(delivery.estimated_price).toFixed(2) : '—'}
                     </p>
                   </div>
@@ -155,13 +155,13 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                       <p className="text-sm text-[#F2F2F2]">{delivery.pickup_text}</p>
                     </div>
                     <div className="flex items-start gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#F22998] mt-1.5 flex-shrink-0" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#A855F7] mt-1.5 flex-shrink-0" />
                       <p className="text-sm text-[#F2F2F2]/80">{delivery.dropoff_text}</p>
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center gap-3 pt-3 border-t border-[#F22998]/10 text-sm text-[#F2F2F2]/50">
+                  <div className="flex items-center gap-3 pt-3 border-t border-[#A855F7]/10 text-sm text-[#F2F2F2]/50">
                     {delivery.distance !== null && delivery.distance !== undefined && (
                       <span className="flex items-center gap-1">
                         <Navigation className="w-3.5 h-3.5" />
@@ -181,20 +181,20 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-3 pt-3 border-t border-[#F22998]/10"
+                      className="mt-3 pt-3 border-t border-[#A855F7]/10"
                     >
                       {!showPriceInput ? (
                         <div className="grid grid-cols-2 gap-2">
                           <Button
                             onClick={(e) => { e.stopPropagation(); onRideSelect && onRideSelect(null); setShowPriceInput(false); setOfferPrice(''); }}
                             variant="outline"
-                            className="py-2 rounded-xl border-[#F22998]/30 text-[#F2F2F2]/60 hover:bg-[#F22998]/10"
+                            className="py-2 rounded-xl border-[#A855F7]/30 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10"
                           >
                             <X className="w-4 h-4 mr-1" /> Ignorar
                           </Button>
                           <Button
                             onClick={(e) => { e.stopPropagation(); setShowPriceInput(true); }}
-                            className="py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white"
+                            className="py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white"
                           >
                             <CheckCircle className="w-4 h-4 mr-1" /> Aceitar Entrega
                           </Button>
@@ -217,7 +217,7 @@ export default function AvailableDeliveriesList({ onRideSelect, onRideAccepted, 
                             <Button
                               onClick={(e) => handleAccept(delivery, e, parseFloat(offerPrice))}
                               disabled={!offerPrice || parseFloat(offerPrice) <= 0}
-                              className="py-2 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-bold"
+                              className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold"
                             >
                               Confirmar
                             </Button>

@@ -94,7 +94,7 @@ export default function UsernameInput({ value, onChange }) {
   };
 
   const getBorderColor = () => {
-    if (!value) return 'border-[#F22998]/30';
+    if (!value) return 'border-[#A855F7]/30';
     if (validation.checking) return 'border-blue-500';
     if (validation.valid) return 'border-green-500';
     return 'border-red-500';
@@ -104,7 +104,7 @@ export default function UsernameInput({ value, onChange }) {
     if (validation.checking) return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
     if (validation.valid && value) return <Check className="w-5 h-5 text-green-500" />;
     if (!validation.valid && value && !validation.checking) return <X className="w-5 h-5 text-red-500" />;
-    return <User className="w-5 h-5 text-[#F22998]" />;
+    return <User className="w-5 h-5 text-[#A855F7]" />;
   };
 
   return (
@@ -119,7 +119,7 @@ export default function UsernameInput({ value, onChange }) {
           placeholder="usuario_nome"
           value={value}
           onChange={(e) => onChange(e.target.value.toLowerCase())}
-          className={`pl-10 bg-[#0D0D0D] ${getBorderColor()} text-[#F2F2F2] focus:border-[#F22998]`}
+          className={`pl-10 bg-[#0D0D0D] ${getBorderColor()} text-[#F2F2F2] focus:border-[#A855F7]`}
           required
           maxLength={20}
         />
@@ -140,7 +140,7 @@ export default function UsernameInput({ value, onChange }) {
                 size="sm"
                 variant="outline"
                 onClick={() => onChange(suggestion)}
-                className="text-xs border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+                className="text-xs border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
               >
                 {suggestion}
               </Button>

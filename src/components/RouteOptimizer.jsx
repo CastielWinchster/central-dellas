@@ -76,10 +76,10 @@ export default function RouteOptimizer({ onRouteOptimized }) {
 
   return (
     <div className="space-y-4">
-      <Card className="p-6 bg-[#F2F2F2]/5 border-[#F22998]/10">
+      <Card className="p-6 bg-[#F2F2F2]/5 border-[#A855F7]/10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-[#F22998]/20 flex items-center justify-center">
-            <Route className="w-5 h-5 text-[#F22998]" />
+          <div className="w-10 h-10 rounded-xl bg-[#A855F7]/20 flex items-center justify-center">
+            <Route className="w-5 h-5 text-[#A855F7]" />
           </div>
           <div>
             <h3 className="font-semibold text-[#F2F2F2]">Otimização de Rota</h3>
@@ -99,7 +99,7 @@ export default function RouteOptimizer({ onRouteOptimized }) {
               >
                 <div className="flex items-center gap-2 flex-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                    index === 0 ? 'bg-green-500' : index === waypoints.length - 1 ? 'bg-[#F22998]' : 'bg-blue-500'
+                    index === 0 ? 'bg-green-500' : index === waypoints.length - 1 ? 'bg-[#A855F7]' : 'bg-blue-500'
                   }`}>
                     {index === 0 ? 'A' : index === waypoints.length - 1 ? 'B' : index + 1}
                   </div>
@@ -107,7 +107,7 @@ export default function RouteOptimizer({ onRouteOptimized }) {
                     placeholder={index === 0 ? 'Ponto de partida' : index === waypoints.length - 1 ? 'Destino final' : `Parada ${index}`}
                     value={waypoint.address}
                     onChange={(e) => updateWaypoint(index, e.target.value)}
-                    className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                   />
                 </div>
                 {waypoints.length > 2 && index !== 0 && index !== waypoints.length - 1 && (
@@ -129,7 +129,7 @@ export default function RouteOptimizer({ onRouteOptimized }) {
           <Button
             onClick={addWaypoint}
             variant="outline"
-            className="w-full mb-4 border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+            className="w-full mb-4 border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
           >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Parada
@@ -160,9 +160,9 @@ export default function RouteOptimizer({ onRouteOptimized }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="p-6 bg-gradient-to-br from-[#BF3B79]/20 to-[#F22998]/20 border-[#F22998]/30">
+          <Card className="p-6 bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]/30">
             <h4 className="font-semibold text-[#F2F2F2] mb-4 flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-[#F22998]" />
+              <Navigation className="w-5 h-5 text-[#A855F7]" />
               Rota Otimizada
             </h4>
             

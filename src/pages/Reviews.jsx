@@ -94,7 +94,7 @@ export default function Reviews() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card className={`p-6 rounded-3xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white border-gray-200'}`}>
+            <Card className={`p-6 rounded-3xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
               <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-[#F2F2F2]' : 'text-gray-900'}`}>
                 Avaliar Corrida
               </h3>
@@ -126,7 +126,7 @@ export default function Reviews() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Deixe um comentário (opcional)"
-                className={`mb-4 ${isDark ? 'bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]' : 'bg-white border-gray-300'}`}
+                className={`mb-4 ${isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]' : 'bg-white border-gray-300'}`}
                 rows={4}
               />
 
@@ -134,7 +134,7 @@ export default function Reviews() {
                 <Button
                   variant="outline"
                   onClick={() => setSelectedRide(null)}
-                  className={isDark ? 'border-[#F22998]/30 text-[#F2F2F2]' : 'border-gray-300'}
+                  className={isDark ? 'border-[#A855F7]/30 text-[#F2F2F2]' : 'border-gray-300'}
                 >
                   Cancelar
                 </Button>
@@ -158,7 +158,7 @@ export default function Reviews() {
           </h2>
           
           {ridesWithoutReview.length === 0 ? (
-            <Card className={`p-8 rounded-3xl text-center ${isDark ? 'bg-[#F2F2F2]/5 border-[#F22998]/10' : 'bg-white border-gray-200'}`}>
+            <Card className={`p-8 rounded-3xl text-center ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
               <p className={isDark ? 'text-[#F2F2F2]/60' : 'text-gray-600'}>
                 Todas as corridas foram avaliadas!
@@ -175,8 +175,8 @@ export default function Reviews() {
                 <Card 
                   className={`p-5 rounded-2xl cursor-pointer transition-all ${
                     isDark 
-                      ? 'bg-[#F2F2F2]/5 border-[#F22998]/10 hover:border-[#F22998]/30' 
-                      : 'bg-white border-gray-200 hover:border-[#F22998]/30'
+                      ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/30' 
+                      : 'bg-white border-gray-200 hover:border-[#A855F7]/30'
                   }`}
                   onClick={() => setSelectedRide(ride)}
                 >
@@ -189,7 +189,7 @@ export default function Reviews() {
                         {toBrasiliaDateOnly(ride.completed_at)}
                       </p>
                     </div>
-                    <Button variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                    <Button variant="outline" className="border-[#A855F7]/30 text-[#A855F7]">
                       Avaliar
                     </Button>
                   </div>

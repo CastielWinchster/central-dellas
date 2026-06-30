@@ -30,7 +30,7 @@ function PriceField({ label, value, onChange }) {
           min="0"
           value={value}
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-          className="bg-[#0D0D0D] border-[#F22998]/20 text-white pl-9"
+          className="bg-[#0D0D0D] border-[#A855F7]/20 text-white pl-9"
         />
       </div>
     </div>
@@ -98,9 +98,9 @@ export default function PriceManager() {
     <div className="space-y-4">
       <div className="grid md:grid-cols-3 gap-4">
         {/* Moto */}
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-5">
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
               <Bike className="w-5 h-5 text-white" />
             </div>
             <h3 className="font-bold text-[#F2F2F2]">Moto Táxi</h3>
@@ -113,7 +113,7 @@ export default function PriceManager() {
         </Card>
 
         {/* Carro */}
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-5">
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
               <Car className="w-5 h-5 text-white" />
@@ -128,7 +128,7 @@ export default function PriceManager() {
         </Card>
 
         {/* Entrega */}
-        <Card className="bg-[#F2F2F2]/5 border-[#F22998]/10 p-5">
+        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
               <Truck className="w-5 h-5 text-white" />
@@ -145,14 +145,14 @@ export default function PriceManager() {
       <Button
         onClick={save}
         disabled={saving}
-        className="w-full py-6 bg-gradient-to-r from-[#BF3B79] to-[#F22998] hover:opacity-90 text-white font-bold"
+        className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#A855F7] hover:opacity-90 text-white font-bold"
       >
         <Save className="w-5 h-5 mr-2" />
         {saving ? 'Salvando...' : 'Salvar Preços'}
       </Button>
 
-      <Card className="bg-[#F22998]/5 border-[#F22998]/10 p-4 flex items-start gap-3">
-        <DollarSign className="w-5 h-5 text-[#F22998] mt-0.5 shrink-0" />
+      <Card className="bg-[#A855F7]/5 border-[#A855F7]/10 p-4 flex items-start gap-3">
+        <DollarSign className="w-5 h-5 text-[#A855F7] mt-0.5 shrink-0" />
         <p className="text-[#F2F2F2]/60 text-sm">
           Os valores definidos aqui passam a valer como tarifas padrão para novas corridas e entregas.
         </p>

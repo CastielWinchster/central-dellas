@@ -139,7 +139,7 @@ export default function PassengerSafety() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -201,7 +201,7 @@ export default function PassengerSafety() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-6"
             >
-              <Card className="p-6 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
+              <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
                 <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">
                   {editingContact ? 'Editar Contato' : 'Novo Contato'}
                 </h3>
@@ -212,7 +212,7 @@ export default function PassengerSafety() {
                     <Input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="Nome do contato"
                     />
                   </div>
@@ -222,7 +222,7 @@ export default function PassengerSafety() {
                     <Input
                       value={phone}
                       onChange={(e) => setPhone(maskPhone(e.target.value))}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="(00) 00000-0000"
                       maxLength={15}
                     />
@@ -233,7 +233,7 @@ export default function PassengerSafety() {
                     <Input
                       value={relationship}
                       onChange={(e) => setRelationship(e.target.value)}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="Ex: Mãe, Amiga, Irmã..."
                     />
                   </div>
@@ -248,7 +248,7 @@ export default function PassengerSafety() {
                     <Input
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="bg-[#0D0D0D] border-[#F22998]/20 text-[#F2F2F2]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
                       placeholder="Notas adicionais..."
                     />
                   </div>
@@ -258,7 +258,7 @@ export default function PassengerSafety() {
                   <Button
                     onClick={resetForm}
                     variant="outline"
-                    className="flex-1 border-[#F22998]/30"
+                    className="flex-1 border-[#A855F7]/30"
                   >
                     Cancelar
                   </Button>
@@ -274,8 +274,8 @@ export default function PassengerSafety() {
         {/* Contacts List */}
         <div className="space-y-3">
           {contacts.length === 0 && !showAddForm && (
-            <Card className="p-8 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl text-center">
-              <Shield className="w-12 h-12 text-[#F22998]/50 mx-auto mb-3" />
+            <Card className="p-8 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl text-center">
+              <Shield className="w-12 h-12 text-[#A855F7]/50 mx-auto mb-3" />
               <p className="text-[#F2F2F2]/60 mb-2">Nenhum contato de emergência</p>
               <p className="text-sm text-[#F2F2F2]/40">
                 Adicione contatos de confiança para mais segurança
@@ -289,11 +289,11 @@ export default function PassengerSafety() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card className="p-4 bg-[#1A1A1A] border-[#F22998]/20 rounded-2xl">
+              <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#F22998]/20 flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-[#F22998]" />
+                    <div className="w-12 h-12 rounded-xl bg-[#A855F7]/20 flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-[#A855F7]" />
                     </div>
                     <div>
                       <h3 className="font-bold text-[#F2F2F2]">{contact.name}</h3>
@@ -315,7 +315,7 @@ export default function PassengerSafety() {
                       onClick={() => handleEdit(contact)}
                       variant="ghost"
                       size="icon"
-                      className="text-[#F2F2F2]/60 hover:text-[#F22998]"
+                      className="text-[#F2F2F2]/60 hover:text-[#A855F7]"
                     >
                       <Edit2 className="w-5 h-5" />
                     </Button>

@@ -5,7 +5,7 @@ export default function TermosdeServicos() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-16">
       {/* Header */}
-      <div className="bg-[#0D0D0D] border-b border-[#F22998]/20 px-4 py-4 sticky top-0 z-10">
+      <div className="bg-[#0D0D0D] border-b border-[#A855F7]/20 px-4 py-4 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/50cfce50f_central2.png"
@@ -16,7 +16,7 @@ export default function TermosdeServicos() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-[#F22998] mb-2">Termos de Serviço</h1>
+        <h1 className="text-3xl font-bold text-[#A855F7] mb-2">Termos de Serviço</h1>
         <p className="text-[#F2F2F2]/50 text-sm mb-8">Última atualização: Maio de 2026</p>
 
         <div className="space-y-8 text-[#F2F2F2]/80 leading-relaxed">
@@ -24,7 +24,7 @@ export default function TermosdeServicos() {
           <section>
             <h2 className="text-xl font-semibold text-[#F2F2F2] mb-3">1. O que é o CentralDellas</h2>
             <p>
-              O <strong className="text-[#F22998]">CentralDellas</strong> é uma plataforma de transporte por aplicativo que conecta passageiros a motoristas parceiros. O app facilita a solicitação e gestão de corridas urbanas, intermunicipais e entregas na região de Orlândia, SP e cidades vizinhas.
+              O <strong className="text-[#A855F7]">CentralDellas</strong> é uma plataforma de transporte por aplicativo que conecta passageiros a motoristas parceiros. O app facilita a solicitação e gestão de corridas urbanas, intermunicipais e entregas na região de Orlândia, SP e cidades vizinhas.
             </p>
             <p className="mt-3">
               O CentralDellas <strong>não é uma empresa de transporte</strong> — atuamos como intermediário tecnológico entre passageiros e motoristas independentes. A relação contratual de transporte se estabelece diretamente entre passageiro e motorista.
@@ -137,9 +137,9 @@ export default function TermosdeServicos() {
           <section>
             <h2 className="text-xl font-semibold text-[#F2F2F2] mb-3">11. Contato</h2>
             <p>Para dúvidas, sugestões ou reclamações sobre estes termos:</p>
-            <div className="mt-3 p-4 rounded-xl bg-[#F22998]/10 border border-[#F22998]/20">
+            <div className="mt-3 p-4 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/20">
               <p><strong>CentralDellas</strong></p>
-              <p>E-mail: <a href="mailto:contato@centraldellas.com.br" className="text-[#F22998] hover:underline">contato@centraldellas.com.br</a></p>
+              <p>E-mail: <a href="mailto:contato@centraldellas.com.br" className="text-[#A855F7] hover:underline">contato@centraldellas.com.br</a></p>
               <p>Orlândia, SP — Brasil</p>
             </div>
           </section>

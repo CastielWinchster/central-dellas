@@ -10,7 +10,7 @@ export default function DeleteAccount() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
             <Trash2 className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-3xl font-bold">Exclusão de Conta</h1>
@@ -20,7 +20,7 @@ export default function DeleteAccount() {
         </p>
 
         {/* Intro */}
-        <div className="bg-[#1a1a1a] border border-[#F22998]/20 rounded-2xl p-6 mb-6">
+        <div className="bg-[#1a1a1a] border border-[#A855F7]/20 rounded-2xl p-6 mb-6">
           <p className="text-[#F2F2F2]/80 leading-relaxed">
             Esta página explica como você pode solicitar a exclusão da sua conta do
             aplicativo <strong>Central Dellas</strong> e de todos os dados associados a ela.
@@ -30,13 +30,13 @@ export default function DeleteAccount() {
         </div>
 
         {/* Como solicitar */}
-        <div className="bg-[#1a1a1a] border border-[#F22998]/20 rounded-2xl p-6 mb-6">
+        <div className="bg-[#1a1a1a] border border-[#A855F7]/20 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <ShieldCheck className="w-5 h-5 text-[#F22998]" />
+            <ShieldCheck className="w-5 h-5 text-[#A855F7]" />
             <h2 className="text-xl font-semibold">Como solicitar a exclusão</h2>
           </div>
 
-          <h3 className="font-medium text-[#F22998] mb-2">Opção 1 — Pelo aplicativo</h3>
+          <h3 className="font-medium text-[#A855F7] mb-2">Opção 1 — Pelo aplicativo</h3>
           <ol className="list-decimal list-inside space-y-2 text-[#F2F2F2]/80 mb-6">
             <li>Abra o aplicativo Central Dellas e faça login na sua conta.</li>
             <li>Acesse <strong>Opções → Configurações</strong>.</li>
@@ -44,7 +44,7 @@ export default function DeleteAccount() {
             <li>Confirme a solicitação. Sua conta e seus dados serão removidos.</li>
           </ol>
 
-          <h3 className="font-medium text-[#F22998] mb-2">Opção 2 — Por e-mail</h3>
+          <h3 className="font-medium text-[#A855F7] mb-2">Opção 2 — Por e-mail</h3>
           <p className="text-[#F2F2F2]/80 mb-3">
             Caso não consiga acessar o app, envie um e-mail solicitando a exclusão.
             Inclua o e-mail ou telefone cadastrado na conta para que possamos localizá-la.
@@ -52,7 +52,7 @@ export default function DeleteAccount() {
           <div className="space-y-2">
             <a
               href={`mailto:${SUPPORT_EMAIL}?subject=Solicitação de exclusão de conta - Central Dellas`}
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white font-medium hover:opacity-90 transition"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white font-medium hover:opacity-90 transition"
             >
               <Mail className="w-4 h-4" />
               {SUPPORT_EMAIL}
@@ -64,9 +64,9 @@ export default function DeleteAccount() {
         </div>
 
         {/* Dados excluídos */}
-        <div className="bg-[#1a1a1a] border border-[#F22998]/20 rounded-2xl p-6 mb-6">
+        <div className="bg-[#1a1a1a] border border-[#A855F7]/20 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-[#F22998]" />
+            <Database className="w-5 h-5 text-[#A855F7]" />
             <h2 className="text-xl font-semibold">Quais dados são excluídos</h2>
           </div>
           <p className="text-[#F2F2F2]/80 mb-3">
@@ -84,9 +84,9 @@ export default function DeleteAccount() {
         </div>
 
         {/* Dados mantidos */}
-        <div className="bg-[#1a1a1a] border border-[#F22998]/20 rounded-2xl p-6 mb-6">
+        <div className="bg-[#1a1a1a] border border-[#A855F7]/20 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-[#F22998]" />
+            <Clock className="w-5 h-5 text-[#A855F7]" />
             <h2 className="text-xl font-semibold">Dados mantidos e prazos</h2>
           </div>
           <p className="text-[#F2F2F2]/80 mb-3">

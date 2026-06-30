@@ -155,13 +155,13 @@ export default function RideHistory() {
               placeholder="Buscar por destino ou motorista..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#1A1A1A] border-[#F22998]/20 text-[#F2F2F2]"
+              className="pl-10 bg-[#1A1A1A] border-[#A855F7]/20 text-[#F2F2F2]"
             />
           </div>
           <Button
             onClick={handleExportCSV}
             variant="outline"
-            className="border-[#F22998]/30 text-[#F22998]"
+            className="border-[#A855F7]/30 text-[#A855F7]"
           >
             <FileDown className="w-5 h-5" />
           </Button>
@@ -180,8 +180,8 @@ export default function RideHistory() {
               onClick={() => setPeriodFilter(period.value)}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-all ${
                 periodFilter === period.value
-                  ? 'bg-[#F22998]/20 text-[#F22998] border border-[#F22998]/50'
-                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10'
+                  ? 'bg-[#A855F7]/20 text-[#A855F7] border border-[#A855F7]/50'
+                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10'
               }`}
             >
               {period.label}
@@ -202,8 +202,8 @@ export default function RideHistory() {
               onClick={() => setSelectedFilter(filter.id)}
               className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                 selectedFilter === filter.id
-                  ? 'bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white'
-                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10'
+                  ? 'bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white'
+                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10'
               }`}
             >
               {filter.label}
@@ -229,7 +229,7 @@ export default function RideHistory() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 + 0.3 }}
               >
-                <Card className="p-5 rounded-2xl bg-[#F2F2F2]/5 border-[#F22998]/10 hover:border-[#F22998]/30 transition-all">
+                <Card className="p-5 rounded-2xl bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/30 transition-all">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#F2F2F2]/50" />
@@ -248,19 +248,19 @@ export default function RideHistory() {
                       <p className="text-[#F2F2F2] text-sm">{pickupAddr}</p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-3 h-3 rounded-full bg-[#F22998] mt-1 flex-shrink-0" />
+                      <div className="w-3 h-3 rounded-full bg-[#A855F7] mt-1 flex-shrink-0" />
                       <p className="text-[#F2F2F2] text-sm">{dropoffAddr}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-[#F22998]/10">
+                  <div className="flex items-center justify-between pt-4 border-t border-[#A855F7]/10">
                     {driverName ? (
                       <div className="flex items-center gap-3">
                         {ride.driver?.photo && (
                           <img 
                             src={ride.driver.photo}
                             alt={driverName}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-[#F22998]"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-[#A855F7]"
                           />
                         )}
                         <div>
@@ -281,7 +281,7 @@ export default function RideHistory() {
 
                     <div className="text-right">
                       {price > 0 && (
-                        <p className="text-xl font-bold text-[#F22998]">R$ {Number(price).toFixed(2)}</p>
+                        <p className="text-xl font-bold text-[#A855F7]">R$ {Number(price).toFixed(2)}</p>
                       )}
                       {ride.estimated_duration && (
                         <p className="text-xs text-[#F2F2F2]/50">{ride.estimated_duration} min</p>
@@ -295,7 +295,7 @@ export default function RideHistory() {
                         variant="outline" 
                         size="sm"
                         onClick={() => setSelectedRideForReceipt(ride)}
-                        className="flex-1 border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+                        className="flex-1 border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Recibo
@@ -303,7 +303,7 @@ export default function RideHistory() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex-1 border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+                        className="flex-1 border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
                       >
                         <Star className="w-4 h-4 mr-2" />
                         Avaliar
@@ -321,7 +321,7 @@ export default function RideHistory() {
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <Car className="w-16 h-16 text-[#F22998]/30 mx-auto mb-4" />
+              <Car className="w-16 h-16 text-[#A855F7]/30 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-[#F2F2F2] mb-2">Nenhuma corrida concluída ainda</h3>
               <p className="text-[#F2F2F2]/50">Suas corridas aparecerão aqui após serem concluídas</p>
             </motion.div>

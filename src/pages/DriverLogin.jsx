@@ -136,7 +136,7 @@ export default function DriverLogin() {
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-[#F2F2F2] mb-4">
             Dirija com a<br />
-            <span className="bg-gradient-to-r from-[#BF3B79] to-[#F22998] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] bg-clip-text text-transparent">
               Central Dellas
             </span>
           </h1>
@@ -145,15 +145,15 @@ export default function DriverLogin() {
           </p>
           <div className="flex flex-col gap-3 justify-center lg:justify-start">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
               <span className="text-[#F2F2F2]/60">Flexibilidade total de horários</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
               <span className="text-[#F2F2F2]/60">Ganhos justos e transparentes</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#F22998]" />
+              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
               <span className="text-[#F2F2F2]/60">Ambiente 100% seguro</span>
             </div>
           </div>
@@ -164,9 +164,9 @@ export default function DriverLogin() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F22998]/30 shadow-2xl">
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#A855F7]/30 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#BF3B79] to-[#F22998] flex items-center justify-center shadow-lg shadow-[#F22998]/50">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#A855F7]/50">
                 <Car className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -193,7 +193,7 @@ export default function DriverLogin() {
                       placeholder="Seu nome completo"
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
                       required
                     />
                   </div>
@@ -204,7 +204,7 @@ export default function DriverLogin() {
                       placeholder="000.000.000-00"
                       value={formData.cpf}
                       onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
                       required
                     />
                   </div>
@@ -215,20 +215,20 @@ export default function DriverLogin() {
                       type="date"
                       value={formData.birth_date}
                       onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                      className="bg-[#0D0D0D] border-[#F22998]/30 text-[#F2F2F2] focus:border-[#F22998]"
+                      className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
                       required
                     />
                   </div>
 
                   <div>
                     <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Foto de Identificação</label>
-                    <div className="border-2 border-dashed border-[#F22998]/30 rounded-xl p-6 text-center">
+                    <div className="border-2 border-dashed border-[#A855F7]/30 rounded-xl p-6 text-center">
                       {photoPreview ? (
                         <div className="space-y-3">
                           <img 
                             src={photoPreview} 
                             alt="Preview" 
-                            className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#F22998]"
+                            className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#A855F7]"
                           />
                           <label>
                             <input
@@ -238,14 +238,14 @@ export default function DriverLogin() {
                               className="hidden"
                               onChange={handlePhotoCapture}
                             />
-                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                            <Button type="button" variant="outline" className="border-[#A855F7]/30 text-[#A855F7]">
                               Tirar Outra Foto
                             </Button>
                           </label>
                         </div>
                       ) : (
                         <>
-                          <Camera className="w-12 h-12 text-[#F22998] mx-auto mb-3" />
+                          <Camera className="w-12 h-12 text-[#A855F7] mx-auto mb-3" />
                           <p className="text-[#F2F2F2] mb-2">Tire uma foto para identificação</p>
                           <label>
                             <input
@@ -255,7 +255,7 @@ export default function DriverLogin() {
                               className="hidden"
                               onChange={handlePhotoCapture}
                             />
-                            <Button type="button" variant="outline" className="border-[#F22998]/30 text-[#F22998]">
+                            <Button type="button" variant="outline" className="border-[#A855F7]/30 text-[#A855F7]">
                               <Camera className="w-4 h-4 mr-2" />
                               Tirar Foto
                             </Button>
@@ -293,7 +293,7 @@ export default function DriverLogin() {
                 className={`w-full py-6 text-lg shadow-lg ${
                   !canSubmit 
                     ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed opacity-50' 
-                    : 'btn-gradient shadow-[#F22998]/30'
+                    : 'btn-gradient shadow-[#A855F7]/30'
                 }`}
               >
                 {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
@@ -304,14 +304,14 @@ export default function DriverLogin() {
             <div className="mt-6 text-center">
               <button
                 onClick={() => setIsRegister(!isRegister)}
-                className="text-[#F22998] hover:underline"
+                className="text-[#A855F7] hover:underline"
               >
                 {isRegister ? 'Já tem conta? Faça login' : 'Primeira vez? Cadastre-se'}
               </button>
             </div>
 
             <div className="mt-4 text-center">
-              <Link to={createPageUrl('PassengerLogin')} className="text-[#F2F2F2]/60 hover:text-[#F22998] text-sm">
+              <Link to={createPageUrl('PassengerLogin')} className="text-[#F2F2F2]/60 hover:text-[#A855F7] text-sm">
                 É passageira? Clique aqui
               </Link>
             </div>

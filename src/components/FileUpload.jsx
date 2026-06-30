@@ -151,12 +151,12 @@ export default function FileUpload({
         onDrop={handleDrop}
         className={`relative border-2 border-dashed rounded-2xl transition-all ${
           dragActive 
-            ? 'border-[#BF3B79] bg-[#BF3B79]/20' 
+            ? 'border-[#7C3AED] bg-[#7C3AED]/20' 
             : error
             ? 'border-red-500/50 bg-red-500/5'
             : uploaded
             ? 'border-green-500/50 bg-green-500/5'
-            : 'border-[#F22998]/30 bg-[#F22998]/5'
+            : 'border-[#A855F7]/30 bg-[#A855F7]/5'
         } ${file ? 'p-4' : 'p-8'}`}
       >
         <input
@@ -177,11 +177,11 @@ export default function FileUpload({
               className="text-center"
             >
               <Upload className={`w-12 h-12 mx-auto mb-3 ${
-                dragActive ? 'text-[#BF3B79]' : 'text-[#F22998]'
+                dragActive ? 'text-[#7C3AED]' : 'text-[#A855F7]'
               }`} />
               
               {dragActive ? (
-                <p className="text-[#BF3B79] font-semibold mb-2">
+                <p className="text-[#7C3AED] font-semibold mb-2">
                   Solte o arquivo aqui
                 </p>
               ) : (
@@ -198,7 +198,7 @@ export default function FileUpload({
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-[#F22998] hover:bg-[#BF3B79] text-white"
+                className="bg-[#A855F7] hover:bg-[#7C3AED] text-white"
               >
                 Escolher Arquivo
               </Button>
@@ -221,11 +221,11 @@ export default function FileUpload({
                   <img 
                     src={preview} 
                     alt="Preview"
-                    className="w-20 h-20 rounded-lg object-cover border-2 border-[#F22998]/30"
+                    className="w-20 h-20 rounded-lg object-cover border-2 border-[#A855F7]/30"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-lg bg-[#F22998]/10 flex items-center justify-center border-2 border-[#F22998]/30">
-                    <FileText className="w-10 h-10 text-[#F22998]" />
+                  <div className="w-20 h-20 rounded-lg bg-[#A855F7]/10 flex items-center justify-center border-2 border-[#A855F7]/30">
+                    <FileText className="w-10 h-10 text-[#A855F7]" />
                   </div>
                 )}
 
@@ -259,13 +259,13 @@ export default function FileUpload({
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-[#F2F2F2]/60">Enviando...</span>
-                          <span className="text-[#F22998] font-semibold">{progress}%</span>
+                          <span className="text-[#A855F7] font-semibold">{progress}%</span>
                         </div>
                         <div className="h-2 bg-[#0D0D0D] rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
-                            className="h-full bg-gradient-to-r from-[#BF3B79] to-[#F22998]"
+                            className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7]"
                           />
                         </div>
                       </div>
@@ -280,7 +280,7 @@ export default function FileUpload({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   variant="outline"
-                  className="w-full border-[#F22998]/30 text-[#F22998] hover:bg-[#F22998]/10"
+                  className="w-full border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
                   size="sm"
                 >
                   Trocar Arquivo

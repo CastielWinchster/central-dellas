@@ -27,14 +27,14 @@ export const MAPBOX_CONFIG = {
   
   // Estilos de rota
   ROUTE_STYLE: {
-    color: '#F22998',
+    color: '#A855F7',
     width: 5,
     opacity: 0.8
   },
   
   // Estilos de rota animada
   ROUTE_PROGRESS_STYLE: {
-    color: '#BF3B79',
+    color: '#7C3AED',
     width: 7,
     opacity: 1
   }

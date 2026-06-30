@@ -65,22 +65,22 @@ export default function PasswordInput({
       <div>
         <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Senha</label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A855F7]" />
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className={`pl-10 pr-10 bg-[#0D0D0D] ${
-              value && allRequirementsMet ? 'border-green-500' : 'border-[#F22998]/30'
-            } text-[#F2F2F2] focus:border-[#F22998]`}
+              value && allRequirementsMet ? 'border-green-500' : 'border-[#A855F7]/30'
+            } text-[#F2F2F2] focus:border-[#A855F7]`}
             required
             maxLength={128}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A855F7]"
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
@@ -125,7 +125,7 @@ export default function PasswordInput({
         <div>
           <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Confirme sua senha</label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#F22998]" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A855F7]" />
             <Input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••"
@@ -133,14 +133,14 @@ export default function PasswordInput({
               onChange={(e) => onConfirmChange(e.target.value)}
               className={`pl-10 pr-10 bg-[#0D0D0D] ${
                 confirmPassword && passwordsMatch ? 'border-green-500' : 
-                confirmPassword && !passwordsMatch ? 'border-red-500' : 'border-[#F22998]/30'
-              } text-[#F2F2F2] focus:border-[#F22998]`}
+                confirmPassword && !passwordsMatch ? 'border-red-500' : 'border-[#A855F7]/30'
+              } text-[#F2F2F2] focus:border-[#A855F7]`}
               required
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F22998]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A855F7]"
             >
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>

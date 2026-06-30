@@ -125,11 +125,11 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 flex-shrink-0">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F22998] flex-shrink-0">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#A855F7] flex-shrink-0">
               {otherUser?.photo ? (
                 <img src={otherUser.photo} alt={otherUser.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#BF3B79] to-[#8C0D60] flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
                   <User className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -150,8 +150,8 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-16 h-16 rounded-full bg-[#F22998]/20 flex items-center justify-center mb-3">
-                  <Send className="w-7 h-7 text-[#F22998]" />
+                <div className="w-16 h-16 rounded-full bg-[#A855F7]/20 flex items-center justify-center mb-3">
+                  <Send className="w-7 h-7 text-[#A855F7]" />
                 </div>
                 <p className="text-white/50 text-sm">Nenhuma mensagem ainda.</p>
                 <p className="text-white/30 text-xs mt-1">Diga olá para {otherUser?.name || 'a outra pessoa'}!</p>
@@ -168,7 +168,7 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
                     } ${msg._temp ? 'opacity-70' : ''}`}
                     style={{
                       background: isMine
-                        ? 'linear-gradient(135deg, #BF3B79 0%, #F22998 100%)'
+                        ? 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)'
                         : '#3D1A4A',
                     }}
                   >
@@ -192,7 +192,7 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
                 onChange={e => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite uma mensagem..."
-                className="flex-1 bg-white/8 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#F22998]/50 transition-colors"
+                className="flex-1 bg-white/8 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#A855F7]/50 transition-colors"
                 style={{ background: 'rgba(255,255,255,0.06)' }}
               />
 
@@ -203,7 +203,7 @@ export default function RideChat({ rideId, currentUserId, otherUser, isOpen, onC
                 className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                 style={{
                   background: text.trim()
-                    ? 'linear-gradient(135deg, #BF3B79 0%, #F22998 100%)'
+                    ? 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)'
                     : 'rgba(255,255,255,0.1)',
                 }}
               >

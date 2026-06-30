@@ -87,7 +87,7 @@ export default function Notifications() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
-        <div className="w-8 h-8 rounded-full border-2 border-[#F22998] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -136,8 +136,8 @@ export default function Notifications() {
               onClick={() => setFilter(f.id)}
               className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                 filter === f.id
-                  ? 'bg-gradient-to-r from-[#BF3B79] to-[#F22998] text-white'
-                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F22998]/10'
+                  ? 'bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white'
+                  : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10'
               }`}
             >
               {f.label}
@@ -158,8 +158,8 @@ export default function Notifications() {
                 <Card
                   className={`p-5 rounded-2xl transition-all ${
                     !notification.is_read
-                      ? 'bg-[#F22998]/10 border-[#F22998]/30'
-                      : 'bg-[#F2F2F2]/5 border-[#F22998]/10'
+                      ? 'bg-[#A855F7]/10 border-[#A855F7]/30'
+                      : 'bg-[#F2F2F2]/5 border-[#A855F7]/10'
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -209,7 +209,7 @@ export default function Notifications() {
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <Bell className="w-16 h-16 text-[#F22998]/30 mx-auto mb-4" />
+              <Bell className="w-16 h-16 text-[#A855F7]/30 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-[#F2F2F2] mb-2">
                 Nenhuma notificação
               </h3>

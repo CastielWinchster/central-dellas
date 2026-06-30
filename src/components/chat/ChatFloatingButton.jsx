@@ -70,7 +70,7 @@ export default function ChatFloatingButton() {
             <button
               className={cn(
                 'w-14 h-14 rounded-full shadow-lg flex items-center justify-center',
-                'bg-gradient-to-br from-[#BF3B79] to-[#F22998]',
+                'bg-gradient-to-br from-[#7C3AED] to-[#A855F7]',
                 'hover:shadow-xl transition-all duration-300',
                 'hover:scale-110 active:scale-95'
               )}

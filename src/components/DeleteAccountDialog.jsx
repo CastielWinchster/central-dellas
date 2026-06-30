@@ -56,7 +56,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }) {
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="EXCLUIR"
-            className="bg-[#2A2A2A] border-[#BF3B79]/30 text-[#F2F2F2]"
+            className="bg-[#2A2A2A] border-[#7C3AED]/30 text-[#F2F2F2]"
           />
         </div>
 
@@ -65,7 +65,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }) {
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
-            className="flex-1 bg-[#2A2A2A] border-[#BF3B79]/30 text-[#F2F2F2] hover:bg-[#3A3A3A]"
+            className="flex-1 bg-[#2A2A2A] border-[#7C3AED]/30 text-[#F2F2F2] hover:bg-[#3A3A3A]"
           >
             Cancelar
           </Button>

@@ -132,7 +132,7 @@ export default function AudioRecorder({ onSend, onCancel }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="absolute bottom-0 left-0 right-0 bg-[#1A1A1A] border-t border-[#8C0D60] p-4"
+        className="absolute bottom-0 left-0 right-0 bg-[#1A1A1A] border-t border-[#5B21B6] p-4"
       >
         <div className="max-w-4xl mx-auto">
           {!audioBlob ? (
@@ -147,7 +147,7 @@ export default function AudioRecorder({ onSend, onCancel }) {
               </Button>
 
               <div className="flex-1 bg-[#0D0D0D] rounded-2xl p-4 flex items-center gap-3">
-                <div className="text-[#F22998] font-mono text-lg">
+                <div className="text-[#A855F7] font-mono text-lg">
                   {formatTime(duration)}
                 </div>
                 
@@ -156,7 +156,7 @@ export default function AudioRecorder({ onSend, onCancel }) {
                   {waveformData.slice(0, 32).map((value, i) => (
                     <motion.div
                       key={i}
-                      className="flex-1 bg-[#F22998] rounded-full"
+                      className="flex-1 bg-[#A855F7] rounded-full"
                       style={{
                         height: `${Math.max(4, value * 100)}%`,
                         opacity: 0.3 + value * 0.7
@@ -201,7 +201,7 @@ export default function AudioRecorder({ onSend, onCancel }) {
 
               <div className="flex-1 bg-[#0D0D0D] rounded-2xl p-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-[#F22998] font-mono">
+                  <div className="text-[#A855F7] font-mono">
                     {formatTime(duration)}
                   </div>
                   <audio src={audioURL} controls className="flex-1" />
