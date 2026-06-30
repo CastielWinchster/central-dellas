@@ -27,6 +27,7 @@ import { calculateCityPrice, getFixedPrice, applyFirstMotoDiscount, applyCoupon,
 import ContactWhatsAppModal from '@/components/ContactWhatsAppModal';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { clearState, saveState, restoreState } from '@/utils/stateManager';
+import { registerAllPushChannels } from '@/lib/pushRegistration';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -661,7 +662,11 @@ export default function RequestRide() {
 
     setStep('searching');
     setSearchingDrivers(true);
-    
+
+    // Garantir push fora do app: pede permissão e registra a assinatura da
+    // passageira para ser avisada quando a motorista aceitar (app fechado).
+    registerAllPushChannels({ requestPermission: true }).catch(() => {});
+
     try {
       const isCustomPriceRide = isIntercity && routeDistance >= 35;
       const response = await base44.functions.invoke('dispatchRide', {
@@ -935,6 +940,9 @@ export default function RequestRide() {
           setShowContactModal(false);
           setStep('searching');
           setSearchingDrivers(true);
+
+          // Garantir push fora do app também no fluxo de preço negociado
+          registerAllPushChannels({ requestPermission: true }).catch(() => {});
 
           console.log('[handlePriceSubmit] Criando corrida com preço negociado:', price);
 

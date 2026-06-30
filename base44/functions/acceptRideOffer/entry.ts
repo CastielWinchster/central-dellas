@@ -100,18 +100,32 @@ Deno.serve(async (req) => {
     });
     console.log(`[acceptRideOffer] Corrida atualizada com sucesso`);
 
-    // Notificar passageira
+    // Notificar passageira — push fora do app + notificação in-app.
+    // sendPushToUser já cria a Notification persistente internamente quando há
+    // push, então não precisamos criar manualmente.
     try {
-      await base44.asServiceRole.entities.Notification.create({
-        user_id: ride.passenger_id,
+      await base44.asServiceRole.functions.invoke('sendPushToUser', {
+        userId: ride.passenger_id,
         title: 'Motorista encontrada! 🚗',
-        message: `${driver.full_name} aceitou sua corrida`,
+        body: `${driver.full_name} aceitou sua corrida e está a caminho.`,
         type: 'ride',
-        is_read: false,
-        is_persistent: true
+        rideId: ride.id,
+        url: `/ActiveRidePassenger?id=${ride.id}`,
+        persistent: true,
       });
     } catch (notifErr) {
-      console.warn('[acceptRideOffer] Falha ao criar notificação:', notifErr.message);
+      console.warn('[acceptRideOffer] Falha ao notificar passageira:', notifErr.message);
+      // Fallback: garantir ao menos a notificação in-app
+      try {
+        await base44.asServiceRole.entities.Notification.create({
+          user_id: ride.passenger_id,
+          title: 'Motorista encontrada! 🚗',
+          message: `${driver.full_name} aceitou sua corrida`,
+          type: 'ride',
+          is_read: false,
+          is_persistent: true,
+        });
+      } catch (_) { /* ignore */ }
     }
 
     return Response.json({
