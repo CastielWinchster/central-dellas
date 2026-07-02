@@ -1,12 +1,38 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-function haversine(lat1, lng1, lat2, lng2) {
+const SEARCH_TIMEOUT_MS = 5 * 60 * 1000;
+
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function expireAbandonedOpenRides(base44: ReturnType<typeof createClientFromRequest>) {
+  const cutoff = Date.now() - SEARCH_TIMEOUT_MS;
+  const [requested, assigned] = await Promise.all([
+    base44.asServiceRole.entities.Ride.filter({ status: 'requested' }),
+    base44.asServiceRole.entities.Ride.filter({ status: 'assigned' }),
+  ]);
+  const stale = [...requested, ...assigned].filter((r) => {
+    if (r.assigned_driver_id) return false;
+    const created = r.created_date ? new Date(String(r.created_date)).getTime() : 0;
+    return created > 0 && created < cutoff;
+  });
+  await Promise.allSettled(
+    stale.map(async (r) => {
+      const rideId = String(r.id);
+      const offers = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId });
+      const open = offers.filter((o) => ['sent', 'seen'].includes(String(o.status)));
+      await Promise.allSettled(
+        open.map((o) => base44.asServiceRole.entities.RideOffer.update(String(o.id), { status: 'expired' })),
+      );
+      await base44.asServiceRole.entities.Ride.update(rideId, { status: 'expired' });
+    }),
+  );
 }
 
 Deno.serve(async (req) => {
@@ -16,7 +42,7 @@ Deno.serve(async (req) => {
     let driver;
     try {
       driver = await base44.auth.me();
-    } catch (e) {
+    } catch {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
@@ -24,49 +50,54 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    console.log(`[getAvailableRides] Motorista: ${driver.id} (${driver.email})`);
-
     const { driverLat, driverLng, radiusKm = 15 } = await req.json();
 
-    // Buscar todas corridas abertas via asServiceRole (contorna RLS para motoristas com role=user)
-    // status 'requested': passageira solicitou, nenhum motorista foi acionado ainda
-    // status 'assigned': dispatchRide encontrou motoristas e criou ofertas (mas corrida ainda não foi aceita)
-    const allRidesRequested = await base44.asServiceRole.entities.Ride.filter({ status: 'requested' });
-    const allRidesAssigned = await base44.asServiceRole.entities.Ride.filter({ status: 'assigned', assigned_driver_id: null });
-    const allRides = [...allRidesRequested, ...allRidesAssigned];
+    expireAbandonedOpenRides(base44).catch((e) =>
+      console.warn('[getAvailableRides] cleanup:', (e as Error).message),
+    );
 
-    console.log(`[getAvailableRides] Total corridas abertas: ${allRides.length} (requested: ${allRidesRequested.length}, assigned: ${allRidesAssigned.length})`);
+    const [allRidesRequested, allRidesAssigned] = await Promise.all([
+      base44.asServiceRole.entities.Ride.filter({ status: 'requested' }),
+      base44.asServiceRole.entities.Ride.filter({ status: 'assigned' }),
+    ]);
 
-    // Filtro de tempo no código: apenas corridas dos últimos 30 minutos
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-    const recentRides = allRides.filter(r => new Date(r.created_date) >= thirtyMinutesAgo);
+    const searchCutoff = Date.now() - SEARCH_TIMEOUT_MS;
 
-    console.log(`[getAvailableRides] Corridas recentes (últimos 30min): ${recentRides.length}`);
+    const openRides = [...allRidesRequested, ...allRidesAssigned].filter((r) => {
+      if (r.assigned_driver_id) return false;
+      const created = r.created_date ? new Date(String(r.created_date)).getTime() : 0;
+      if (!created || created < searchCutoff) return false;
+      if (String(r.passenger_id) === String(driver.id)) return false;
+      return true;
+    });
 
-    // Excluir corridas que já têm motorista designada
-    const openRides = recentRides.filter(r => !r.assigned_driver_id);
+    const byPassenger = new Map<string, Record<string, unknown>>();
+    for (const ride of openRides) {
+      const pid = String(ride.passenger_id);
+      const existing = byPassenger.get(pid);
+      if (!existing) {
+        byPassenger.set(pid, ride);
+        continue;
+      }
+      const existingTs = new Date(String(existing.created_date)).getTime();
+      const rideTs = new Date(String(ride.created_date)).getTime();
+      if (rideTs > existingTs) byPassenger.set(pid, ride);
+    }
+    const uniqueRides = Array.from(byPassenger.values());
 
-    console.log(`[getAvailableRides] Corridas sem motorista: ${openRides.length}`);
-
-    // Filtrar por proximidade
-    let filtered = openRides;
+    let filtered = uniqueRides;
     if (driverLat != null && driverLng != null) {
-      filtered = openRides
-        .map(r => ({
+      filtered = uniqueRides
+        .map((r) => ({
           ...r,
-          distance: haversine(driverLat, driverLng, r.pickup_lat, r.pickup_lng)
+          distance: haversine(driverLat, driverLng, r.pickup_lat as number, r.pickup_lng as number),
         }))
-        .filter(r => r.distance <= radiusKm)
+        .filter((r) => r.distance <= radiusKm)
         .sort((a, b) => a.distance - b.distance);
-
-      console.log(`[getAvailableRides] Dentro de ${radiusKm}km: ${filtered.length}`);
     } else {
-      // Sem localização: mostra todas as abertas (motorista ainda sem GPS)
-      filtered = openRides.map(r => ({ ...r, distance: null }));
-      console.log(`[getAvailableRides] Sem GPS da motorista, retornando todas: ${filtered.length}`);
+      filtered = uniqueRides.map((r) => ({ ...r, distance: null }));
     }
 
-    // Enriquecer com dados das passageiras
     const enriched = await Promise.all(filtered.map(async (ride) => {
       try {
         const users = await base44.asServiceRole.entities.User.filter({ id: ride.passenger_id });
@@ -82,9 +113,8 @@ Deno.serve(async (req) => {
     }));
 
     return Response.json({ success: true, rides: enriched });
-
   } catch (error) {
-    console.error('[getAvailableRides] Erro:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[getAvailableRides] Erro:', (error as Error).message);
+    return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 });

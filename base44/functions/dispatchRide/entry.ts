@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { assignDriversToRide, calculateDistance } from './rideDispatch.ts';
+import { assignDriversToRide, calculateDistance, cancelPassengerOpenRides } from './rideDispatch.ts';
 
 const MAX_DISTANCE_KM = 150;
 
@@ -56,6 +56,8 @@ Deno.serve(async (req) => {
 
     let ride;
     try {
+      await cancelPassengerOpenRides(base44, String(user.id));
+
       ride = await base44.asServiceRole.entities.Ride.create({
         passenger_id: user.id,
         pickup_lat: pickupLat,
@@ -82,7 +84,12 @@ Deno.serve(async (req) => {
 
     console.log(`[dispatchRide] Corrida criada: ${ride.id}`);
 
-    const dispatchResult = await assignDriversToRide(base44, ride);
+    let dispatchResult = { offers_count: 0, status: 'requested', expires_at: null as string | null };
+    try {
+      dispatchResult = await assignDriversToRide(base44, ride);
+    } catch (assignErr) {
+      console.error('[dispatchRide] assignDriversToRide falhou:', (assignErr as Error).message);
+    }
 
     if (couponCode) {
       (async () => {

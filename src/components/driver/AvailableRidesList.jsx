@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 
 const PROXIMITY_KM = 15; // raio máximo para mostrar corridas
 
@@ -43,7 +44,8 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
         radiusKm: PROXIMITY_KM,
       });
 
-      const raw = response.data?.rides || [];
+      const data = unwrapInvoke(response);
+      const raw = data?.rides || [];
 
       // Deduplicar por ride.id
       const seen = new Map();
@@ -97,8 +99,9 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
         rideId: ride.id,
         offerId: null
       });
-      if (response.data?.success) {
-        const acceptedRide = response.data.ride;
+      const data = unwrapInvoke(response);
+      if (data?.success) {
+        const acceptedRide = data.ride;
         setRides(prev => prev.filter(r => r.id !== ride.id));
         if (onRideAccepted) {
           onRideAccepted(acceptedRide);

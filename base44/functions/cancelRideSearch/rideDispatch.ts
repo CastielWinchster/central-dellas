@@ -48,11 +48,17 @@ type RideRecord = Record<string, unknown> & {
 
 export async function findOnlineDriversWithCoords(base44: Base44Client) {
   const graceCutoff = new Date(Date.now() - DRIVER_PRESENCE_GRACE_MS).toISOString();
-  let onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
-    is_available: true,
-    is_online: true,
-    last_seen_at: { $gte: graceCutoff },
-  });
+  let onlineDrivers: Array<Record<string, unknown>> = [];
+
+  try {
+    onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
+      is_available: true,
+      is_online: true,
+      last_seen_at: { $gte: graceCutoff },
+    });
+  } catch (e) {
+    console.warn('[rideDispatch] filtro last_seen_at falhou, usando fallback:', (e as Error).message);
+  }
 
   if (onlineDrivers.length === 0) {
     onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
@@ -159,7 +165,7 @@ export async function assignDriversToRide(base44: Base44Client, ride: RideRecord
 
   if (nearbyDrivers.length === 0) {
     const retryAt = new Date(now.getTime() + NO_DRIVER_RETRY_MS);
-    await base44.asServiceRole.entities.Ride.update(ride.id, {
+    await base44.asServiceRole.entities.Ride.update(String(ride.id), {
       status: 'requested',
       offer_expires_at: retryAt.toISOString(),
       search_radius_km: 12,
@@ -189,7 +195,7 @@ export async function assignDriversToRide(base44: Base44Client, ride: RideRecord
   const driverIds = nearbyDrivers.map((d) => d.driver_id);
   notifyDrivers(base44, ride, driverIds);
 
-  await base44.asServiceRole.entities.Ride.update(ride.id, {
+  await base44.asServiceRole.entities.Ride.update(String(ride.id), {
     status: 'assigned',
     offer_expires_at: expiresAt.toISOString(),
     search_radius_km: searchRadius,
@@ -210,8 +216,8 @@ export async function maybeRedispatchRide(base44: Base44Client, ride: RideRecord
 
   const createdAt = ride.created_date ? new Date(String(ride.created_date)).getTime() : Date.now();
   if (Date.now() - createdAt > SEARCH_TIMEOUT_MS) {
-    await expireStaleOffers(base44, ride.id);
-    await base44.asServiceRole.entities.Ride.update(ride.id, { status: 'expired' });
+    await expireStaleOffers(base44, String(ride.id));
+    await base44.asServiceRole.entities.Ride.update(String(ride.id), { status: 'expired' });
     return { ride: { ...ride, status: 'expired' }, redispatched: false, offers_count: 0, expired: true };
   }
 
@@ -229,17 +235,57 @@ export async function maybeRedispatchRide(base44: Base44Client, ride: RideRecord
     return { ride, redispatched: false, offers_count: 0 };
   }
 
-  const result = await assignDriversToRide(base44, ride);
-  return {
-    ride: { ...ride, status: result.status, offer_expires_at: result.expires_at },
-    redispatched: true,
-    offers_count: result.offers_count,
-  };
+  try {
+    const result = await assignDriversToRide(base44, ride);
+    return {
+      ride: { ...ride, status: result.status, offer_expires_at: result.expires_at },
+      redispatched: true,
+      offers_count: result.offers_count,
+    };
+  } catch (e) {
+    console.error('[maybeRedispatchRide] falhou:', (e as Error).message);
+    return { ride, redispatched: false, offers_count: 0 };
+  }
+}
+
+/** Cancela buscas abertas anteriores da mesma passageira (evita duplicatas) */
+export async function cancelPassengerOpenRides(base44: Base44Client, passengerId: string) {
+  const [requested, assigned] = await Promise.all([
+    base44.asServiceRole.entities.Ride.filter({ passenger_id: passengerId, status: 'requested' }),
+    base44.asServiceRole.entities.Ride.filter({ passenger_id: passengerId, status: 'assigned' }),
+  ]);
+  const open = [...requested, ...assigned].filter((r) => !r.assigned_driver_id);
+  await Promise.allSettled(
+    open.map((r) => cancelRideSearch(base44, r as RideRecord)),
+  );
+  return open.length;
+}
+
+/** Expira corridas abertas abandonadas (limpeza periódica) */
+export async function expireAbandonedOpenRides(base44: Base44Client) {
+  const cutoff = Date.now() - SEARCH_TIMEOUT_MS;
+  const [requested, assigned] = await Promise.all([
+    base44.asServiceRole.entities.Ride.filter({ status: 'requested' }),
+    base44.asServiceRole.entities.Ride.filter({ status: 'assigned' }),
+  ]);
+  const stale = [...requested, ...assigned].filter((r) => {
+    if (r.assigned_driver_id) return false;
+    const created = r.created_date ? new Date(String(r.created_date)).getTime() : 0;
+    return created > 0 && created < cutoff;
+  });
+  await Promise.allSettled(
+    stale.map(async (r) => {
+      await expireStaleOffers(base44, String(r.id));
+      await base44.asServiceRole.entities.Ride.update(String(r.id), { status: 'expired' });
+    }),
+  );
+  return stale.length;
 }
 
 /** Cancela busca: expira ofertas e cancela push nas motoristas */
 export async function cancelRideSearch(base44: Base44Client, ride: RideRecord) {
-  const offers = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: ride.id });
+  const rideId = String(ride.id);
+  const offers = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId });
   const openOffers = offers.filter((o) => ['sent', 'seen'].includes(String(o.status)));
 
   await Promise.allSettled(
@@ -254,12 +300,12 @@ export async function cancelRideSearch(base44: Base44Client, ride: RideRecord) {
       base44.asServiceRole.functions.invoke('sendPushToUser', {
         userId,
         type: 'ride_offer_cancelled',
-        rideId: ride.id,
+        rideId,
         title: 'Busca cancelada',
         body: 'A passageira cancelou a busca por motorista.',
       }),
     ),
   );
 
-  await base44.asServiceRole.entities.Ride.update(ride.id, { status: 'cancelled' });
+  await base44.asServiceRole.entities.Ride.update(rideId, { status: 'cancelled' });
 }

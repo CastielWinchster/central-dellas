@@ -38,18 +38,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { ride: updatedRide, redispatched, offers_count, expired } = await maybeRedispatchRide(
-      base44,
-      ride,
-    );
+    let updatedRide = ride;
+    let redispatched = false;
+    let offers_count = 0;
+    let expired = false;
+
+    try {
+      const result = await maybeRedispatchRide(base44, ride);
+      updatedRide = result.ride;
+      redispatched = result.redispatched ?? false;
+      offers_count = result.offers_count ?? 0;
+      expired = result.expired ?? false;
+    } catch (redispatchErr) {
+      console.error('[getRideStatus] maybeRedispatchRide falhou:', (redispatchErr as Error).message);
+    }
 
     return Response.json({
       found: true,
       status: updatedRide.status,
       assigned_driver_id: updatedRide.assigned_driver_id || null,
-      offers_count: offers_count ?? 0,
-      redispatched: redispatched ?? false,
-      expired: expired ?? false,
+      offers_count,
+      redispatched,
+      expired,
       offer_expires_at: updatedRide.offer_expires_at || null,
     });
   } catch (error) {
