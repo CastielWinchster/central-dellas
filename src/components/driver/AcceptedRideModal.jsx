@@ -31,10 +31,10 @@ export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose
           exit={{ scale: 0.9, y: 30, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md bg-[#111118] rounded-3xl overflow-hidden shadow-2xl border border-[#A855F7]/30"
+          className="w-full max-w-md bg-[#111118] rounded-3xl overflow-hidden shadow-2xl border border-[#F472B6]/30"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] px-6 pt-6 pb-8 relative">
+          <div className="bg-gradient-to-r from-[#EC4899] to-[#F472B6] px-6 pt-6 pb-8 relative">
             <button
               onClick={onClose}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
@@ -79,13 +79,13 @@ export default function AcceptedRideModal({ acceptedRide, passengerUser, onClose
 
             {/* Pagamento */}
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5">
-              <CreditCard className="w-5 h-5 text-[#A855F7] flex-shrink-0" />
+              <CreditCard className="w-5 h-5 text-[#F472B6] flex-shrink-0" />
               <div>
                 <p className="text-xs text-white/40 mb-0.5">Pagamento</p>
                 <p className="text-white text-sm">{formatPaymentMethod(acceptedRide.payment_method)}</p>
               </div>
               {acceptedRide.estimated_price && (
-                <p className="ml-auto font-bold text-[#A855F7]">R$ {Number(acceptedRide.estimated_price).toFixed(2)}</p>
+                <p className="ml-auto font-bold text-[#F472B6]">R$ {Number(acceptedRide.estimated_price).toFixed(2)}</p>
               )}
             </div>
           </div>

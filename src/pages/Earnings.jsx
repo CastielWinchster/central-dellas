@@ -129,7 +129,7 @@ export default function Earnings() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#A855F7] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#F472B6] animate-spin" />
       </div>
     );
   }
@@ -152,7 +152,7 @@ export default function Earnings() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 30 }}
               transition={{ type: 'spring', damping: 22 }}
-              className="bg-[#1a1a1a] rounded-3xl p-8 w-full max-w-md border border-[#A855F7]/20 shadow-2xl"
+              className="bg-[#1a1a1a] rounded-3xl p-8 w-full max-w-md border border-[#F472B6]/20 shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               {!commissionConfirmed ? (
@@ -171,11 +171,11 @@ export default function Earnings() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[#F2F2F2]/60 text-sm">Taxa de comissão</span>
-                      <span className="text-[#A855F7] font-semibold">12%</span>
+                      <span className="text-[#F472B6] font-semibold">12%</span>
                     </div>
                     <div className="border-t border-[#F2F2F2]/10 pt-4 flex justify-between items-center">
                       <span className="text-[#F2F2F2]/80 text-sm font-medium">Valor a repassar</span>
-                      <span className="text-2xl font-bold text-[#A855F7]">R$ {commissionValue.toFixed(2)}</span>
+                      <span className="text-2xl font-bold text-[#F472B6]">R$ {commissionValue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[#F2F2F2]/60 text-sm">Seu líquido</span>
@@ -193,7 +193,7 @@ export default function Earnings() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => setCommissionConfirmed(true)}
-                      className="w-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white rounded-2xl py-5 font-semibold"
+                      className="w-full bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white rounded-2xl py-5 font-semibold"
                     >
                       Confirmar Repasse
                     </Button>
@@ -211,12 +211,12 @@ export default function Earnings() {
                   </motion.div>
                   <h3 className="text-xl font-bold text-[#F2F2F2] mb-2">Repasse Confirmado!</h3>
                   <p className="text-[#F2F2F2]/50 text-sm mb-2">
-                    Comissão de <span className="text-[#A855F7] font-semibold">R$ {commissionValue.toFixed(2)}</span> registrada com sucesso.
+                    Comissão de <span className="text-[#F472B6] font-semibold">R$ {commissionValue.toFixed(2)}</span> registrada com sucesso.
                   </p>
                   <p className="text-[#F2F2F2]/40 text-xs mb-8">Próximo repasse em 7 dias.</p>
                   <Button
                     onClick={() => setShowCommissionModal(false)}
-                    className="w-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white rounded-2xl py-5 font-semibold"
+                    className="w-full bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white rounded-2xl py-5 font-semibold"
                   >
                     Fechar
                   </Button>
@@ -245,8 +245,8 @@ export default function Earnings() {
                 onClick={() => setPeriod(p)}
                 className={`px-4 py-2 rounded-full transition-all ${
                   period === p
-                    ? 'bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white'
-                    : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10'
+                    ? 'bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white'
+                    : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F472B6]/10'
                 }`}
               >
                 {p === 'week' ? 'Semana' : p === 'month' ? 'Mês' : 'Ano'}
@@ -261,7 +261,7 @@ export default function Earnings() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="p-8 rounded-3xl bg-gradient-to-br from-[#7C3AED] to-[#A855F7] mb-6 overflow-hidden relative">
+          <Card className="p-8 rounded-3xl bg-gradient-to-br from-[#EC4899] to-[#F472B6] mb-6 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
             
@@ -307,7 +307,7 @@ export default function Earnings() {
               <div className="flex gap-3 mt-6">
                 <Button
                   onClick={() => { setShowCommissionModal(true); setCommissionConfirmed(false); }}
-                  className="flex-1 bg-white text-[#7C3AED] hover:bg-white/90 py-6 rounded-2xl font-semibold"
+                  className="flex-1 bg-white text-[#EC4899] hover:bg-white/90 py-6 rounded-2xl font-semibold"
                 >
                   <Percent className="w-5 h-5 mr-2" />
                   Comissão
@@ -324,15 +324,15 @@ export default function Earnings() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
+            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F472B6]/10">
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-6">Ganhos por Dia</h3>
               <div className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#F472B6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#F472B6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <XAxis 
@@ -349,7 +349,7 @@ export default function Earnings() {
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#0D0D0D',
-                        border: '1px solid #A855F7',
+                        border: '1px solid #F472B6',
                         borderRadius: '12px',
                         color: '#F2F2F2'
                       }}
@@ -358,7 +358,7 @@ export default function Earnings() {
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#A855F7"
+                      stroke="#F472B6"
                       strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorValue)"
@@ -375,7 +375,7 @@ export default function Earnings() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
+            <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F472B6]/10">
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-6">Corridas por Horário</h3>
               <div className="h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -394,7 +394,7 @@ export default function Earnings() {
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#0D0D0D',
-                        border: '1px solid #A855F7',
+                        border: '1px solid #F472B6',
                         borderRadius: '12px',
                         color: '#F2F2F2'
                       }}
@@ -402,7 +402,7 @@ export default function Earnings() {
                     />
                     <Bar 
                       dataKey="rides" 
-                      fill="#A855F7" 
+                      fill="#F472B6" 
                       radius={[8, 8, 0, 0]}
                     />
                   </BarChart>
@@ -419,12 +419,12 @@ export default function Earnings() {
           transition={{ delay: 0.4 }}
           className="mt-6"
         >
-          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
+          <Card className="p-6 rounded-3xl bg-[#F2F2F2]/5 border-[#F472B6]/10">
             <h3 className="text-lg font-semibold text-[#F2F2F2] mb-6">Histórico de Corridas</h3>
 
             {filteredRides.length === 0 ? (
               <div className="text-center py-10">
-                <Car className="w-12 h-12 text-[#A855F7]/20 mx-auto mb-3" />
+                <Car className="w-12 h-12 text-[#F472B6]/20 mx-auto mb-3" />
                 <p className="text-[#F2F2F2]/40">Nenhuma corrida concluída neste período</p>
               </div>
             ) : (
@@ -435,11 +435,11 @@ export default function Earnings() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#A855F7]/5 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl bg-[#0D0D0D] hover:bg-[#F472B6]/5 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#A855F7]/20 flex items-center justify-center flex-shrink-0">
-                        <Car className="w-5 h-5 text-[#A855F7]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#F472B6]/20 flex items-center justify-center flex-shrink-0">
+                        <Car className="w-5 h-5 text-[#F472B6]" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-[#F2F2F2] truncate">{ride.dropoff_text || 'Destino'}</p>

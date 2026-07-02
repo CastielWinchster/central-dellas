@@ -66,7 +66,7 @@ export default function BlockedUsers() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -98,8 +98,8 @@ export default function BlockedUsers() {
 
         {/* Empty State */}
         {blocked.length === 0 && (
-          <Card className="p-8 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl text-center">
-            <UserX className="w-12 h-12 text-[#A855F7]/50 mx-auto mb-3" />
+          <Card className="p-8 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl text-center">
+            <UserX className="w-12 h-12 text-[#F472B6]/50 mx-auto mb-3" />
             <p className="text-[#F2F2F2]/60 mb-2">Nenhuma usuária bloqueada</p>
             <p className="text-sm text-[#F2F2F2]/40">
               Você pode bloquear motoristas durante ou após uma corrida
@@ -121,11 +121,11 @@ export default function BlockedUsers() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: 20 }}
               >
-                <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
+                <Card className="p-4 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-[#A855F7]/20">
+                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-[#F472B6]/20">
                         {photo ? (
                           <img src={photo} alt={name} className="w-full h-full object-cover" />
                         ) : (
@@ -142,7 +142,7 @@ export default function BlockedUsers() {
                           <p className="text-sm text-[#F2F2F2]/60 mt-0.5">{phone}</p>
                         )}
                         {block.reason && (
-                          <p className="text-xs text-[#A855F7]/70 mt-0.5">
+                          <p className="text-xs text-[#F472B6]/70 mt-0.5">
                             Motivo: {block.reason}
                           </p>
                         )}

@@ -133,7 +133,7 @@ export default function Settings() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -150,8 +150,8 @@ export default function Settings() {
           <h1 className="text-2xl font-bold text-[#F2F2F2]">Configurações</h1>
         </div>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#7C3AED] mb-4 uppercase">🔒 PRIVACIDADE</h3>
+        <Card className="p-6 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl mb-6">
+          <h3 className="text-sm font-bold text-[#EC4899] mb-4 uppercase">🔒 PRIVACIDADE</h3>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
@@ -189,14 +189,14 @@ export default function Settings() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#7C3AED] mb-4 uppercase">✅ PERMISSÕES</h3>
+        <Card className="p-6 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl mb-6">
+          <h3 className="text-sm font-bold text-[#EC4899] mb-4 uppercase">✅ PERMISSÕES</h3>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-[#A855F7]" />
+                  <MapPin className="w-5 h-5 text-[#F472B6]" />
                   <p className="text-[#F2F2F2] font-medium">Localização</p>
                 </div>
                 <p className="text-sm text-[#F2F2F2]/50 mt-1">
@@ -221,7 +221,7 @@ export default function Settings() {
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D0D]">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-[#A855F7]" />
+                  <Bell className="w-5 h-5 text-[#F472B6]" />
                   <p className="text-[#F2F2F2] font-medium">Notificações</p>
                 </div>
                 <p className="text-sm text-[#F2F2F2]/50 mt-1">
@@ -245,8 +245,8 @@ export default function Settings() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl mb-6">
-          <h3 className="text-sm font-bold text-[#7C3AED] mb-4 uppercase">👤 CONTA</h3>
+        <Card className="p-6 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl mb-6">
+          <h3 className="text-sm font-bold text-[#EC4899] mb-4 uppercase">👤 CONTA</h3>
           
           <div className="space-y-3">
             <Button
@@ -255,7 +255,7 @@ export default function Settings() {
                 await base44.auth.logout(loginUrl);
               }}
               variant="outline"
-              className="w-full border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10 py-6 rounded-2xl"
+              className="w-full border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10 py-6 rounded-2xl"
             >
               <LogOut className="w-5 h-5 mr-2" />
               Sair da Conta

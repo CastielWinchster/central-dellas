@@ -132,7 +132,7 @@ export default function TrackRide() {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
         <div className="text-center">
-          <Car className="w-16 h-16 text-[#A855F7] animate-bounce mx-auto mb-4" />
+          <Car className="w-16 h-16 text-[#F472B6] animate-bounce mx-auto mb-4" />
           <p className="text-[#F2F2F2]">Carregando rastreamento...</p>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function TrackRide() {
   if (error) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
-        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-8 text-center max-w-md">
+        <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-8 text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#F2F2F2] mb-2">Erro</h2>
           <p className="text-[#F2F2F2]/60">{error}</p>
@@ -154,7 +154,7 @@ export default function TrackRide() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] to-[#A855F7] p-6 text-white">
+      <div className="bg-gradient-to-br from-[#EC4899] to-[#F472B6] p-6 text-white">
         <div className="flex items-center gap-3 mb-2">
           <Shield className="w-6 h-6" />
           <h1 className="text-2xl font-bold">Central Dellas - Rastreamento</h1>
@@ -170,7 +170,7 @@ export default function TrackRide() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
+          <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
@@ -180,7 +180,7 @@ export default function TrackRide() {
                 </span>
               </div>
               {eta && (
-                <div className="flex items-center gap-2 text-[#A855F7]">
+                <div className="flex items-center gap-2 text-[#F472B6]">
                   <Clock className="w-5 h-5" />
                   <span className="font-semibold">{eta} min</span>
                 </div>
@@ -189,15 +189,15 @@ export default function TrackRide() {
 
             {/* Driver Info */}
             {driver && (
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0D0D0D] border border-[#A855F7]/20">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#0D0D0D] border border-[#F472B6]/20">
                 {driver.photo_url ? (
                   <img 
                     src={driver.photo_url} 
                     alt={driver.full_name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-[#A855F7]"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-[#F472B6]"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center">
                     <User className="w-7 h-7 text-white" />
                   </div>
                 )}
@@ -238,9 +238,9 @@ export default function TrackRide() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
+          <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-6">
             <h3 className="text-[#F2F2F2] font-semibold mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#A855F7]" />
+              <MapPin className="w-5 h-5 text-[#F472B6]" />
               Trajeto
             </h3>
             <div className="space-y-4">
@@ -252,7 +252,7 @@ export default function TrackRide() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-4 h-4 rounded-full bg-[#A855F7] mt-1" />
+                <div className="w-4 h-4 rounded-full bg-[#F472B6] mt-1" />
                 <div>
                   <p className="text-[#F2F2F2]/60 text-sm">Destino</p>
                   <p className="text-[#F2F2F2]">{ride?.destination_address}</p>
@@ -268,9 +268,9 @@ export default function TrackRide() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="bg-gradient-to-br from-[#7C3AED]/10 to-[#A855F7]/10 border-[#A855F7]/30 p-6">
+          <Card className="bg-gradient-to-br from-[#EC4899]/10 to-[#F472B6]/10 border-[#F472B6]/30 p-6">
             <div className="flex items-start gap-3">
-              <Shield className="w-6 h-6 text-[#A855F7] mt-1" />
+              <Shield className="w-6 h-6 text-[#F472B6] mt-1" />
               <div>
                 <h3 className="text-[#F2F2F2] font-semibold mb-2">Segurança Central Dellas</h3>
                 <p className="text-[#F2F2F2]/60 text-sm">
@@ -293,7 +293,7 @@ export default function TrackRide() {
           <p className="text-[#F2F2F2]/60 text-sm mb-2">
             Sua filha vai para a festa? Mande uma motorista da Central Dellas
           </p>
-          <p className="text-[#A855F7] font-semibold">
+          <p className="text-[#F472B6] font-semibold">
             Acompanhe o trajeto em tempo real! 💕
           </p>
         </motion.div>

@@ -4,28 +4,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 // SVG do Carro visto de lado (inalterado)
 const CarSVG = () => (
   <svg width="90" height="44" viewBox="0 0 90 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="45" cy="42" rx="32" ry="3" fill="#A855F7" opacity="0.15" />
+    <ellipse cx="45" cy="42" rx="32" ry="3" fill="#F472B6" opacity="0.15" />
     <rect x="8" y="20" width="74" height="16" rx="5" fill="url(#carBody)" />
     <path d="M22 20 C24 10, 30 8, 38 8 L58 8 C66 8, 70 10, 72 20Z" fill="url(#carRoof)" />
     <path d="M40 9 C43 9, 56 9, 58 9 L68 20 L38 20Z" fill="#b3eaff" opacity="0.55" />
     <path d="M24 9 L36 20 L22 20Z" fill="#b3eaff" opacity="0.4" />
     <circle cx="22" cy="36" r="8" fill="#1a1a2e" />
     <circle cx="22" cy="36" r="5" fill="#2a2a3e" />
-    <circle cx="22" cy="36" r="2.5" fill="#A855F7" />
+    <circle cx="22" cy="36" r="2.5" fill="#F472B6" />
     <circle cx="66" cy="36" r="8" fill="#1a1a2e" />
     <circle cx="66" cy="36" r="5" fill="#2a2a3e" />
-    <circle cx="66" cy="36" r="2.5" fill="#A855F7" />
+    <circle cx="66" cy="36" r="2.5" fill="#F472B6" />
     <rect x="78" y="23" width="7" height="5" rx="2" fill="#fffde7" opacity="0.9" />
     <rect x="5" y="23" width="5" height="5" rx="2" fill="#ff6b6b" opacity="0.8" />
     <rect x="8" y="20" width="74" height="3" rx="2" fill="#fff" opacity="0.12" />
     <defs>
       <linearGradient id="carBody" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#7C3AED" />
-        <stop offset="100%" stopColor="#5B21B6" />
+        <stop offset="0%" stopColor="#EC4899" />
+        <stop offset="100%" stopColor="#BE185D" />
       </linearGradient>
       <linearGradient id="carRoof" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#A855F7" />
-        <stop offset="100%" stopColor="#7C3AED" />
+        <stop offset="0%" stopColor="#F472B6" />
+        <stop offset="100%" stopColor="#EC4899" />
       </linearGradient>
     </defs>
   </svg>
@@ -36,33 +36,33 @@ const MotoSVG = () => (
   <svg width="80" height="48" viewBox="0 0 80 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="motoBody" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#A855F7" />
-        <stop offset="100%" stopColor="#5B21B6" />
+        <stop offset="0%" stopColor="#F472B6" />
+        <stop offset="100%" stopColor="#BE185D" />
       </linearGradient>
     </defs>
 
     {/* Roda traseira */}
-    <circle cx="16" cy="36" r="10" fill="#1a1a2e" stroke="#A855F7" strokeWidth="2.5" />
+    <circle cx="16" cy="36" r="10" fill="#1a1a2e" stroke="#F472B6" strokeWidth="2.5" />
     <circle cx="16" cy="36" r="4" fill="#2a2a3e" />
-    <line x1="16" y1="26" x2="16" y2="46" stroke="#A855F7" strokeWidth="1" />
-    <line x1="6"  y1="36" x2="26" y2="36" stroke="#A855F7" strokeWidth="1" />
-    <line x1="9"  y1="29" x2="23" y2="43" stroke="#A855F7" strokeWidth="1" />
-    <line x1="23" y1="29" x2="9"  y2="43" stroke="#A855F7" strokeWidth="1" />
+    <line x1="16" y1="26" x2="16" y2="46" stroke="#F472B6" strokeWidth="1" />
+    <line x1="6"  y1="36" x2="26" y2="36" stroke="#F472B6" strokeWidth="1" />
+    <line x1="9"  y1="29" x2="23" y2="43" stroke="#F472B6" strokeWidth="1" />
+    <line x1="23" y1="29" x2="9"  y2="43" stroke="#F472B6" strokeWidth="1" />
 
     {/* Roda dianteira */}
-    <circle cx="64" cy="36" r="10" fill="#1a1a2e" stroke="#A855F7" strokeWidth="2.5" />
+    <circle cx="64" cy="36" r="10" fill="#1a1a2e" stroke="#F472B6" strokeWidth="2.5" />
     <circle cx="64" cy="36" r="4" fill="#2a2a3e" />
-    <line x1="64" y1="26" x2="64" y2="46" stroke="#A855F7" strokeWidth="1" />
-    <line x1="54" y1="36" x2="74" y2="36" stroke="#A855F7" strokeWidth="1" />
-    <line x1="57" y1="29" x2="71" y2="43" stroke="#A855F7" strokeWidth="1" />
-    <line x1="71" y1="29" x2="57" y2="43" stroke="#A855F7" strokeWidth="1" />
+    <line x1="64" y1="26" x2="64" y2="46" stroke="#F472B6" strokeWidth="1" />
+    <line x1="54" y1="36" x2="74" y2="36" stroke="#F472B6" strokeWidth="1" />
+    <line x1="57" y1="29" x2="71" y2="43" stroke="#F472B6" strokeWidth="1" />
+    <line x1="71" y1="29" x2="57" y2="43" stroke="#F472B6" strokeWidth="1" />
 
     {/* Chassi */}
-    <line x1="16" y1="36" x2="40" y2="20" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="40" y1="20" x2="58" y2="20" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="58" y1="20" x2="64" y2="36" stroke="#7C3AED" strokeWidth="2"   strokeLinecap="round" />
-    <line x1="40" y1="20" x2="32" y2="36" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="32" y1="36" x2="16" y2="36" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="16" y1="36" x2="40" y2="20" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="40" y1="20" x2="58" y2="20" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="58" y1="20" x2="64" y2="36" stroke="#EC4899" strokeWidth="2"   strokeLinecap="round" />
+    <line x1="40" y1="20" x2="32" y2="36" stroke="#EC4899" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="32" y1="36" x2="16" y2="36" stroke="#EC4899" strokeWidth="1.5" strokeLinecap="round" />
 
     {/* Motor */}
     <rect x="28" y="24" width="18" height="12" rx="3" fill="url(#motoBody)" opacity="0.9" />
@@ -71,25 +71,25 @@ const MotoSVG = () => (
     <ellipse cx="44" cy="18" rx="10" ry="5" fill="url(#motoBody)" />
 
     {/* Assento */}
-    <rect x="26" y="15" width="16" height="4" rx="2" fill="#5B21B6" />
+    <rect x="26" y="15" width="16" height="4" rx="2" fill="#BE185D" />
 
     {/* Carenagem / farol dianteiro */}
     <polygon points="62,20 72,24 70,30 60,28" fill="url(#motoBody)" opacity="0.85" />
     <ellipse cx="70" cy="25" rx="3" ry="4" fill="#fffde7" opacity="0.9" />
 
     {/* Guidão */}
-    <line x1="60" y1="18" x2="68" y2="14" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" />
+    <line x1="60" y1="18" x2="68" y2="14" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" />
 
     {/* Escapamento */}
-    <path d="M16 38 Q10 42 8 44" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    <path d="M16 38 Q10 42 8 44" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
     {/* Piloto — capacete + corpo agachado */}
-    <ellipse cx="42" cy="12" rx="8" ry="5" fill="#7C3AED" transform="rotate(-10,42,12)" />
+    <ellipse cx="42" cy="12" rx="8" ry="5" fill="#EC4899" transform="rotate(-10,42,12)" />
     <circle cx="46" cy="8" r="5" fill="#1A1A1A" />
-    <path d="M42 7 Q46 4 50 7" fill="#A855F7" opacity="0.9" />
+    <path d="M42 7 Q46 4 50 7" fill="#F472B6" opacity="0.9" />
     <path d="M43 8 Q46 6 49 8" stroke="#b3eaff" strokeWidth="1.2" fill="none" opacity="0.65" />
-    <line x1="42" y1="12" x2="60" y2="19" stroke="#5B21B6" strokeWidth="2" strokeLinecap="round" />
-    <line x1="38" y1="14" x2="32" y2="24" stroke="#5B21B6" strokeWidth="2" strokeLinecap="round" />
+    <line x1="42" y1="12" x2="60" y2="19" stroke="#BE185D" strokeWidth="2" strokeLinecap="round" />
+    <line x1="38" y1="14" x2="32" y2="24" stroke="#BE185D" strokeWidth="2" strokeLinecap="round" />
 
     {/* Lanterna traseira */}
     <rect x="5" y="30" width="4" height="3" rx="1" fill="#ff3030" opacity="0.85" />
@@ -113,7 +113,7 @@ const SpeedLines = ({ count = 5, opacity = 0.4 }) => (
         className="absolute h-[2px] rounded-full"
         style={{
           top: line.top,
-          background: 'linear-gradient(90deg, transparent, #A855F7, transparent)',
+          background: 'linear-gradient(90deg, transparent, #F472B6, transparent)',
           width: `${line.width}px`,
           opacity,
         }}
@@ -180,7 +180,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
           <div
             className="absolute w-[400px] h-[200px] rounded-full pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse, rgba(168,85,247,0.12) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse, rgba(244,114,182,0.12) 0%, transparent 70%)',
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
@@ -221,7 +221,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
                 right: 0,
                 height: '3px',
                 borderRadius: '9999px',
-                background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.3), rgba(168,85,247,0.5), rgba(168,85,247,0.3), transparent)',
+                background: 'linear-gradient(90deg, transparent, rgba(244,114,182,0.3), rgba(244,114,182,0.5), rgba(244,114,182,0.3), transparent)',
               }}
             />
 
@@ -233,7 +233,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
                 left: 0,
                 right: 0,
                 height: '2px',
-                backgroundImage: 'repeating-linear-gradient(90deg, rgba(168,85,247,0.25) 0px, rgba(168,85,247,0.25) 20px, transparent 20px, transparent 40px)',
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(244,114,182,0.25) 0px, rgba(244,114,182,0.25) 20px, transparent 20px, transparent 40px)',
               }}
               animate={{ backgroundPosition: ['0px', '40px'] }}
               transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
@@ -250,7 +250,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
                 left: 0,
                 animation: 'cd-car 2.8s linear infinite',
                 willChange: 'transform',
-                filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.6))',
+                filter: 'drop-shadow(0 0 8px rgba(244,114,182,0.6))',
               }}
             >
               <CarSVG />
@@ -265,7 +265,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
                 animation: 'cd-moto 2.8s linear infinite',
                 animationDelay: '0.8s',
                 willChange: 'transform',
-                filter: 'drop-shadow(0 0 6px rgba(168,85,247,0.5))',
+                filter: 'drop-shadow(0 0 6px rgba(244,114,182,0.5))',
               }}
             >
               <MotoSVG />
@@ -305,7 +305,7 @@ export default function LoadingScreen({ isLoading = true, onFinish, onComplete }
                 <motion.div
                   key={i}
                   className="w-2 h-2 rounded-full"
-                  style={{ background: '#A855F7' }}
+                  style={{ background: '#F472B6' }}
                   animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
                 />

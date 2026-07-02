@@ -215,7 +215,7 @@ export default function ChatbotFloat() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(true)}
-            className="fixed right-6 z-[9999] w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] shadow-2xl shadow-[#A855F7]/50 flex items-center justify-center group"
+            className="fixed right-6 z-[9999] w-16 h-16 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] shadow-2xl shadow-[#F472B6]/50 flex items-center justify-center group"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
           >
             <div className="relative">
@@ -230,7 +230,7 @@ export default function ChatbotFloat() {
                 className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"
               />
             </div>
-            <div className="absolute -top-2 -right-2 bg-[#A855F7] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute -top-2 -right-2 bg-[#F472B6] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Sparkles className="w-3 h-3" />
             </div>
           </motion.button>
@@ -244,11 +244,11 @@ export default function ChatbotFloat() {
             initial={{ opacity: 0, y: 100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed left-4 right-4 md:left-auto md:right-6 z-[9999] w-auto md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#A855F7]/30 flex flex-col overflow-hidden"
+            className="fixed left-4 right-4 md:left-auto md:right-6 z-[9999] w-auto md:w-96 h-[600px] max-h-[80vh] bg-[#0D0D0D] rounded-3xl shadow-2xl border border-[#F472B6]/30 flex flex-col overflow-hidden"
             style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-br from-[#7C3AED] to-[#A855F7] p-4 flex items-center justify-center md:justify-start gap-3 relative">
+            <div className="bg-gradient-to-br from-[#EC4899] to-[#F472B6] p-4 flex items-center justify-center md:justify-start gap-3 relative">
               <div className="relative">
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/a4506990a_vania.jpeg"
@@ -279,7 +279,7 @@ export default function ChatbotFloat() {
                   <div
                     className={`max-w-[80%] rounded-2xl p-3 ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7] text-white'
+                        ? 'bg-gradient-to-br from-[#EC4899] to-[#F472B6] text-white'
                         : 'bg-[#F2F2F2]/10 text-[#F2F2F2]'
                     }`}
                   >
@@ -317,17 +317,17 @@ export default function ChatbotFloat() {
                       <motion.div
                         animate={{ y: [0, -8, 0] }}
                         transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                        className="w-2 h-2 bg-[#A855F7] rounded-full"
+                        className="w-2 h-2 bg-[#F472B6] rounded-full"
                       />
                       <motion.div
                         animate={{ y: [0, -8, 0] }}
                         transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                        className="w-2 h-2 bg-[#A855F7] rounded-full"
+                        className="w-2 h-2 bg-[#F472B6] rounded-full"
                       />
                       <motion.div
                         animate={{ y: [0, -8, 0] }}
                         transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                        className="w-2 h-2 bg-[#A855F7] rounded-full"
+                        className="w-2 h-2 bg-[#F472B6] rounded-full"
                       />
                     </div>
                   </div>
@@ -338,7 +338,7 @@ export default function ChatbotFloat() {
             </div>
 
             {/* Input */}
-            <div className="p-3 md:p-4 bg-[#1a0a15] border-t border-[#A855F7]/20">
+            <div className="p-3 md:p-4 bg-[#1a0a15] border-t border-[#F472B6]/20">
               <div className="flex gap-2 items-center">
                 {/* Inputs ocultos para arquivos */}
                 <input
@@ -363,7 +363,7 @@ export default function ChatbotFloat() {
                   disabled={isTyping || uploadingFile}
                   variant="ghost"
                   size="icon"
-                  className="text-[#A855F7] hover:bg-[#A855F7]/10 shrink-0"
+                  className="text-[#F472B6] hover:bg-[#F472B6]/10 shrink-0"
                   title="Enviar arquivo"
                 >
                   <Paperclip className="w-5 h-5" />
@@ -375,7 +375,7 @@ export default function ChatbotFloat() {
                   disabled={isTyping || uploadingFile}
                   variant="ghost"
                   size="icon"
-                  className="text-[#A855F7] hover:bg-[#A855F7]/10 shrink-0"
+                  className="text-[#F472B6] hover:bg-[#F472B6]/10 shrink-0"
                   title="Tirar foto"
                 >
                   <Camera className="w-5 h-5" />
@@ -386,13 +386,13 @@ export default function ChatbotFloat() {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={uploadingFile ? "Enviando..." : "Digite sua mensagem..."}
-                  className="flex-1 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 focus:border-[#A855F7] text-sm"
+                  className="flex-1 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] placeholder:text-[#F2F2F2]/40 focus:border-[#F472B6] text-sm"
                   disabled={isTyping || uploadingFile}
                 />
                 <Button
                   onClick={handleSend}
                   disabled={!inputValue.trim() || isTyping || uploadingFile}
-                  className="bg-gradient-to-br from-[#7C3AED] to-[#A855F7] hover:opacity-90 transition-opacity shrink-0"
+                  className="bg-gradient-to-br from-[#EC4899] to-[#F472B6] hover:opacity-90 transition-opacity shrink-0"
                   size="icon"
                 >
                   <Send className="w-5 h-5" />

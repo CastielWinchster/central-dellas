@@ -12,10 +12,10 @@ export default function KeyboardShortcutsHelp({ shortcuts }) {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 md:bottom-24 md:right-6 z-[86] w-14 h-14 rounded-full bg-[#F2F2F2]/10 backdrop-blur-sm border border-[#A855F7]/30 shadow-lg flex items-center justify-center hover:bg-[#A855F7]/20 transition-colors"
+        className="fixed bottom-24 right-6 md:bottom-24 md:right-6 z-[86] w-14 h-14 rounded-full bg-[#F2F2F2]/10 backdrop-blur-sm border border-[#F472B6]/30 shadow-lg flex items-center justify-center hover:bg-[#F472B6]/20 transition-colors"
         style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 176px)' }}
       >
-        <Keyboard className="w-6 h-6 text-[#A855F7]" />
+        <Keyboard className="w-6 h-6 text-[#F472B6]" />
       </motion.button>
 
       <AnimatePresence>
@@ -31,7 +31,7 @@ export default function KeyboardShortcutsHelp({ shortcuts }) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0D0D0D] border border-[#A855F7]/30 rounded-2xl p-6 max-w-md w-full"
+              className="bg-[#0D0D0D] border border-[#F472B6]/30 rounded-2xl p-6 max-w-md w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -47,7 +47,7 @@ export default function KeyboardShortcutsHelp({ shortcuts }) {
                     <span className="text-[#F2F2F2]/80">{shortcut.description}</span>
                     <div className="flex gap-1">
                       {shortcut.keys.map((key, i) => (
-                        <kbd key={i} className="px-2 py-1 bg-[#A855F7]/20 text-[#A855F7] rounded text-xs font-mono">
+                        <kbd key={i} className="px-2 py-1 bg-[#F472B6]/20 text-[#F472B6] rounded text-xs font-mono">
                           {key}
                         </kbd>
                       ))}

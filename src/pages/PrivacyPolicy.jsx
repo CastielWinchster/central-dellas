@@ -4,7 +4,7 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F2F2] pb-16">
       {/* Header */}
-      <div className="bg-[#0D0D0D] border-b border-[#A855F7]/20 px-4 py-4 sticky top-0 z-10">
+      <div className="bg-[#0D0D0D] border-b border-[#F472B6]/20 px-4 py-4 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/50cfce50f_central2.png"
@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-[#A855F7] mb-2">Política de Privacidade</h1>
+        <h1 className="text-3xl font-bold text-[#F472B6] mb-2">Política de Privacidade</h1>
         <p className="text-[#F2F2F2]/50 text-sm mb-8">Última atualização: Maio de 2026</p>
 
         <div className="space-y-8 text-[#F2F2F2]/80 leading-relaxed">
@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-semibold text-[#F2F2F2] mb-3">1. Quem somos</h2>
             <p>
-              O <strong className="text-[#A855F7]">CentralDellas</strong> é um aplicativo de transporte por aplicativo que conecta passageiros e motoristas de forma segura. Nossa sede está localizada em Orlândia, SP, Brasil. Este documento descreve como coletamos, usamos e protegemos seus dados pessoais.
+              O <strong className="text-[#F472B6]">CentralDellas</strong> é um aplicativo de transporte por aplicativo que conecta passageiros e motoristas de forma segura. Nossa sede está localizada em Orlândia, SP, Brasil. Este documento descreve como coletamos, usamos e protegemos seus dados pessoais.
             </p>
           </section>
 
@@ -120,9 +120,9 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-semibold text-[#F2F2F2] mb-3">10. Contato</h2>
             <p>Para dúvidas, solicitações ou exercício dos seus direitos de privacidade, entre em contato:</p>
-            <div className="mt-3 p-4 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/20">
+            <div className="mt-3 p-4 rounded-xl bg-[#F472B6]/10 border border-[#F472B6]/20">
               <p><strong>CentralDellas</strong></p>
-              <p>E-mail: <a href="mailto:privacidade@centraldellas.com.br" className="text-[#A855F7] hover:underline">privacidade@centraldellas.com.br</a></p>
+              <p>E-mail: <a href="mailto:privacidade@centraldellas.com.br" className="text-[#F472B6] hover:underline">privacidade@centraldellas.com.br</a></p>
               <p>Orlândia, SP — Brasil</p>
             </div>
           </section>

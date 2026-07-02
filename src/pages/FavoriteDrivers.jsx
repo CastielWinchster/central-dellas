@@ -72,7 +72,7 @@ export default function FavoriteDrivers() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -92,8 +92,8 @@ export default function FavoriteDrivers() {
 
         {/* Empty State */}
         {favorites.length === 0 && (
-          <Card className="p-8 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl text-center">
-            <Heart className="w-12 h-12 text-[#A855F7]/50 mx-auto mb-3" />
+          <Card className="p-8 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl text-center">
+            <Heart className="w-12 h-12 text-[#F472B6]/50 mx-auto mb-3" />
             <p className="text-[#F2F2F2]/60 mb-2">Nenhuma motorista favorita ainda</p>
             <p className="text-sm text-[#F2F2F2]/40">
               Favorite motoristas ao avaliar suas corridas
@@ -109,13 +109,13 @@ export default function FavoriteDrivers() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
+              <Card className="p-4 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#A855F7]">
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#F472B6]">
                     {fav.driver?.photo_url ? (
                       <img src={fav.driver.photo_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
                         <User className="w-8 h-8 text-white" />
                       </div>
                     )}
@@ -133,7 +133,7 @@ export default function FavoriteDrivers() {
                         <>
                           <span className="text-[#F2F2F2]/40">•</span>
                           <div className="flex items-center gap-1">
-                            <Car className="w-4 h-4 text-[#A855F7]" />
+                            <Car className="w-4 h-4 text-[#F472B6]" />
                             <span className="text-sm text-[#F2F2F2]/70">
                               {fav.vehicle.brand} {fav.vehicle.model}
                             </span>

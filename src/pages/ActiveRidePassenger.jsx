@@ -105,7 +105,7 @@ export default function ActiveRidePassenger() {
     return (
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-[#A855F7]/20 border-t-[#A855F7] animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#F472B6]/20 border-t-[#F472B6] animate-spin mx-auto mb-4" />
           <p className="text-white">Carregando corrida...</p>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function ActiveRidePassenger() {
       <div className="flex items-center justify-center h-screen bg-[#0D0D0D]">
         <div className="text-center text-white">
           <p>Corrida não encontrada</p>
-          <button onClick={() => navigate('/RequestRide')} className="mt-4 text-[#A855F7]">Voltar</button>
+          <button onClick={() => navigate('/RequestRide')} className="mt-4 text-[#F472B6]">Voltar</button>
         </div>
       </div>
     );
@@ -158,9 +158,9 @@ export default function ActiveRidePassenger() {
         {/* ETA */}
         {driverETA != null && (
           <div className="absolute top-4 right-4 z-10">
-            <div className="bg-[#0D0D0D]/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-lg border border-[#A855F7]/20">
+            <div className="bg-[#0D0D0D]/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-lg border border-[#F472B6]/20">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <Clock className="w-3.5 h-3.5 text-[#A855F7]" />
+                <Clock className="w-3.5 h-3.5 text-[#F472B6]" />
                 <span className="text-xs text-gray-400">Chegada em</span>
               </div>
               <p className="text-2xl font-bold leading-none">{driverETA} min</p>
@@ -174,7 +174,7 @@ export default function ActiveRidePassenger() {
         {/* Segurança */}
         <div className="absolute bottom-4 left-4 z-10">
           <div className="bg-[#0D0D0D]/80 backdrop-blur text-white px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs">
-            <Shield className="w-3.5 h-3.5 text-[#A855F7]" />
+            <Shield className="w-3.5 h-3.5 text-[#F472B6]" />
             Motorista verificada
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function ActiveRidePassenger() {
         {/* Motorista */}
         {driver && (
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full border-2 border-[#A855F7] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full border-2 border-[#F472B6] overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
               {driver.photo
                 ? <img src={driver.photo} alt={driver.name} className="w-full h-full object-cover" />
                 : <User className="w-7 h-7 text-white" />
@@ -209,7 +209,7 @@ export default function ActiveRidePassenger() {
               )}
               <button
                 onClick={() => setIsChatOpen(true)}
-                className="w-11 h-11 rounded-full bg-[#A855F7] hover:bg-[#7C3AED] flex items-center justify-center transition-colors"
+                className="w-11 h-11 rounded-full bg-[#F472B6] hover:bg-[#EC4899] flex items-center justify-center transition-colors"
               >
                 <MessageCircle className="w-5 h-5 text-white" />
               </button>
@@ -238,8 +238,8 @@ export default function ActiveRidePassenger() {
                   {[vehicle.color, vehicle.year].filter(Boolean).join(' • ')}
                 </p>
               </div>
-              <div className="bg-[#1a1a2e] px-4 py-2 rounded-lg border border-[#A855F7]/30">
-                <p className="text-[#A855F7] font-bold text-sm tracking-wider">{vehicle.plate}</p>
+              <div className="bg-[#1a1a2e] px-4 py-2 rounded-lg border border-[#F472B6]/30">
+                <p className="text-[#F472B6] font-bold text-sm tracking-wider">{vehicle.plate}</p>
               </div>
             </div>
           </div>
@@ -255,7 +255,7 @@ export default function ActiveRidePassenger() {
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5">
-            <MapPin className="w-3.5 h-3.5 text-[#A855F7] mt-0.5 flex-shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-[#F472B6] mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Destino</p>
               <p className="text-white text-sm">{ride.dropoff_text}</p>
@@ -265,9 +265,9 @@ export default function ActiveRidePassenger() {
 
         {/* Preço */}
         {ridePrice && (
-          <div className="flex items-center justify-between bg-gradient-to-r from-[#7C3AED]/20 to-[#A855F7]/20 border border-[#A855F7]/20 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between bg-gradient-to-r from-[#EC4899]/20 to-[#F472B6]/20 border border-[#F472B6]/20 rounded-xl px-4 py-3">
             <span className="text-gray-400 text-sm">Valor da corrida</span>
-            <span className="text-[#A855F7] font-bold text-lg">R$ {Number(ridePrice).toFixed(2).replace('.', ',')}</span>
+            <span className="text-[#F472B6] font-bold text-lg">R$ {Number(ridePrice).toFixed(2).replace('.', ',')}</span>
           </div>
         )}
       </div>

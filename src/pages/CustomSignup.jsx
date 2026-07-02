@@ -127,15 +127,15 @@ export default function CustomSignup() {
           </p>
           <div className="flex flex-col gap-3 justify-center lg:justify-start">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Cadastro rápido e simples</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">100% seguro e verificado</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Comece a viajar em minutos</span>
             </div>
           </div>
@@ -146,9 +146,9 @@ export default function CustomSignup() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#A855F7]/30 shadow-2xl">
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F472B6]/30 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#A855F7]/50">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center shadow-lg shadow-[#F472B6]/50">
                 <UserPlus className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -166,7 +166,7 @@ export default function CustomSignup() {
                     placeholder="Seu nome completo"
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                    className="pl-10 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                     required
                   />
                 </div>
@@ -181,7 +181,7 @@ export default function CustomSignup() {
                     placeholder="seu@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                    className="pl-10 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                     required
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function CustomSignup() {
                     placeholder="Mínimo 8 caracteres"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                    className="pl-10 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                     required
                   />
                 </div>
@@ -211,7 +211,7 @@ export default function CustomSignup() {
                     placeholder="Digite a senha novamente"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pl-10 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                    className="pl-10 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                     required
                   />
                 </div>
@@ -220,7 +220,7 @@ export default function CustomSignup() {
               <Button 
                 type="submit" 
                 disabled={loading} 
-                className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#A855F7]/30"
+                className="w-full btn-gradient py-6 text-lg shadow-lg shadow-[#F472B6]/30"
               >
                 {loading ? (
                   <>
@@ -236,14 +236,14 @@ export default function CustomSignup() {
             <div className="mt-6 text-center space-y-3">
               <Link
                 to={createPageUrl('CustomLogin')}
-                className="text-[#A855F7] hover:underline block"
+                className="text-[#F472B6] hover:underline block"
               >
                 Já tem conta? Faça login
               </Link>
               
               <Link 
                 to={createPageUrl('PassengerHome')}
-                className="text-[#F2F2F2]/60 hover:text-[#A855F7] text-sm block"
+                className="text-[#F2F2F2]/60 hover:text-[#F472B6] text-sm block"
               >
                 Voltar para o início
               </Link>

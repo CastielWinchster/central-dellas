@@ -45,21 +45,21 @@ export default function PassengerDashboard() {
       label: 'Chamar Agora', 
       sublabel: 'Corrida imediata',
       page: 'RequestRide',
-      gradient: 'from-[#7C3AED] to-[#A855F7]'
+      gradient: 'from-[#EC4899] to-[#F472B6]'
     },
     { 
       icon: Clock, 
       label: 'Agendar Corrida', 
       sublabel: 'Até 30 dias',
       page: 'ScheduleRide',
-      gradient: 'from-[#A855F7] to-[#5B21B6]'
+      gradient: 'from-[#F472B6] to-[#BE185D]'
     },
     { 
       icon: Heart, 
       label: 'Favoritas', 
       sublabel: 'Ver motoristas',
       page: 'FavoriteDrivers',
-      gradient: 'from-[#5B21B6] to-[#7C3AED]'
+      gradient: 'from-[#BE185D] to-[#EC4899]'
     }
   ];
 
@@ -69,28 +69,28 @@ export default function PassengerDashboard() {
       label: 'Solicitar Corrida',
       description: 'Peça uma corrida agora',
       page: 'RequestRide',
-      color: 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7]'
+      color: 'bg-gradient-to-br from-[#EC4899] to-[#F472B6]'
     },
     {
       icon: History,
       label: 'Histórico',
       description: 'Ver minhas corridas',
       page: 'RideHistory',
-      color: 'bg-gradient-to-br from-[#A855F7] to-[#5B21B6]'
+      color: 'bg-gradient-to-br from-[#F472B6] to-[#BE185D]'
     },
     {
       icon: MessageCircle,
       label: 'Mensagens',
       description: 'Conversar com motoristas',
       page: 'PassengerMessages',
-      color: 'bg-gradient-to-br from-[#5B21B6] to-[#7C3AED]'
+      color: 'bg-gradient-to-br from-[#BE185D] to-[#EC4899]'
     },
     {
       icon: Wallet,
       label: 'Carteira',
       description: 'Saldo e recargas',
       page: 'Wallet',
-      color: 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7]'
+      color: 'bg-gradient-to-br from-[#EC4899] to-[#F472B6]'
     },
     {
       icon: Star,
@@ -104,14 +104,14 @@ export default function PassengerDashboard() {
       label: 'Programa Fidelidade',
       description: 'Pontos e recompensas',
       page: 'LoyaltyProgram',
-      color: 'bg-gradient-to-br from-[#5B21B6] to-[#7C3AED]'
+      color: 'bg-gradient-to-br from-[#BE185D] to-[#EC4899]'
     },
     {
       icon: User,
       label: 'Perfil',
       description: 'Configurações da conta',
       page: 'Profile',
-      color: 'bg-gradient-to-br from-[#A855F7] to-[#5B21B6]'
+      color: 'bg-gradient-to-br from-[#F472B6] to-[#BE185D]'
     }
   ];
 
@@ -159,8 +159,8 @@ export default function PassengerDashboard() {
                 onClick={() => navigate(createPageUrl(action.page))}
                 className={`p-4 rounded-2xl border transition-all text-left group ${
                   isDark 
-                    ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/30' 
-                    : 'bg-white border-gray-200 hover:border-[#A855F7]/30'
+                    ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10 hover:border-[#F472B6]/30' 
+                    : 'bg-white border-gray-200 hover:border-[#F472B6]/30'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
@@ -200,8 +200,8 @@ export default function PassengerDashboard() {
                   onClick={() => navigate(createPageUrl(option.page))}
                   className={`p-6 rounded-2xl cursor-pointer transition-all border-2 ${
                     isDark
-                      ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/30'
-                      : 'bg-white border-gray-200 hover:border-[#A855F7]/30'
+                      ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10 hover:border-[#F472B6]/30'
+                      : 'bg-white border-gray-200 hover:border-[#F472B6]/30'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -230,26 +230,26 @@ export default function PassengerDashboard() {
           transition={{ delay: 0.8 }}
           className="mt-8"
         >
-          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]/30' : 'bg-gradient-to-br from-[#7C3AED]/10 to-[#A855F7]/10 border-[#A855F7]/20'}`}>
+          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-gradient-to-br from-[#EC4899]/20 to-[#F472B6]/20 border-[#F472B6]/30' : 'bg-gradient-to-br from-[#EC4899]/10 to-[#F472B6]/10 border-[#F472B6]/20'}`}>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <p className="text-2xl font-bold text-[#A855F7]">{user?.average_rating || '5.0'}</p>
+                  <p className="text-2xl font-bold text-[#F472B6]">{user?.average_rating || '5.0'}</p>
                 </div>
                 <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/60'}`}>Avaliação</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Car className="w-5 h-5 text-[#A855F7]" />
-                  <p className="text-2xl font-bold text-[#A855F7]">{user?.total_rides || '0'}</p>
+                  <Car className="w-5 h-5 text-[#F472B6]" />
+                  <p className="text-2xl font-bold text-[#F472B6]">{user?.total_rides || '0'}</p>
                 </div>
                 <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/60'}`}>Corridas</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Heart className="w-5 h-5 text-[#A855F7]" />
-                  <p className="text-2xl font-bold text-[#A855F7]">VIP</p>
+                  <Heart className="w-5 h-5 text-[#F472B6]" />
+                  <p className="text-2xl font-bold text-[#F472B6]">VIP</p>
                 </div>
                 <p className={`text-sm ${isDark ? 'text-[#F2F2F2]/60' : 'text-black/60'}`}>Status</p>
               </div>

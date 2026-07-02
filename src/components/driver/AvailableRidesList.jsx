@@ -10,8 +10,8 @@ const PROXIMITY_KM = 15; // raio máximo para mostrar corridas
 
 const rideTypeColors = {
   standard:   { bg: 'bg-blue-500/20',   text: 'text-blue-400',   label: 'Standard' },
-  rotta_roza: { bg: 'bg-purple-500/20',   text: 'text-purple-400',   label: 'Rotta Roza' },
-  premium:    { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Premium' },
+  rotta_roza: { bg: 'bg-pink-500/20',   text: 'text-pink-400',   label: 'Rotta Roza' },
+  premium:    { bg: 'bg-pink-500/20', text: 'text-pink-400', label: 'Premium' },
   shared:     { bg: 'bg-green-500/20',  text: 'text-green-400',  label: 'Carona' },
   delivery:   { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Entrega' },
 };
@@ -124,7 +124,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
           onClick={handleRefresh}
           variant="outline"
           size="sm"
-          className="border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
+          className="border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10"
           disabled={isRefreshing}
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -144,8 +144,8 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
             onClick={() => setFilter(f.id)}
             className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-all ${
               filter === f.id
-                ? 'bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white'
-                : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10'
+                ? 'bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white'
+                : 'bg-[#F2F2F2]/5 text-[#F2F2F2]/60 hover:bg-[#F472B6]/10'
             }`}
           >
             {f.label}
@@ -171,17 +171,17 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                 <Card
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[#A855F7]/10 border-[#A855F7]'
-                      : 'bg-[#F2F2F2]/5 border-[#A855F7]/10 hover:border-[#A855F7]/40'
+                      ? 'bg-[#F472B6]/10 border-[#F472B6]'
+                      : 'bg-[#F2F2F2]/5 border-[#F472B6]/10 hover:border-[#F472B6]/40'
                   }`}
                   onClick={() => onRideSelect(isSelected ? null : ride)}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {ride.passengerPhoto ? (
-                        <img src={ride.passengerPhoto} alt={ride.passengerName} className="w-11 h-11 rounded-full object-cover border-2 border-[#A855F7]" />
+                        <img src={ride.passengerPhoto} alt={ride.passengerName} className="w-11 h-11 rounded-full object-cover border-2 border-[#F472B6]" />
                       ) : (
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center border-2 border-[#A855F7]">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center border-2 border-[#F472B6]">
                           <span className="text-white text-sm font-bold">{ride.passengerName[0]}</span>
                         </div>
                       )}
@@ -214,12 +214,12 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                       <p className="text-sm text-[#F2F2F2]">{ride.pickup_text}</p>
                     </div>
                     <div className="flex items-start gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#A855F7] mt-1.5 flex-shrink-0" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#F472B6] mt-1.5 flex-shrink-0" />
                       <p className="text-sm text-[#F2F2F2]/80">{ride.dropoff_text}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-[#A855F7]/10">
+                  <div className="flex items-center justify-between pt-3 border-t border-[#F472B6]/10">
                     <div className="flex items-center gap-3 text-sm text-[#F2F2F2]/50">
                       {ride.distance !== null && (
                         <span className="flex items-center gap-1">
@@ -239,7 +239,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                         </span>
                       )}
                     </div>
-                    <p className="text-lg font-bold text-[#A855F7]">
+                    <p className="text-lg font-bold text-[#F472B6]">
                       R$ {ride.estimated_price ? parseFloat(ride.estimated_price).toFixed(2) : '—'}
                     </p>
                   </div>
@@ -248,12 +248,12 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#A855F7]/10"
+                      className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#F472B6]/10"
                     >
                       <Button
                         onClick={(e) => { e.stopPropagation(); onRideSelect(null); }}
                         variant="outline"
-                        className="py-2 rounded-xl border-[#A855F7]/30 text-[#F2F2F2]/60 hover:bg-[#A855F7]/10"
+                        className="py-2 rounded-xl border-[#F472B6]/30 text-[#F2F2F2]/60 hover:bg-[#F472B6]/10"
                       >
                         <X className="w-4 h-4 mr-1" /> Ignorar
                       </Button>
@@ -273,7 +273,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
 
         {filteredRides.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10">
-            <MapPin className="w-12 h-12 text-[#A855F7]/20 mx-auto mb-3" />
+            <MapPin className="w-12 h-12 text-[#F472B6]/20 mx-auto mb-3" />
             <p className="text-[#F2F2F2]/50">Nenhuma corrida próxima no momento</p>
             <p className="text-[#F2F2F2]/30 text-xs mt-1">Raio de busca: {PROXIMITY_KM} km</p>
           </motion.div>

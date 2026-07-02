@@ -164,7 +164,7 @@ export default function FavoritePlaces() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function FavoritePlaces() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-6"
             >
-              <Card className="p-6 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
+              <Card className="p-6 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl">
                 <h3 className="text-lg font-semibold text-[#F2F2F2] mb-4">
                   {editingPlace ? 'Editar Local' : 'Adicionar Local'}
                 </h3>
@@ -219,11 +219,11 @@ export default function FavoritePlaces() {
                           onClick={() => setSelectedLabel(label)}
                           className={`p-3 rounded-xl border-2 transition-all ${
                             selectedLabel === label
-                              ? 'border-[#A855F7] bg-[#A855F7]/10'
-                              : 'border-[#A855F7]/20 bg-[#0D0D0D]'
+                              ? 'border-[#F472B6] bg-[#F472B6]/10'
+                              : 'border-[#F472B6]/20 bg-[#0D0D0D]'
                           }`}
                         >
-                          <Icon className="w-5 h-5 text-[#A855F7] mx-auto mb-1" />
+                          <Icon className="w-5 h-5 text-[#F472B6] mx-auto mb-1" />
                           <p className="text-xs text-[#F2F2F2]">{label}</p>
                         </button>
                       );
@@ -238,16 +238,16 @@ export default function FavoritePlaces() {
                     placeholder="Digite o endereço"
                     value={addressInput}
                     onChange={(e) => handleAddressSearch(e.target.value)}
-                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2]"
                   />
                   
                   {suggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-[#0D0D0D] border border-[#A855F7]/30 rounded-xl shadow-2xl max-h-[200px] overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-[#0D0D0D] border border-[#F472B6]/30 rounded-xl shadow-2xl max-h-[200px] overflow-y-auto">
                       {suggestions.map((suggestion, index) => (
                         <button
                           key={suggestion.id || index}
                           onClick={() => selectAddress(suggestion)}
-                          className="w-full px-4 py-3 text-left hover:bg-[#A855F7]/10 transition-colors border-b border-[#A855F7]/10 last:border-b-0"
+                          className="w-full px-4 py-3 text-left hover:bg-[#F472B6]/10 transition-colors border-b border-[#F472B6]/10 last:border-b-0"
                         >
                           <div className="flex items-center gap-2">
                             <span>{suggestion.icon}</span>
@@ -266,7 +266,7 @@ export default function FavoritePlaces() {
                     placeholder="Ex: Portão azul, apto 101..."
                     value={instructions}
                     onChange={(e) => setInstructions(e.target.value)}
-                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2]"
                   />
                 </div>
                 
@@ -274,7 +274,7 @@ export default function FavoritePlaces() {
                   <Button
                     onClick={resetForm}
                     variant="outline"
-                    className="flex-1 border-[#A855F7]/30"
+                    className="flex-1 border-[#F472B6]/30"
                   >
                     Cancelar
                   </Button>
@@ -292,8 +292,8 @@ export default function FavoritePlaces() {
 
         {/* Empty State */}
         {places.length === 0 && !showAddForm && (
-          <Card className="p-8 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl text-center">
-            <MapPin className="w-12 h-12 text-[#A855F7]/50 mx-auto mb-3" />
+          <Card className="p-8 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl text-center">
+            <MapPin className="w-12 h-12 text-[#F472B6]/50 mx-auto mb-3" />
             <p className="text-[#F2F2F2]/60 mb-2">Nenhum local favorito ainda</p>
             <p className="text-sm text-[#F2F2F2]/40">
               Adicione seus locais frequentes para facilitar suas corridas
@@ -311,10 +311,10 @@ export default function FavoritePlaces() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Card className="p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl">
+                <Card className="p-4 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#A855F7]/20 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-6 h-6 text-[#A855F7]" />
+                    <div className="w-12 h-12 rounded-xl bg-[#F472B6]/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-6 h-6 text-[#F472B6]" />
                     </div>
                     
                     <div className="flex-1">
@@ -332,7 +332,7 @@ export default function FavoritePlaces() {
                         onClick={() => handleEdit(place)}
                         variant="ghost"
                         size="icon"
-                        className="text-[#F2F2F2]/60 hover:text-[#A855F7]"
+                        className="text-[#F2F2F2]/60 hover:text-[#F472B6]"
                       >
                         <Edit2 className="w-5 h-5" />
                       </Button>

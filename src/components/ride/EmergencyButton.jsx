@@ -153,19 +153,19 @@ export default function EmergencyButton({ ride, user }) {
 
           <div className="space-y-3 py-4">
             <div className="flex items-start gap-3 text-sm text-[#F2F2F2]">
-              <Phone className="w-5 h-5 text-[#A855F7] mt-0.5" />
+              <Phone className="w-5 h-5 text-[#F472B6] mt-0.5" />
               <span>Notificar a central da Central Dellas imediatamente</span>
             </div>
             <div className="flex items-start gap-3 text-sm text-[#F2F2F2]">
-              <MessageCircle className="w-5 h-5 text-[#A855F7] mt-0.5" />
+              <MessageCircle className="w-5 h-5 text-[#F472B6] mt-0.5" />
               <span>Alertar todos os seus contatos de emergência</span>
             </div>
             <div className="flex items-start gap-3 text-sm text-[#F2F2F2]">
-              <Shield className="w-5 h-5 text-[#A855F7] mt-0.5" />
+              <Shield className="w-5 h-5 text-[#F472B6] mt-0.5" />
               <span>Compartilhar sua localização em tempo real</span>
             </div>
 
-            <div className="pt-4 border-t border-[#A855F7]/20">
+            <div className="pt-4 border-t border-[#F472B6]/20">
               <p className="text-xs text-[#F2F2F2]/60 mb-4">
                 Use apenas em caso de emergência real. Falso alarme pode resultar em penalidades.
               </p>
@@ -174,7 +174,7 @@ export default function EmergencyButton({ ride, user }) {
                 <Button
                   onClick={() => setShowConfirm(false)}
                   variant="outline"
-                  className="flex-1 border-[#A855F7]/30"
+                  className="flex-1 border-[#F472B6]/30"
                 >
                   Cancelar
                 </Button>
@@ -213,7 +213,7 @@ export default function EmergencyButton({ ride, user }) {
             <div className="grid grid-cols-2 gap-3">
               <Button
                 onClick={callEmergency}
-                className="bg-[#A855F7] hover:bg-[#7C3AED] text-white py-6"
+                className="bg-[#F472B6] hover:bg-[#EC4899] text-white py-6"
               >
                 <Phone className="w-5 h-5 mr-2" />
                 Ligar Central

@@ -78,21 +78,21 @@ export default function ContactWhatsAppModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={e => e.stopPropagation()}
-            className="relative bg-gradient-to-br from-[#1a1a2e] to-[#0D0D0D] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-[#A855F7]/20 max-h-[90vh] overflow-y-auto"
+            className="relative bg-gradient-to-br from-[#1a1a2e] to-[#0D0D0D] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-[#F472B6]/20 max-h-[90vh] overflow-y-auto"
           >
             <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition">
               <X size={22} />
             </button>
 
             <div className="flex justify-center mb-4">
-              <div className="bg-[#A855F7] rounded-full p-4">
+              <div className="bg-[#F472B6] rounded-full p-4">
                 <MessageCircle size={30} className="text-white" />
               </div>
             </div>
 
             <h2 className="text-xl font-bold text-white text-center mb-2">Corrida de Longa Distância</h2>
             <p className="text-gray-400 text-center text-sm mb-4">
-              Para corridas acima de <span className="text-[#A855F7] font-semibold">35 km</span>, entre em contato para um orçamento personalizado.
+              Para corridas acima de <span className="text-[#F472B6] font-semibold">35 km</span>, entre em contato para um orçamento personalizado.
             </p>
 
             {/* Info da rota */}
@@ -111,7 +111,7 @@ export default function ContactWhatsAppModal({
               )}
               <div className="flex justify-between">
                 <span className="text-gray-400">Distância:</span>
-                <span className="text-[#A855F7] font-bold">{Math.round(distance || 0)} km</span>
+                <span className="text-[#F472B6] font-bold">{Math.round(distance || 0)} km</span>
               </div>
             </div>
 
@@ -160,7 +160,7 @@ export default function ContactWhatsAppModal({
                       value={customPrice}
                       onChange={handlePriceChange}
                       placeholder="0,00"
-                      className="w-full bg-[#0D0D0D] text-white text-2xl font-bold pl-12 pr-4 py-3 rounded-xl border-2 border-[#F2F2F2]/10 focus:border-[#A855F7] outline-none transition"
+                      className="w-full bg-[#0D0D0D] text-white text-2xl font-bold pl-12 pr-4 py-3 rounded-xl border-2 border-[#F2F2F2]/10 focus:border-[#F472B6] outline-none transition"
                       autoFocus
                     />
                   </div>
@@ -170,7 +170,7 @@ export default function ContactWhatsAppModal({
                   <button
                     onClick={handleSubmitPrice}
                     disabled={loading || !customPrice}
-                    className="w-full bg-[#A855F7] hover:bg-[#7C3AED] disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition"
+                    className="w-full bg-[#F472B6] hover:bg-[#EC4899] disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition"
                   >
                     {loading ? 'Processando...' : 'Confirmar e Solicitar Corrida'}
                   </button>

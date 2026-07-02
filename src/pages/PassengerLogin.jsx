@@ -136,7 +136,7 @@ export default function PassengerLogin() {
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-[#F2F2F2] mb-4">
             Viaje com<br />
-            <span className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#EC4899] to-[#F472B6] bg-clip-text text-transparent">
               Segurança Total
             </span>
           </h1>
@@ -145,15 +145,15 @@ export default function PassengerLogin() {
           </p>
           <div className="flex flex-col gap-3 justify-center lg:justify-start">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">100% Seguro e verificado</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Motoristas mulheres</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Suporte 24/7</span>
             </div>
           </div>
@@ -164,9 +164,9 @@ export default function PassengerLogin() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#A855F7]/30 shadow-2xl">
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F472B6]/30 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#A855F7]/50">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center shadow-lg shadow-[#F472B6]/50">
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -193,7 +193,7 @@ export default function PassengerLogin() {
                           placeholder="Seu nome completo"
                           value={formData.full_name}
                           onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                          className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                          className="bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                           required
                         />
                       </div>
@@ -204,7 +204,7 @@ export default function PassengerLogin() {
                           placeholder="000.000.000-00"
                           value={formData.cpf}
                           onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                          className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                          className="bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                           required
                         />
                       </div>
@@ -215,20 +215,20 @@ export default function PassengerLogin() {
                           type="date"
                           value={formData.birth_date}
                           onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                          className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7]"
+                          className="bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6]"
                           required
                         />
                       </div>
 
                       <div>
                         <label className="text-sm text-[#F2F2F2]/70 mb-2 block">Foto de Identificação</label>
-                        <div className="border-2 border-dashed border-[#A855F7]/30 rounded-xl p-6 text-center">
+                        <div className="border-2 border-dashed border-[#F472B6]/30 rounded-xl p-6 text-center">
                           {photoPreview ? (
                             <div className="space-y-3">
                               <img 
                                 src={photoPreview} 
                                 alt="Preview" 
-                                className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#A855F7]"
+                                className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#F472B6]"
                               />
                               <label>
                                 <input
@@ -238,14 +238,14 @@ export default function PassengerLogin() {
                                   className="hidden"
                                   onChange={handlePhotoCapture}
                                 />
-                                <Button type="button" variant="outline" className="border-[#A855F7]/30 text-[#A855F7]">
+                                <Button type="button" variant="outline" className="border-[#F472B6]/30 text-[#F472B6]">
                                   Tirar Outra Foto
                                 </Button>
                               </label>
                             </div>
                           ) : (
                             <>
-                              <Camera className="w-12 h-12 text-[#A855F7] mx-auto mb-3" />
+                              <Camera className="w-12 h-12 text-[#F472B6] mx-auto mb-3" />
                               <p className="text-[#F2F2F2] mb-2">Tire uma foto para identificação</p>
                               <label>
                                 <input
@@ -255,7 +255,7 @@ export default function PassengerLogin() {
                                   className="hidden"
                                   onChange={handlePhotoCapture}
                                 />
-                                <Button type="button" variant="outline" className="border-[#A855F7]/30 text-[#A855F7]">
+                                <Button type="button" variant="outline" className="border-[#F472B6]/30 text-[#F472B6]">
                                   <Camera className="w-4 h-4 mr-2" />
                                   Tirar Foto
                                 </Button>
@@ -293,7 +293,7 @@ export default function PassengerLogin() {
                     className={`w-full py-6 text-lg shadow-lg ${
                       !canSubmit 
                         ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed opacity-50' 
-                        : 'btn-gradient shadow-[#A855F7]/30'
+                        : 'btn-gradient shadow-[#F472B6]/30'
                     }`}
                   >
                     {loading ? 'Carregando...' : (isRegister ? 'Criar Conta' : 'Continuar')}
@@ -304,17 +304,17 @@ export default function PassengerLogin() {
             <div className="mt-6 text-center">
               <button
                 onClick={() => setIsRegister(!isRegister)}
-                className="text-[#A855F7] hover:underline"
+                className="text-[#F472B6] hover:underline"
               >
                 {isRegister ? 'Já tem conta? Faça login' : 'Primeira vez? Cadastre-se'}
               </button>
             </div>
 
             <div className="mt-4 text-center space-y-2">
-              <Link to={createPageUrl('PhoneLogin')} className="text-[#A855F7]/80 hover:text-[#A855F7] text-sm block">
+              <Link to={createPageUrl('PhoneLogin')} className="text-[#F472B6]/80 hover:text-[#F472B6] text-sm block">
                 📱 Entrar com código SMS (sem senha)
               </Link>
-              <Link to={createPageUrl('DriverLogin')} className="text-[#F2F2F2]/60 hover:text-[#A855F7] text-sm block">
+              <Link to={createPageUrl('DriverLogin')} className="text-[#F2F2F2]/60 hover:text-[#F472B6] text-sm block">
                 É motorista? Clique aqui
               </Link>
             </div>

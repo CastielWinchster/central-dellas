@@ -202,7 +202,7 @@ export default function DriverVehicle() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -227,10 +227,10 @@ export default function DriverVehicle() {
         {/* Estado vazio */}
         {!vehicle && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="bg-[#1A1A1A] border-[#A855F7]/20 rounded-3xl">
+            <Card className="bg-[#1A1A1A] border-[#F472B6]/20 rounded-3xl">
               <CardContent className="p-10 flex flex-col items-center text-center gap-6">
-                <div className="w-20 h-20 rounded-full bg-[#A855F7]/10 flex items-center justify-center">
-                  <Car className="w-10 h-10 text-[#A855F7]/50" />
+                <div className="w-20 h-20 rounded-full bg-[#F472B6]/10 flex items-center justify-center">
+                  <Car className="w-10 h-10 text-[#F472B6]/50" />
                 </div>
                 <div>
                   <p className="text-[#F2F2F2]/60 text-lg mb-1">Nenhum veículo cadastrado ainda</p>
@@ -248,7 +248,7 @@ export default function DriverVehicle() {
         {/* Card do veículo */}
         {vehicle && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="bg-[#1A1A1A] border-[#A855F7]/30 rounded-3xl overflow-hidden">
+            <Card className="bg-[#1A1A1A] border-[#F472B6]/30 rounded-3xl overflow-hidden">
               {vehicle.photo_url ? (
                 <div className="w-full h-52 overflow-hidden">
                   <img
@@ -259,8 +259,8 @@ export default function DriverVehicle() {
                   />
                 </div>
               ) : (
-                <div className="w-full h-36 bg-[#A855F7]/5 flex items-center justify-center">
-                  <Car className="w-16 h-16 text-[#A855F7]/25" />
+                <div className="w-full h-36 bg-[#F472B6]/5 flex items-center justify-center">
+                  <Car className="w-16 h-16 text-[#F472B6]/25" />
                 </div>
               )}
 
@@ -272,12 +272,12 @@ export default function DriverVehicle() {
                   </p>
                 )}
 
-                <div className="mt-4 inline-block px-5 py-2 rounded-xl border-2 border-[#A855F7]/60 bg-[#A855F7]/10">
-                  <p className="text-xl font-bold tracking-widest text-[#A855F7]">{vehicle.plate}</p>
+                <div className="mt-4 inline-block px-5 py-2 rounded-xl border-2 border-[#F472B6]/60 bg-[#F472B6]/10">
+                  <p className="text-xl font-bold tracking-widest text-[#F472B6]">{vehicle.plate}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 mt-4">
-                  <span className="px-3 py-1 rounded-full bg-[#A855F7]/20 text-[#A855F7] text-sm font-medium">
+                  <span className="px-3 py-1 rounded-full bg-[#F472B6]/20 text-[#F472B6] text-sm font-medium">
                     {CATEGORY_LABELS[vehicle.category] || vehicle.category}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -288,7 +288,7 @@ export default function DriverVehicle() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mt-6">
-                  <Button onClick={openEdit} variant="outline" className="py-5 rounded-2xl border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10">
+                  <Button onClick={openEdit} variant="outline" className="py-5 rounded-2xl border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10">
                     <Pencil className="w-4 h-4 mr-2" />
                     Editar veículo
                   </Button>
@@ -324,10 +324,10 @@ export default function DriverVehicle() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#1A1A1A] border border-[#A855F7]/30"
+              className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#1A1A1A] border border-[#F472B6]/30"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-[#A855F7]/10">
+              <div className="flex items-center justify-between p-6 border-b border-[#F472B6]/10">
                 <div>
                   <h2 className="text-xl font-bold text-[#F2F2F2]">
                     {isEditing ? 'Editar veículo' : 'Cadastrar veículo'}
@@ -351,15 +351,15 @@ export default function DriverVehicle() {
                         key={photoPreview}
                         src={photoPreview}
                         alt="Veículo"
-                        className="w-28 h-16 object-cover rounded-xl border border-[#A855F7]/30 flex-shrink-0"
+                        className="w-28 h-16 object-cover rounded-xl border border-[#F472B6]/30 flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-24 h-16 rounded-xl border border-dashed border-[#A855F7]/30 bg-[#A855F7]/5 flex items-center justify-center flex-shrink-0">
-                        <Car className="w-8 h-8 text-[#A855F7]/30" />
+                      <div className="w-24 h-16 rounded-xl border border-dashed border-[#F472B6]/30 bg-[#F472B6]/5 flex items-center justify-center flex-shrink-0">
+                        <Car className="w-8 h-8 text-[#F472B6]/30" />
                       </div>
                     )}
                     <div className="flex flex-col gap-2">
-                      <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#A855F7]/30 text-[#A855F7] text-sm cursor-pointer hover:bg-[#A855F7]/10 transition-colors">
+                      <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#F472B6]/30 text-[#F472B6] text-sm cursor-pointer hover:bg-[#F472B6]/10 transition-colors">
                         <input
                           ref={photoInputRef}
                           type="file"
@@ -393,7 +393,7 @@ export default function DriverVehicle() {
                       value={formData.brand}
                       onChange={e => setFormData(p => ({ ...p, brand: e.target.value }))}
                       placeholder="Ex: Chevrolet"
-                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
+                      className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
                     />
                   </div>
                   <div>
@@ -402,7 +402,7 @@ export default function DriverVehicle() {
                       value={formData.model}
                       onChange={e => setFormData(p => ({ ...p, model: e.target.value }))}
                       placeholder="Ex: Onix"
-                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
+                      className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
                     />
                   </div>
                 </div>
@@ -414,7 +414,7 @@ export default function DriverVehicle() {
                     value={formData.plate}
                     onChange={e => setFormData(p => ({ ...p, plate: e.target.value.toUpperCase() }))}
                     placeholder="Ex: ABC1D23"
-                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30 font-mono"
+                    className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30 font-mono"
                     maxLength={8}
                   />
                 </div>
@@ -430,7 +430,7 @@ export default function DriverVehicle() {
                       placeholder={String(CURRENT_YEAR)}
                       min={1980}
                       max={CURRENT_YEAR}
-                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
+                      className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
                     />
                   </div>
                   <div>
@@ -439,7 +439,7 @@ export default function DriverVehicle() {
                       value={formData.color}
                       onChange={e => setFormData(p => ({ ...p, color: e.target.value }))}
                       placeholder="Ex: Prata"
-                      className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
+                      className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] placeholder:text-[#F2F2F2]/30"
                     />
                   </div>
                 </div>
@@ -455,8 +455,8 @@ export default function DriverVehicle() {
                         onClick={() => setFormData(p => ({ ...p, category: value }))}
                         className={`py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                           formData.category === value
-                            ? 'border-[#A855F7] bg-[#A855F7]/10 text-[#A855F7]'
-                            : 'border-[#A855F7]/15 bg-[#0D0D0D] text-[#F2F2F2]/50 hover:border-[#A855F7]/30'
+                            ? 'border-[#F472B6] bg-[#F472B6]/10 text-[#F472B6]'
+                            : 'border-[#F472B6]/15 bg-[#0D0D0D] text-[#F2F2F2]/50 hover:border-[#F472B6]/30'
                         }`}
                       >
                         {label}
@@ -470,7 +470,7 @@ export default function DriverVehicle() {
                   <Button
                     variant="outline"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 py-5 rounded-2xl border-[#A855F7]/20 text-[#F2F2F2]/60 hover:text-[#F2F2F2]"
+                    className="flex-1 py-5 rounded-2xl border-[#F472B6]/20 text-[#F2F2F2]/60 hover:text-[#F2F2F2]"
                     disabled={saving}
                   >
                     Cancelar

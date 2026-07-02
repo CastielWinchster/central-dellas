@@ -9,8 +9,8 @@ const CATEGORY_LABELS = { standard: 'Padrão', premium: 'Premium', suv: 'SUV' };
 export default function VehicleCard({ vehicle }) {
   if (!vehicle) {
     return (
-      <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#A855F7]/10 flex items-center gap-3">
-        <Car className="w-8 h-8 text-[#A855F7]/30 flex-shrink-0" />
+      <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F472B6]/10 flex items-center gap-3">
+        <Car className="w-8 h-8 text-[#F472B6]/30 flex-shrink-0" />
         <p className="text-sm text-[#F2F2F2]/40 italic">Veículo não cadastrado</p>
       </Card>
     );
@@ -20,7 +20,7 @@ export default function VehicleCard({ vehicle }) {
   const categoryLabel = CATEGORY_LABELS[vehicle.category] || vehicle.category || '';
 
   return (
-    <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#A855F7]/10">
+    <Card className="p-4 rounded-2xl bg-[#F2F2F2]/5 border-[#F472B6]/10">
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Info */}
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
@@ -32,7 +32,7 @@ export default function VehicleCard({ vehicle }) {
           )}
           {vehicle.plate && (
             <div className="mt-1 inline-flex">
-              <span className="px-3 py-0.5 rounded-lg border-2 border-[#A855F7]/50 bg-[#A855F7]/10 font-mono font-bold text-sm text-[#A855F7] tracking-widest">
+              <span className="px-3 py-0.5 rounded-lg border-2 border-[#F472B6]/50 bg-[#F472B6]/10 font-mono font-bold text-sm text-[#F472B6] tracking-widest">
                 {vehicle.plate}
               </span>
             </div>

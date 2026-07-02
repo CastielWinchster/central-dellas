@@ -14,7 +14,7 @@ export default function RideChatMessage({ message, isOwn }) {
         className={cn(
           'max-w-[75%] px-4 py-2 rounded-2xl shadow-sm',
           isOwn
-            ? 'bg-gradient-to-br from-[#7C3AED] to-[#A855F7] text-white rounded-br-md'
+            ? 'bg-gradient-to-br from-[#EC4899] to-[#F472B6] text-white rounded-br-md'
             : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
         )}
       >

@@ -25,9 +25,9 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; background: #fff; color: #0D0D0D; }
-            .receipt { max-width: 600px; margin: 0 auto; border: 2px solid #A855F7; border-radius: 20px; padding: 40px; }
+            .receipt { max-width: 600px; margin: 0 auto; border: 2px solid #F472B6; border-radius: 20px; padding: 40px; }
             .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #F2F2F2; }
-            .logo { font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+            .logo { font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
             .subtitle { color: #666; font-size: 14px; }
             .section { margin-bottom: 30px; }
             .section-title { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
@@ -40,9 +40,9 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
             .driver-info { display: flex; align-items: center; gap: 15px; padding: 15px; background: #F2F2F2; border-radius: 10px; }
             .driver-name { font-weight: 600; margin-bottom: 5px; }
             .driver-rating { color: #666; font-size: 14px; }
-            .total { margin-top: 30px; padding-top: 20px; border-top: 3px solid #A855F7; text-align: right; }
+            .total { margin-top: 30px; padding-top: 20px; border-top: 3px solid #F472B6; text-align: right; }
             .total-label { font-size: 18px; color: #666; margin-bottom: 5px; }
-            .total-value { font-size: 36px; font-weight: bold; color: #A855F7; }
+            .total-value { font-size: 36px; font-weight: bold; color: #F472B6; }
             .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #F2F2F2; color: #666; font-size: 12px; }
             .status-badge { display: inline-block; padding: 6px 16px; background: #dcfce7; color: #16a34a; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }
             @media print { body { padding: 0; } .receipt { border: none; } }
@@ -178,9 +178,9 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#7C3AED] to-[#A855F7] bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#EC4899] to-[#F472B6] bg-clip-text text-transparent">
             Recibo da Corrida
           </DialogTitle>
         </DialogHeader>
@@ -201,12 +201,12 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           {/* Receipt ID */}
           <div className="text-center">
             <p className="text-[#F2F2F2]/50 text-sm mb-1">ID da Corrida</p>
-            <p className="text-[#A855F7] font-mono font-semibold">#{ride.id.slice(0, 8).toUpperCase()}</p>
+            <p className="text-[#F472B6] font-mono font-semibold">#{ride.id.slice(0, 8).toUpperCase()}</p>
           </div>
 
           {/* Route */}
-          <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#A855F7]/10">
-            <h3 className="text-sm font-semibold text-[#A855F7] mb-3 flex items-center gap-2">
+          <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#F472B6]/10">
+            <h3 className="text-sm font-semibold text-[#F472B6] mb-3 flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Trajeto
             </h3>
@@ -219,7 +219,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-3 h-3 rounded-full bg-[#A855F7] mt-1.5 flex-shrink-0" />
+                <div className="w-3 h-3 rounded-full bg-[#F472B6] mt-1.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-[#F2F2F2]/50 mb-1">Destino</p>
                   <p className="text-[#F2F2F2]">{ride.destination_address || ride.dropoff_text}</p>
@@ -231,7 +231,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-xl bg-[#F2F2F2]/5">
-              <div className="flex items-center gap-2 text-[#A855F7] mb-2">
+              <div className="flex items-center gap-2 text-[#F472B6] mb-2">
                 <Calendar className="w-4 h-4" />
                 <span className="text-xs font-medium">Data</span>
               </div>
@@ -244,7 +244,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
             </div>
 
             <div className="p-4 rounded-xl bg-[#F2F2F2]/5">
-              <div className="flex items-center gap-2 text-[#A855F7] mb-2">
+              <div className="flex items-center gap-2 text-[#F472B6] mb-2">
                 <Clock className="w-4 h-4" />
                 <span className="text-xs font-medium">Duração</span>
               </div>
@@ -255,8 +255,8 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
 
           {/* Driver Info */}
           {ride.driver && (
-            <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#A855F7]/10">
-              <h3 className="text-sm font-semibold text-[#A855F7] mb-3 flex items-center gap-2">
+            <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#F472B6]/10">
+              <h3 className="text-sm font-semibold text-[#F472B6] mb-3 flex items-center gap-2">
                 <Car className="w-4 h-4" />
                 Motorista
               </h3>
@@ -264,7 +264,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
                 <img 
                   src={ride.driver.photo}
                   alt={ride.driver.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#A855F7]"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#F472B6]"
                 />
                 <div>
                   <p className="font-semibold text-[#F2F2F2]">{ride.driver.name}</p>
@@ -278,8 +278,8 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           )}
 
           {/* Payment Details */}
-          <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#A855F7]/10">
-            <h3 className="text-sm font-semibold text-[#A855F7] mb-3 flex items-center gap-2">
+          <div className="p-4 rounded-2xl bg-[#F2F2F2]/5 border border-[#F472B6]/10">
+            <h3 className="text-sm font-semibold text-[#F472B6] mb-3 flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
               Pagamento
             </h3>
@@ -298,9 +298,9 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
                 <span className="text-[#F2F2F2]/60">Taxa de Serviço</span>
                 <span className="text-[#F2F2F2]">R$ {(finalPrice * 0.15).toFixed(2)}</span>
               </div>
-              <div className="pt-3 mt-3 border-t border-[#A855F7]/20 flex justify-between">
+              <div className="pt-3 mt-3 border-t border-[#F472B6]/20 flex justify-between">
                 <span className="font-semibold text-[#F2F2F2]">Total</span>
-                <span className="text-2xl font-bold text-[#A855F7]">R$ {finalPrice.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-[#F472B6]">R$ {finalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -311,7 +311,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
               <Button
                 onClick={handleShare}
                 variant="outline"
-                className="border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
+                className="border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Compartilhar
@@ -335,7 +335,7 @@ export default function ReceiptDialog({ ride, isOpen, onClose }) {
           </div>
 
           {/* Footer */}
-          <div className="text-center pt-4 border-t border-[#A855F7]/10">
+          <div className="text-center pt-4 border-t border-[#F472B6]/10">
             <p className="text-xs text-[#F2F2F2]/50">
               Central Dellas - Mobilidade Urbana Segura 💕
             </p>

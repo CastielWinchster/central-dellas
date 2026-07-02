@@ -93,17 +93,17 @@ export default function ShareRideButton({ ride, passenger }) {
       <Button
         onClick={handleShare}
         variant="outline"
-        className="border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10"
+        className="border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10"
       >
         <Share2 className="w-4 h-4 mr-2" />
         Compartilhar Trajeto
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2] max-w-md">
+        <DialogContent className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-[#F2F2F2] flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#A855F7]" />
+              <Users className="w-5 h-5 text-[#F472B6]" />
               Compartilhar Trajeto em Tempo Real
             </DialogTitle>
             <DialogDescription className="text-[#F2F2F2]/60">
@@ -120,12 +120,12 @@ export default function ShareRideButton({ ride, passenger }) {
                   <Input
                     value={shareLink}
                     readOnly
-                    className="bg-[#F2F2F2]/5 border-[#A855F7]/20 text-[#F2F2F2] text-sm"
+                    className="bg-[#F2F2F2]/5 border-[#F472B6]/20 text-[#F2F2F2] text-sm"
                   />
                   <Button
                     onClick={copyToClipboard}
                     size="icon"
-                    className={`${copied ? 'bg-green-500' : 'bg-[#A855F7]'} hover:opacity-80`}
+                    className={`${copied ? 'bg-green-500' : 'bg-[#F472B6]'} hover:opacity-80`}
                   >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
@@ -141,7 +141,7 @@ export default function ShareRideButton({ ride, passenger }) {
             )}
 
             {/* Contatos de Confiança */}
-            <div className="space-y-3 pt-4 border-t border-[#A855F7]/10">
+            <div className="space-y-3 pt-4 border-t border-[#F472B6]/10">
               <div className="flex items-center justify-between">
                 <label className="text-sm text-[#F2F2F2]/80 font-semibold">
                   Contatos de Confiança
@@ -150,25 +150,25 @@ export default function ShareRideButton({ ride, passenger }) {
                   onClick={addContact}
                   size="sm"
                   variant="outline"
-                  className="border-[#A855F7]/30 text-[#A855F7]"
+                  className="border-[#F472B6]/30 text-[#F472B6]"
                 >
                   + Adicionar
                 </Button>
               </div>
 
               {contacts.map((contact, index) => (
-                <div key={index} className="space-y-2 p-3 rounded-lg bg-[#F2F2F2]/5 border border-[#A855F7]/10">
+                <div key={index} className="space-y-2 p-3 rounded-lg bg-[#F2F2F2]/5 border border-[#F472B6]/10">
                   <Input
                     placeholder="Nome (ex: Mãe, Namorado)"
                     value={contact.name}
                     onChange={(e) => updateContact(index, 'name', e.target.value)}
-                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2]"
                   />
                   <Input
                     placeholder="Telefone (ex: +5511999999999)"
                     value={contact.phone}
                     onChange={(e) => updateContact(index, 'phone', e.target.value)}
-                    className="bg-[#0D0D0D] border-[#A855F7]/20 text-[#F2F2F2]"
+                    className="bg-[#0D0D0D] border-[#F472B6]/20 text-[#F2F2F2]"
                   />
                 </div>
               ))}
@@ -176,14 +176,14 @@ export default function ShareRideButton({ ride, passenger }) {
               <Button
                 onClick={saveContacts}
                 variant="outline"
-                className="w-full border-[#A855F7]/30 text-[#A855F7]"
+                className="w-full border-[#F472B6]/30 text-[#F472B6]"
               >
                 Salvar Contatos
               </Button>
             </div>
 
             {/* Info */}
-            <div className="p-3 rounded-lg bg-[#7C3AED]/10 border border-[#A855F7]/20">
+            <div className="p-3 rounded-lg bg-[#EC4899]/10 border border-[#F472B6]/20">
               <p className="text-xs text-[#F2F2F2]/70">
                 💡 O link de rastreamento expira em 24 horas ou quando a corrida terminar. 
                 Seus contatos verão sua localização atualizada a cada 5 segundos.

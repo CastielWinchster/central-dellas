@@ -106,15 +106,15 @@ export default function MigrationMetrics() {
       name: 'Admin', 
       count: metrics.adminRides, 
       icon: Monitor, 
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-500/10',
-      textColor: 'text-purple-500'
+      color: 'from-pink-500 to-pink-600',
+      bgColor: 'bg-pink-500/10',
+      textColor: 'text-pink-500'
     }
   ];
 
   if (loading) {
     return (
-      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10">
+      <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10">
         <CardContent className="p-6">
           <div className="text-center text-[#F2F2F2]/60">Carregando métricas...</div>
         </CardContent>
@@ -125,10 +125,10 @@ export default function MigrationMetrics() {
   return (
     <div className="space-y-6">
       {/* Main Progress Card */}
-      <Card className="bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border-[#A855F7]/30">
+      <Card className="bg-gradient-to-br from-[#EC4899]/20 to-[#F472B6]/20 border-[#F472B6]/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
-            <Target className="w-5 h-5 text-[#A855F7]" />
+            <Target className="w-5 h-5 text-[#F472B6]" />
             Meta de Migração para App
           </CardTitle>
         </CardHeader>
@@ -136,7 +136,7 @@ export default function MigrationMetrics() {
           <div className="space-y-4">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-5xl font-bold text-[#A855F7]">{metrics.appPercentage}%</p>
+                <p className="text-5xl font-bold text-[#F472B6]">{metrics.appPercentage}%</p>
                 <p className="text-[#F2F2F2]/60">das corridas via App</p>
               </div>
               <div className="text-right">
@@ -151,7 +151,7 @@ export default function MigrationMetrics() {
                 initial={{ width: 0 }}
                 animate={{ width: `${metrics.appPercentage}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-full"
+                className="h-full bg-gradient-to-r from-[#EC4899] to-[#F472B6] rounded-full"
               />
               <div 
                 className="absolute top-0 h-full w-0.5 bg-white/50"
@@ -179,7 +179,7 @@ export default function MigrationMetrics() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10">
+            <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10">
               <CardContent className="p-4">
                 <div className={`w-12 h-12 rounded-xl ${source.bgColor} flex items-center justify-center mb-3`}>
                   <source.icon className={`w-6 h-6 ${source.textColor}`} />
@@ -198,10 +198,10 @@ export default function MigrationMetrics() {
       </div>
 
       {/* 7-Day Trend */}
-      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10">
+      <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#F2F2F2]">
-            <TrendingUp className="w-5 h-5 text-[#A855F7]" />
+            <TrendingUp className="w-5 h-5 text-[#F472B6]" />
             Tendência dos Últimos 7 Dias
           </CardTitle>
         </CardHeader>
@@ -217,7 +217,7 @@ export default function MigrationMetrics() {
                     initial={{ width: 0 }}
                     animate={{ width: `${day.percentage}%` }}
                     transition={{ delay: index * 0.1 }}
-                    className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A855F7] rounded-lg flex items-center justify-end pr-2"
+                    className="h-full bg-gradient-to-r from-[#EC4899] to-[#F472B6] rounded-lg flex items-center justify-end pr-2"
                   >
                     {day.percentage > 15 && (
                       <span className="text-white text-xs font-semibold">{day.percentage}%</span>

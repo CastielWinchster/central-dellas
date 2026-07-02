@@ -113,12 +113,12 @@ export default function PriceValidationModal({ ride, onValidated, onCancel }) {
           className="w-full sm:max-w-md"
           style={{ borderRadius: '24px 24px 0 0' }}
         >
-          <div className="bg-[#1a1a2e] border-t-2 border-[#A855F7] rounded-t-3xl sm:rounded-3xl p-6 space-y-5">
+          <div className="bg-[#1a1a2e] border-t-2 border-[#F472B6] rounded-t-3xl sm:rounded-3xl p-6 space-y-5">
 
             {/* Header */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#A855F7]/20 flex items-center justify-center">
-                <Lock className="w-6 h-6 text-[#A855F7]" />
+              <div className="w-12 h-12 rounded-full bg-[#F472B6]/20 flex items-center justify-center">
+                <Lock className="w-6 h-6 text-[#F472B6]" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white">Confirmar Valor da Corrida</h2>
@@ -135,13 +135,13 @@ export default function PriceValidationModal({ ride, onValidated, onCancel }) {
                 <span className="text-gray-300 line-clamp-2">{ride?.pickup_text}</span>
               </div>
               <div className="flex items-start gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#A855F7] mt-1 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#F472B6] mt-1 flex-shrink-0" />
                 <span className="text-gray-300 line-clamp-2">{ride?.dropoff_text}</span>
               </div>
               {!isCustomPrice && (
                 <div className="pt-2 border-t border-white/10 flex justify-between">
                   <span className="text-gray-400">Valor calculado:</span>
-                  <span className="text-[#A855F7] font-bold">R$ {systemPrice?.toFixed(2).replace('.', ',')}</span>
+                  <span className="text-[#F472B6] font-bold">R$ {systemPrice?.toFixed(2).replace('.', ',')}</span>
                 </div>
               )}
               {isCustomPrice && (
@@ -163,7 +163,7 @@ export default function PriceValidationModal({ ride, onValidated, onCancel }) {
                   onChange={handlePriceChange}
                   placeholder="0,00"
                   disabled={blocked}
-                  className="w-full bg-[#0D0D0D] text-white text-2xl font-bold pl-14 pr-4 py-4 rounded-xl border-2 border-white/10 focus:border-[#A855F7] outline-none transition disabled:opacity-40"
+                  className="w-full bg-[#0D0D0D] text-white text-2xl font-bold pl-14 pr-4 py-4 rounded-xl border-2 border-white/10 focus:border-[#F472B6] outline-none transition disabled:opacity-40"
                   autoFocus
                 />
               </div>

@@ -148,7 +148,7 @@ export default function PassengerOptions() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -156,7 +156,7 @@ export default function PassengerOptions() {
   return (
     <div className="fixed inset-0 bg-[#0D0D0D] flex flex-col">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#7C3AED] p-4 sticky top-0 z-50">
+      <div className="flex-shrink-0 bg-[#0D0D0D] border-b-2 border-[#EC4899] p-4 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-end">
           <Link to={createPageUrl('PassengerHome')}>
             <Button variant="ghost" size="sm" className="text-[#F2F2F2]">
@@ -173,20 +173,20 @@ export default function PassengerOptions() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#7C3AED]"
+            className="mb-6 p-6 rounded-2xl bg-[#1A1A1A] border border-[#EC4899]"
           >
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
-                <div className="w-20 h-20 min-w-[80px] rounded-full overflow-hidden border-4 border-[#A855F7]">
+                <div className="w-20 h-20 min-w-[80px] rounded-full overflow-hidden border-4 border-[#F472B6]">
                   {user.photo_url ? (
                     <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
                       <User className="w-10 h-10 text-white/80" />
                     </div>
                   )}
                 </div>
-                <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#A855F7] flex items-center justify-center cursor-pointer hover:bg-[#7C3AED] transition-colors">
+                <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#F472B6] flex items-center justify-center cursor-pointer hover:bg-[#EC4899] transition-colors">
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                   {uploading ? (
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -211,11 +211,11 @@ export default function PassengerOptions() {
               transition={{ delay: sectionIndex * 0.05 }}
               className="mb-6"
             >
-              <h3 className="text-xs font-bold text-[#7C3AED] mb-3 uppercase tracking-wider px-2">
+              <h3 className="text-xs font-bold text-[#EC4899] mb-3 uppercase tracking-wider px-2">
                 {section.title}
               </h3>
               
-              <div className="bg-[#1A1A1A] border border-[#7C3AED] rounded-2xl overflow-hidden">
+              <div className="bg-[#1A1A1A] border border-[#EC4899] rounded-2xl overflow-hidden">
                 {section.items.map((item, index) => {
                   if (item.disabled) {
                     return (
@@ -247,10 +247,10 @@ export default function PassengerOptions() {
                       }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[#A855F7]/20 flex items-center justify-center group-hover:bg-[#A855F7]/30 transition-colors relative">
-                          <item.icon className="w-6 h-6 text-[#A855F7]" />
+                        <div className="w-12 h-12 rounded-xl bg-[#F472B6]/20 flex items-center justify-center group-hover:bg-[#F472B6]/30 transition-colors relative">
+                          <item.icon className="w-6 h-6 text-[#F472B6]" />
                           {item.page === 'PassengerNotifications' && unreadCount > 0 && (
-                            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#A855F7] flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[#F472B6] flex items-center justify-center">
                               <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
@@ -260,7 +260,7 @@ export default function PassengerOptions() {
                           <p className="text-sm text-[#CCCCCC] text-left">{item.description}</p>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#A855F7] transition-colors" />
+                      <ChevronRight className="w-5 h-5 text-[#F2F2F2]/30 group-hover:text-[#F472B6] transition-colors" />
                     </Link>
                   );
                 })}

@@ -99,21 +99,21 @@ export default function PassengerNotifications() {
   const getNotificationColor = (type) => {
     switch (type) {
       case 'coupon':
-        return 'text-[#A855F7] bg-[#A855F7]/10';
+        return 'text-[#F472B6] bg-[#F472B6]/10';
       case 'ride':
         return 'text-blue-400 bg-blue-400/10';
       case 'event':
-        return 'text-purple-400 bg-purple-400/10';
+        return 'text-pink-400 bg-pink-400/10';
       case 'system':
       default:
-        return 'text-[#7C3AED] bg-[#7C3AED]/10';
+        return 'text-[#EC4899] bg-[#EC4899]/10';
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -146,8 +146,8 @@ export default function PassengerNotifications() {
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 rounded-full bg-[#A855F7]/10 flex items-center justify-center mb-4">
-              <Bell className="w-10 h-10 text-[#A855F7]/50" />
+            <div className="w-20 h-20 rounded-full bg-[#F472B6]/10 flex items-center justify-center mb-4">
+              <Bell className="w-10 h-10 text-[#F472B6]/50" />
             </div>
             <p className="text-[#F2F2F2]/60 text-center">Nenhuma notificação</p>
           </div>
@@ -164,7 +164,7 @@ export default function PassengerNotifications() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className={`p-4 bg-[#1A1A1A] border-[#A855F7]/20 rounded-2xl ${!notification.is_read ? 'border-[#A855F7]/40' : ''}`}>
+                  <Card className={`p-4 bg-[#1A1A1A] border-[#F472B6]/20 rounded-2xl ${!notification.is_read ? 'border-[#F472B6]/40' : ''}`}>
                     <div className="flex gap-3">
                       <div className={`w-10 h-10 rounded-xl ${colorClass} flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-5 h-5" />
@@ -176,7 +176,7 @@ export default function PassengerNotifications() {
                             {notification.title}
                           </h3>
                           {!notification.is_read && (
-                            <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+                            <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
                           )}
                         </div>
                         
@@ -193,7 +193,7 @@ export default function PassengerNotifications() {
                             {!notification.is_read && (
                               <button
                                 onClick={() => handleMarkAsRead(notification.id)}
-                                className="text-xs text-[#7C3AED] hover:text-[#A855F7] transition-colors flex items-center gap-1"
+                                className="text-xs text-[#EC4899] hover:text-[#F472B6] transition-colors flex items-center gap-1"
                               >
                                 <Check className="w-3 h-3" />
                                 Marcar como lida

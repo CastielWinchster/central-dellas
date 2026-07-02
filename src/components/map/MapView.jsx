@@ -96,15 +96,15 @@ const DestinationMarker = () => (
         100% { opacity: 1; transform: scale(1) translateY(0); }
       }
       @keyframes destGlow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(168,85,247,0.5), 0 4px 20px rgba(168,85,247,0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(168,85,247,0), 0 4px 20px rgba(168,85,247,0.4); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(244,114,182,0.5), 0 4px 20px rgba(244,114,182,0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(244,114,182,0), 0 4px 20px rgba(244,114,182,0.4); }
       }
       .dest-marker {
         animation: destIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both, destGlow 2s 0.5s ease-in-out infinite;
       }
     `}</style>
     <div className="dest-marker" style={{
-      background: 'linear-gradient(135deg, #5B21B6 0%, #A855F7 100%)',
+      background: 'linear-gradient(135deg, #BE185D 0%, #F472B6 100%)',
       borderRadius: '50% 50% 50% 0',
       padding: 10,
       border: '2.5px solid white',
@@ -117,7 +117,7 @@ const DestinationMarker = () => (
     <div style={{
       width: 8, height: 8,
       borderRadius: '50%',
-      background: '#A855F7',
+      background: '#F472B6',
       margin: '2px auto 0',
       opacity: 0.7
     }} />
@@ -125,9 +125,9 @@ const DestinationMarker = () => (
 );
 
 const CarMarker3D = ({ tags = [], heading = 0 }) => {
-  let color = '#A855F7';
-  let glow = '168,85,247';
-  if (tags.includes('aceita_pet')) { color = '#a855f7'; glow = '168,85,247'; }
+  let color = '#F472B6';
+  let glow = '244,114,182';
+  if (tags.includes('aceita_pet')) { color = '#F472B6'; glow = '244,114,182'; }
   else if (tags.includes('frete')) { color = '#3b82f6'; glow = '59,130,246'; }
 
   return (
@@ -493,7 +493,7 @@ export default function MapView({
   if (!tokenLoaded) {
     return (
       <div className={`relative rounded-2xl overflow-hidden h-[360px] w-full flex items-center justify-center bg-[#1a1a1a] ${className}`}>
-        <div className="flex flex-col items-center gap-3 text-[#A855F7]">
+        <div className="flex flex-col items-center gap-3 text-[#F472B6]">
           <Loader2 className="w-8 h-8 animate-spin" />
           <span className="text-sm opacity-70">Carregando mapa...</span>
         </div>
@@ -509,24 +509,24 @@ export default function MapView({
         .follow-btn {
           position: absolute; bottom: 20px; right: 20px; z-index: 10;
           width: 48px; height: 48px; border-radius: 50%;
-          background: rgba(13,13,13,0.9); border: 2px solid rgba(168,85,247,0.5);
+          background: rgba(13,13,13,0.9); border: 2px solid rgba(244,114,182,0.5);
           backdrop-filter: blur(10px);
           box-shadow: 0 4px 20px rgba(0,0,0,0.3);
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: all 0.2s;
         }
-        .follow-btn:hover { transform: scale(1.1); border-color: #A855F7; }
+        .follow-btn:hover { transform: scale(1.1); border-color: #F472B6; }
         .follow-btn.active {
-          background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-          border-color: #A855F7;
-          box-shadow: 0 4px 20px rgba(168,85,247,0.4);
+          background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%);
+          border-color: #F472B6;
+          box-shadow: 0 4px 20px rgba(244,114,182,0.4);
         }
       `}</style>
 
       {driverLocation?.lat && (
         <button
           onClick={() => mapRef.current?.flyTo({ center: [driverLocation.lng, driverLocation.lat], zoom: 17, speed: 1.5 })}
-          style={{ position: 'absolute', bottom: 76, right: 20, zIndex: 10, width: 48, height: 48, borderRadius: '50%', background: 'rgba(13,13,13,0.9)', border: '2px solid rgba(168,85,247,0.5)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+          style={{ position: 'absolute', bottom: 76, right: 20, zIndex: 10, width: 48, height: 48, borderRadius: '50%', background: 'rgba(13,13,13,0.9)', border: '2px solid rgba(244,114,182,0.5)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
           title="Centralizar na minha posição"
         >
           <Navigation className="w-5 h-5" style={{ color: 'white' }} />

@@ -25,29 +25,29 @@ const COLOR_MAP = {
   'brown': '#6b3a2a',
   'bege': '#c8b090',
   'beige': '#c8b090',
-  'rosa': '#A855F7',
-  'pink': '#A855F7',
-  'roxo': '#7a1a9a',
-  'purple': '#7a1a9a',
+  'rosa': '#F472B6',
+  'pink': '#F472B6',
+  'roxo': '#BE185D',
+  'purple': '#BE185D',
   'dourado': '#c8a020',
   'gold': '#c8a020',
   'champagne': '#d4c080',
 };
 
 function resolveColor(colorText) {
-  if (!colorText) return '#7C3AED';
+  if (!colorText) return '#EC4899';
   const lower = colorText.toLowerCase().trim();
   for (const [key, hex] of Object.entries(COLOR_MAP)) {
     if (lower.includes(key)) return hex;
   }
-  return '#7C3AED';
+  return '#EC4899';
 }
 
 // Skeleton loader
 function SkeletonLoader() {
   return (
     <div className="w-full h-full bg-[#1a1a1a] rounded-xl animate-pulse flex items-center justify-center">
-      <div className="w-16 h-8 bg-[#A855F7]/20 rounded" />
+      <div className="w-16 h-8 bg-[#F472B6]/20 rounded" />
     </div>
   );
 }
@@ -56,7 +56,7 @@ function SkeletonLoader() {
 function CarFallback() {
   return (
     <div className="w-full h-full bg-[#1a1a1a]/60 rounded-xl flex flex-col items-center justify-center gap-2">
-      <Car className="w-12 h-12 text-[#A855F7]/40" />
+      <Car className="w-12 h-12 text-[#F472B6]/40" />
       <span className="text-[10px] text-[#F2F2F2]/30">3D indisponível</span>
     </div>
   );

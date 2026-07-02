@@ -46,7 +46,7 @@ export default function AppUsers() {
 
   if (loading) {
     return (
-      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-8 text-center">
+      <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-8 text-center">
         <p className="text-[#F2F2F2]/60">Carregando usuárias...</p>
       </Card>
     );
@@ -56,17 +56,17 @@ export default function AppUsers() {
     <div className="space-y-4">
       {/* Métricas de download/cadastro */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4 text-center">
-          <UserCheck className="w-6 h-6 text-[#A855F7] mx-auto mb-1" />
+        <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4 text-center">
+          <UserCheck className="w-6 h-6 text-[#F472B6] mx-auto mb-1" />
           <p className="text-xs text-[#F2F2F2]/50">Total cadastradas</p>
           <p className="text-2xl font-bold text-[#F2F2F2]">{summary.total}</p>
         </Card>
-        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4 text-center">
+        <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4 text-center">
           <Calendar className="w-6 h-6 text-green-400 mx-auto mb-1" />
           <p className="text-xs text-[#F2F2F2]/50">Cadastros hoje</p>
           <p className="text-2xl font-bold text-green-400">{summary.today}</p>
         </Card>
-        <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4 text-center">
+        <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4 text-center">
           <Car className="w-6 h-6 text-blue-400 mx-auto mb-1" />
           <p className="text-xs text-[#F2F2F2]/50">Motoristas</p>
           <p className="text-2xl font-bold text-blue-400">{summary.drivers}</p>
@@ -74,14 +74,14 @@ export default function AppUsers() {
       </div>
 
       {/* Busca */}
-      <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4">
+      <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4">
         <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-[#A855F7] flex-shrink-0" />
+          <Search className="w-4 h-4 text-[#F472B6] flex-shrink-0" />
           <Input
             placeholder="Buscar por nome ou e-mail..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-[#0D0D0D] border-[#A855F7]/20 text-white"
+            className="bg-[#0D0D0D] border-[#F472B6]/20 text-white"
           />
         </div>
       </Card>
@@ -89,10 +89,10 @@ export default function AppUsers() {
       {/* Lista de usuárias */}
       <div className="space-y-2">
         {filtered.map((u) => (
-          <Card key={u.id} className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-4">
+          <Card key={u.id} className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
+                <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
                   {u.photo_url
                     ? <img src={u.photo_url} alt={u.full_name} className="w-full h-full object-cover" />
                     : <User className="w-5 h-5 text-white" />
@@ -109,7 +109,7 @@ export default function AppUsers() {
 
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 <div className="flex gap-1">
-                  {u.role === 'admin' && <Badge className="bg-[#A855F7]">Admin</Badge>}
+                  {u.role === 'admin' && <Badge className="bg-[#F472B6]">Admin</Badge>}
                   {(u.user_type === 'driver' || u.user_type === 'both') && (
                     <Badge className="bg-blue-500">Motorista</Badge>
                   )}
@@ -124,7 +124,7 @@ export default function AppUsers() {
         ))}
 
         {filtered.length === 0 && (
-          <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-8 text-center">
+          <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-8 text-center">
             <p className="text-[#F2F2F2]/60">Nenhuma usuária encontrada</p>
           </Card>
         )}

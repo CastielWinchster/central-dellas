@@ -105,7 +105,7 @@ export default function PhoneLogin() {
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-[#F2F2F2] mb-4">
             Acesse com<br />
-            <span className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#EC4899] to-[#F472B6] bg-clip-text text-transparent">
               seu telefone
             </span>
           </h1>
@@ -114,15 +114,15 @@ export default function PhoneLogin() {
           </p>
           <div className="flex flex-col gap-3 justify-center lg:justify-start">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Código enviado por SMS</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">Verificação em segundos</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#A855F7]" />
+              <div className="w-2 h-2 rounded-full bg-[#F472B6]" />
               <span className="text-[#F2F2F2]/60">100% seguro</span>
             </div>
           </div>
@@ -133,11 +133,11 @@ export default function PhoneLogin() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#A855F7]/30 shadow-2xl">
+          <Card className="p-8 bg-gradient-to-br from-[#1a0a1a]/80 to-[#0D0D0D]/80 backdrop-blur-xl border-[#F472B6]/30 shadow-2xl">
             
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#A855F7]/50">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center shadow-lg shadow-[#F472B6]/50">
                 {step === 'phone' ? <Phone className="w-6 h-6 text-white" /> : <MessageSquare className="w-6 h-6 text-white" />}
               </div>
               <div>
@@ -163,7 +163,7 @@ export default function PhoneLogin() {
                       value={phone}
                       onChange={handlePhoneChange}
                       maxLength={15}
-                      className="pl-10 bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7] text-lg"
+                      className="pl-10 bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6] text-lg"
                       required
                     />
                   </div>
@@ -173,7 +173,7 @@ export default function PhoneLogin() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-6 text-lg btn-gradient shadow-lg shadow-[#A855F7]/30"
+                  className="w-full py-6 text-lg btn-gradient shadow-lg shadow-[#F472B6]/30"
                 >
                   {loading ? 'Enviando...' : 'Enviar código por SMS'}
                 </Button>
@@ -183,10 +183,10 @@ export default function PhoneLogin() {
             {/* Step: Code */}
             {step === 'code' && (
               <form onSubmit={handleVerifyCode} className="space-y-5">
-                <div className="bg-[#A855F7]/10 border border-[#A855F7]/30 rounded-xl p-4 text-center">
-                  <CheckCircle className="w-8 h-8 text-[#A855F7] mx-auto mb-2" />
+                <div className="bg-[#F472B6]/10 border border-[#F472B6]/30 rounded-xl p-4 text-center">
+                  <CheckCircle className="w-8 h-8 text-[#F472B6] mx-auto mb-2" />
                   <p className="text-[#F2F2F2]/80 text-sm">
-                    Código enviado para <strong className="text-[#A855F7]">{phone}</strong>
+                    Código enviado para <strong className="text-[#F472B6]">{phone}</strong>
                   </p>
                 </div>
 
@@ -198,7 +198,7 @@ export default function PhoneLogin() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.slice(0, 6))}
                     maxLength={6}
-                    className="bg-[#0D0D0D] border-[#A855F7]/30 text-[#F2F2F2] focus:border-[#A855F7] text-center text-2xl tracking-widest"
+                    className="bg-[#0D0D0D] border-[#F472B6]/30 text-[#F2F2F2] focus:border-[#F472B6] text-center text-2xl tracking-widest"
                     required
                   />
                   <p className="text-xs text-[#F2F2F2]/40 mt-1 text-center">Digite os 6 dígitos recebidos por SMS</p>
@@ -207,7 +207,7 @@ export default function PhoneLogin() {
                 <Button
                   type="submit"
                   disabled={loading || code.length !== 6}
-                  className="w-full py-6 text-lg btn-gradient shadow-lg shadow-[#A855F7]/30"
+                  className="w-full py-6 text-lg btn-gradient shadow-lg shadow-[#F472B6]/30"
                 >
                   {loading ? 'Verificando...' : 'Confirmar código'}
                 </Button>
@@ -215,7 +215,7 @@ export default function PhoneLogin() {
                 <button
                   type="button"
                   onClick={() => { setStep('phone'); setCode(''); }}
-                  className="w-full flex items-center justify-center gap-2 text-[#F2F2F2]/50 hover:text-[#A855F7] text-sm transition-colors"
+                  className="w-full flex items-center justify-center gap-2 text-[#F2F2F2]/50 hover:text-[#F472B6] text-sm transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Usar outro número
@@ -228,7 +228,7 @@ export default function PhoneLogin() {
               <p className="text-[#F2F2F2]/40 text-xs">ou acesse de outra forma</p>
               <Link
                 to={createPageUrl('PassengerLogin')}
-                className="text-[#A855F7] hover:underline text-sm block"
+                className="text-[#F472B6] hover:underline text-sm block"
               >
                 Entrar com e-mail e senha
               </Link>

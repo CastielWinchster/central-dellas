@@ -266,7 +266,7 @@ export default function PassengerChat() {
   if (!user || !ride) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -283,24 +283,24 @@ export default function PassengerChat() {
       <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="bg-[#1A1A1A] border-b border-[#7C3AED] p-4"
+        className="bg-[#1A1A1A] border-b border-[#EC4899] p-4"
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate(createPageUrl('PassengerDashboard'))}
-              className="p-2 rounded-lg hover:bg-[#A855F7]/10"
+              className="p-2 rounded-lg hover:bg-[#F472B6]/10"
             >
               <ArrowLeft className="w-5 h-5 text-[#F2F2F2]" />
             </button>
             
             {driver && (
               <>
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#A855F7]">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F472B6]">
                   {driver.photo_url ? (
                     <img src={driver.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center text-white text-lg font-bold">
+                    <div className="w-full h-full bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center text-white text-lg font-bold">
                       {driver.full_name?.[0] || 'M'}
                     </div>
                   )}
@@ -348,7 +348,7 @@ export default function PassengerChat() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-12 bg-[#1A1A1A] rounded-xl border border-[#A855F7]/20 p-2 min-w-[200px] z-50"
+                    className="absolute right-0 top-12 bg-[#1A1A1A] rounded-xl border border-[#F472B6]/20 p-2 min-w-[200px] z-50"
                   >
                     <button
                       onClick={handleEmergency}
@@ -359,7 +359,7 @@ export default function PassengerChat() {
                     </button>
                     <button
                       onClick={() => navigate(createPageUrl('TrackRide'))}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#A855F7]/10 text-[#F2F2F2]"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#F472B6]/10 text-[#F2F2F2]"
                     >
                       <MapPin className="w-4 h-4" />
                       <span>Ver Mapa</span>
@@ -372,7 +372,7 @@ export default function PassengerChat() {
         </div>
 
         {/* Ride Info */}
-        <div className="max-w-4xl mx-auto mt-3 pt-3 border-t border-[#A855F7]/20">
+        <div className="max-w-4xl mx-auto mt-3 pt-3 border-t border-[#F472B6]/20">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-[#F2F2F2]/60">
               <MapPin className="w-4 h-4" />
@@ -380,7 +380,7 @@ export default function PassengerChat() {
               <span>→</span>
               <span>{ride.destination_address?.substring(0, 25)}...</span>
             </div>
-            <div className="text-[#A855F7] font-semibold">
+            <div className="text-[#F472B6] font-semibold">
               R$ {ride.estimated_price?.toFixed(2)}
             </div>
           </div>
@@ -442,7 +442,7 @@ export default function PassengerChat() {
 
       {/* Input Area */}
       {!showAudioRecorder && (
-        <div className="bg-[#1A1A1A] border-t border-[#5B21B6] p-4">
+        <div className="bg-[#1A1A1A] border-t border-[#BE185D] p-4">
           <div className="max-w-4xl mx-auto flex items-center gap-2">
             <label className="cursor-pointer">
               <input
@@ -452,9 +452,9 @@ export default function PassengerChat() {
                 onChange={handleImageUpload}
                 disabled={uploading}
               />
-              <div className={`p-3 rounded-xl ${uploading ? 'bg-[#A855F7]/20' : 'hover:bg-[#A855F7]/10'} transition-colors`}>
+              <div className={`p-3 rounded-xl ${uploading ? 'bg-[#F472B6]/20' : 'hover:bg-[#F472B6]/10'} transition-colors`}>
                 {uploading ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-[#A855F7] border-t-transparent animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 border-[#F472B6] border-t-transparent animate-spin" />
                 ) : (
                   <ImageIcon className="w-5 h-5 text-[#F2F2F2]/60" />
                 )}
@@ -463,7 +463,7 @@ export default function PassengerChat() {
 
             <button
               onClick={() => setShowAudioRecorder(true)}
-              className="p-3 rounded-xl hover:bg-[#A855F7]/10 transition-colors"
+              className="p-3 rounded-xl hover:bg-[#F472B6]/10 transition-colors"
             >
               <Mic className="w-5 h-5 text-[#F2F2F2]/60" />
             </button>
@@ -479,7 +479,7 @@ export default function PassengerChat() {
               }
             }}
             placeholder="Digite sua mensagem..."
-            className="flex-1 bg-[#0D0D0D] border-[#5B21B6] text-[#F2F2F2] placeholder:text-[#F2F2F2]/40"
+            className="flex-1 bg-[#0D0D0D] border-[#BE185D] text-[#F2F2F2] placeholder:text-[#F2F2F2]/40"
             maxLength={500}
           />
 

@@ -8,7 +8,7 @@ export default function Breadcrumb({ items }) {
     <nav className="flex items-center gap-2 text-sm mb-6 px-4 py-2 bg-white/5 rounded-lg backdrop-blur-sm">
       <Link 
         to={createPageUrl('PassengerHome')} 
-        className="text-[#F2F2F2]/60 hover:text-[#A855F7] transition-colors"
+        className="text-[#F2F2F2]/60 hover:text-[#F472B6] transition-colors"
       >
         <Home className="w-4 h-4" />
       </Link>
@@ -17,11 +17,11 @@ export default function Breadcrumb({ items }) {
         <React.Fragment key={index}>
           <ChevronRight className="w-4 h-4 text-[#F2F2F2]/40" />
           {index === items.length - 1 ? (
-            <span className="text-[#A855F7] font-medium">{item.label}</span>
+            <span className="text-[#F472B6] font-medium">{item.label}</span>
           ) : (
             <Link 
               to={createPageUrl(item.page)} 
-              className="text-[#F2F2F2]/60 hover:text-[#A855F7] transition-colors"
+              className="text-[#F2F2F2]/60 hover:text-[#F472B6] transition-colors"
             >
               {item.label}
             </Link>

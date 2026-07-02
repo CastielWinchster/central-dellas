@@ -92,7 +92,7 @@ export default function AdminPanel() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-        <Car className="w-16 h-16 text-[#A855F7] animate-bounce" />
+        <Car className="w-16 h-16 text-[#F472B6] animate-bounce" />
       </div>
     );
   }
@@ -114,14 +114,14 @@ export default function AdminPanel() {
       icon: DollarSign,
       label: 'Receita Hoje',
       value: `R$ ${stats.todayRevenue.toFixed(2)}`,
-      color: 'from-[#A855F7] to-[#7C3AED]'
+      color: 'from-[#F472B6] to-[#EC4899]'
     }
   ];
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] pb-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] to-[#A855F7] p-6 text-white">
+      <div className="bg-gradient-to-br from-[#EC4899] to-[#F472B6] p-6 text-white">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">Central de Monitoramento</h1>
           <p className="text-white/80">Painel Administrativo - Central Dellas</p>
@@ -138,7 +138,7 @@ export default function AdminPanel() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="bg-[#F2F2F2]/5 border-[#A855F7]/10 p-6">
+              <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-6">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
@@ -151,36 +151,36 @@ export default function AdminPanel() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="map" className="space-y-6">
-          <TabsList className="bg-[#F2F2F2]/5 border border-[#A855F7]/20 flex-wrap h-auto">
-            <TabsTrigger value="map" className="data-[state=active]:bg-[#A855F7]">
+          <TabsList className="bg-[#F2F2F2]/5 border border-[#F472B6]/20 flex-wrap h-auto">
+            <TabsTrigger value="map" className="data-[state=active]:bg-[#F472B6]">
               <MapPin className="w-4 h-4 mr-2" />
               Mapa ao Vivo
             </TabsTrigger>
-            <TabsTrigger value="prices" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="prices" className="data-[state=active]:bg-[#F472B6]">
               <DollarSign className="w-4 h-4 mr-2" />
               Preços
             </TabsTrigger>
-            <TabsTrigger value="coupons" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="coupons" className="data-[state=active]:bg-[#F472B6]">
               <Ticket className="w-4 h-4 mr-2" />
               Cupons
             </TabsTrigger>
-            <TabsTrigger value="dispatch" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="dispatch" className="data-[state=active]:bg-[#F472B6]">
               <Phone className="w-4 h-4 mr-2" />
               Despachar Corrida
             </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="history" className="data-[state=active]:bg-[#F472B6]">
               <Calendar className="w-4 h-4 mr-2" />
               Histórico
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="users" className="data-[state=active]:bg-[#F472B6]">
               <Users className="w-4 h-4 mr-2" />
               Usuárias
             </TabsTrigger>
-            <TabsTrigger value="reports" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="reports" className="data-[state=active]:bg-[#F472B6]">
               <TrendingUp className="w-4 h-4 mr-2" />
               Relatórios
             </TabsTrigger>
-            <TabsTrigger value="migration" className="data-[state=active]:bg-[#A855F7]">
+            <TabsTrigger value="migration" className="data-[state=active]:bg-[#F472B6]">
               <Activity className="w-4 h-4 mr-2" />
               Migração App
             </TabsTrigger>

@@ -44,7 +44,7 @@ export default function SmartReplies({ lastMessage, onSelect }) {
               onClick={() => onSelect(reply)}
               variant="outline"
               size="sm"
-              className="border-[#A855F7]/30 text-[#F2F2F2] hover:bg-[#A855F7]/10 rounded-full"
+              className="border-[#F472B6]/30 text-[#F2F2F2] hover:bg-[#F472B6]/10 rounded-full"
             >
               {reply}
             </Button>

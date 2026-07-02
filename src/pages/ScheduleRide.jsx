@@ -27,18 +27,18 @@ export default function ScheduleRide() {
       value: 'standard', 
       label: 'Dellas Standard', 
       icon: Car, 
-      color: 'from-[#7C3AED] to-[#A855F7]',
+      color: 'from-[#EC4899] to-[#F472B6]',
     },
     { 
       value: 'roza', 
       label: 'Rotta Roza', 
-      color: 'from-[#A855F7] to-[#5B21B6]',
+      color: 'from-[#F472B6] to-[#BE185D]',
     },
     { 
       value: 'pet', 
       label: 'Dellas Pet', 
       icon: Dog, 
-      color: 'from-[#7C3AED] to-[#A855F7]',
+      color: 'from-[#EC4899] to-[#F472B6]',
       description: 'Carros pet-friendly'
     }
   ];
@@ -109,9 +109,9 @@ export default function ScheduleRide() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Endereços */}
-          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
+          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10' : 'bg-white border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
-              <MapPin className="w-5 h-5 text-[#A855F7]" />
+              <MapPin className="w-5 h-5 text-[#F472B6]" />
               Endereços
             </h3>
             <div className="space-y-4">
@@ -124,7 +124,7 @@ export default function ScheduleRide() {
                   value={formData.pickup_address}
                   onChange={(e) => setFormData({...formData, pickup_address: e.target.value})}
                   placeholder="Digite o endereço de origem"
-                  className={isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-white' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F472B6]/20 text-white' : ''}
                 />
               </div>
               <div>
@@ -136,16 +136,16 @@ export default function ScheduleRide() {
                   value={formData.destination_address}
                   onChange={(e) => setFormData({...formData, destination_address: e.target.value})}
                   placeholder="Digite o endereço de destino"
-                  className={isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-white' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F472B6]/20 text-white' : ''}
                 />
               </div>
             </div>
           </Card>
 
           {/* Data e Hora */}
-          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
+          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10' : 'bg-white border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
-              <Calendar className="w-5 h-5 text-[#A855F7]" />
+              <Calendar className="w-5 h-5 text-[#F472B6]" />
               Data e Horário
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -158,7 +158,7 @@ export default function ScheduleRide() {
                   type="date"
                   value={formData.scheduled_date}
                   onChange={(e) => setFormData({...formData, scheduled_date: e.target.value})}
-                  className={isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-white' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F472B6]/20 text-white' : ''}
                 />
               </div>
               <div>
@@ -170,16 +170,16 @@ export default function ScheduleRide() {
                   type="time"
                   value={formData.scheduled_time}
                   onChange={(e) => setFormData({...formData, scheduled_time: e.target.value})}
-                  className={isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-white' : ''}
+                  className={isDark ? 'bg-[#0D0D0D] border-[#F472B6]/20 text-white' : ''}
                 />
               </div>
             </div>
           </Card>
 
           {/* Tipo de Corrida */}
-          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
+          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10' : 'bg-white border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
-              <Car className="w-5 h-5 text-[#A855F7]" />
+              <Car className="w-5 h-5 text-[#F472B6]" />
               Categoria
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -190,8 +190,8 @@ export default function ScheduleRide() {
                   onClick={() => setFormData({...formData, ride_type: type.value})}
                   className={`p-4 rounded-xl border-2 transition-all text-left ${
                     formData.ride_type === type.value
-                      ? 'border-[#A855F7] bg-[#A855F7]/10'
-                      : isDark ? 'border-[#A855F7]/10 hover:border-[#A855F7]/30' : 'border-gray-200 hover:border-[#A855F7]/30'
+                      ? 'border-[#F472B6] bg-[#F472B6]/10'
+                      : isDark ? 'border-[#F472B6]/10 hover:border-[#F472B6]/30' : 'border-gray-200 hover:border-[#F472B6]/30'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center mb-2`}>
@@ -200,7 +200,7 @@ export default function ScheduleRide() {
                   <p className={`font-medium text-sm ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
                     {type.label}
                   </p>
-                  <p className="text-xs text-[#A855F7]">{type.price}</p>
+                  <p className="text-xs text-[#F472B6]">{type.price}</p>
                   {type.description && (
                     <p className={`text-xs mt-1 ${isDark ? 'text-[#F2F2F2]/50' : 'text-black/60'}`}>
                       {type.description}
@@ -212,9 +212,9 @@ export default function ScheduleRide() {
           </Card>
 
           {/* Observações */}
-          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#A855F7]/10' : 'bg-white border-gray-200'}`}>
+          <Card className={`p-6 rounded-2xl ${isDark ? 'bg-[#F2F2F2]/5 border-[#F472B6]/10' : 'bg-white border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-[#F2F2F2]' : 'text-black'}`}>
-              <FileText className="w-5 h-5 text-[#A855F7]" />
+              <FileText className="w-5 h-5 text-[#F472B6]" />
               Observações (Opcional)
             </h3>
             <Textarea
@@ -222,7 +222,7 @@ export default function ScheduleRide() {
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               placeholder="Paradas no caminho, preferências especiais, etc."
               rows={4}
-              className={isDark ? 'bg-[#0D0D0D] border-[#A855F7]/20 text-white' : ''}
+              className={isDark ? 'bg-[#0D0D0D] border-[#F472B6]/20 text-white' : ''}
             />
           </Card>
 
