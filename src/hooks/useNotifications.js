@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
+import { resolvePushPublicKeys } from '@/lib/pushConfig';
 
 function createNotificationSound(type = 'default') {
   try {
@@ -60,9 +61,10 @@ export async function subscribeToPush(options = {}) {
       return { ok: false, reason: 'unsupported' };
     }
 
-    const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    const keys = await resolvePushPublicKeys();
+    const VAPID_PUBLIC = keys.vapidPublicKey;
     if (!VAPID_PUBLIC) {
-      console.warn('[Push] VITE_VAPID_PUBLIC_KEY não configurada');
+      console.warn('[Push] VAPID pública indisponível (build e servidor)');
       return { ok: false, reason: 'no_vapid' };
     }
 
@@ -75,8 +77,24 @@ export async function subscribeToPush(options = {}) {
     }
 
     const reg = await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+
     let subscription = await reg.pushManager.getSubscription();
     const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC);
+
+    if (subscription) {
+      try {
+        const existingKey = subscription.options?.applicationServerKey;
+        if (existingKey && existingKey.byteLength !== appServerKey.byteLength) {
+          await subscription.unsubscribe();
+          subscription = null;
+        }
+      } catch (_) {
+        subscription = null;
+      }
+    }
 
     if (!subscription) {
       subscription = await reg.pushManager.subscribe({
@@ -128,8 +146,16 @@ export function useNotifications(userId) {
     const type = notification.type === 'ride' ? 'ride'
       : notification.type === 'message' ? 'message'
       : 'default';
+
+    const text = `${notification.title || ''} ${notification.message || ''}`;
+    const isPassengerRideAccepted = type === 'ride' && /motorista encontrada|aceitou sua corrida/i.test(text);
+
     if (type === 'ride') {
-      window.dispatchEvent(new CustomEvent('driver-ride-offer-alert'));
+      if (isPassengerRideAccepted) {
+        window.dispatchEvent(new CustomEvent('passenger-ride-accepted'));
+      } else {
+        window.dispatchEvent(new CustomEvent('driver-ride-offer-alert'));
+      }
     }
     createNotificationSound(type);
     vibrate(type);

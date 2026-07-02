@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { cancelRideSearch } from '../_shared/rideDispatch.ts';
+import { cancelRideSearch } from './rideDispatch.ts';
 
 Deno.serve(async (req) => {
   try {

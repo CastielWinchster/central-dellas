@@ -5,6 +5,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#EC4899",
@@ -18,5 +19,5 @@
       "purpose": "any maskable"
     }
   ],
-  "gcm_sender_id": "103953800507"
+  "gcm_sender_id": "223072086607"
 }

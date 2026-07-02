@@ -2,6 +2,7 @@
   Variáveis de ambiente (Base44 > Secrets):
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY
   VITE_VAPID_PUBLIC_KEY (frontend build — mesma chave pública)
+  FIREBASE_SERVICE_ACCOUNT_JSON (FCM web/nativo)
 */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
@@ -11,6 +12,7 @@ import admin from 'npm:firebase-admin@12.0.0';
 const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
 const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 const VAPID_EMAIL = 'mailto:contato@centraldellas.com.br';
+const SITE_ORIGIN = 'https://centraldellas.base44.app';
 
 let vapidConfigured = false;
 let fcmInitialized = false;
@@ -47,10 +49,13 @@ type PushPayload = {
   persistent: boolean;
 };
 
-async function sendFcm(token: string, payload: PushPayload) {
-  if (!ensureFcm()) return false;
+function absoluteUrl(url: string) {
+  if (url.startsWith('http')) return url;
+  return `${SITE_ORIGIN}${url.startsWith('/') ? url : `/${url}`}`;
+}
 
-  const data: Record<string, string> = {
+function buildFcmData(payload: PushPayload): Record<string, string> {
+  return {
     type: payload.type,
     url: payload.url,
     rideId: payload.rideId || '',
@@ -60,52 +65,74 @@ async function sendFcm(token: string, payload: PushPayload) {
     persistent: payload.persistent ? 'true' : 'false',
     tag: payload.rideId ? `ride-offer-${payload.rideId}` : `cd-${payload.type}`,
   };
+}
 
+/** FCM para tokens web (TWA / PWA / browser) — data-only para o SW exibir */
+async function sendFcmWeb(token: string, payload: PushPayload) {
+  if (!ensureFcm()) return false;
+
+  const data = buildFcmData(payload);
   const isRideOffer = payload.type === 'ride_offer';
 
   await admin.messaging().send({
     token,
-    ...(isRideOffer
-      ? {
-          data,
-          android: {
-            priority: 'high',
-            ttl: 120000,
-            notification: {
-              title: payload.title,
-              body: payload.body,
-              channelId: 'ride_requests',
-              priority: 'max' as const,
-              defaultSound: true,
-              defaultVibrateTimings: true,
-              visibility: 'public' as const,
-              tag: data.tag,
-              clickAction: payload.url,
-            },
-          },
-          apns: {
-            headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
-            payload: {
-              aps: {
-                alert: { title: payload.title, body: payload.body },
-                sound: 'default',
-                'content-available': 1,
-                'mutable-content': 1,
-              },
-            },
-          },
-        }
-      : {
-          notification: { title: payload.title, body: payload.body },
-          data,
-          android: { priority: 'high' },
-        }),
+    data,
     webpush: {
-      fcmOptions: { link: payload.url },
-      headers: { Urgency: isRideOffer ? 'high' : 'normal' },
+      headers: {
+        Urgency: isRideOffer ? 'high' : 'normal',
+        TTL: isRideOffer ? '120' : '60',
+      },
+      fcmOptions: { link: absoluteUrl(payload.url) },
     },
   });
   return true;
+}
+
+/** FCM para tokens nativos Capacitor Android/iOS */
+async function sendFcmNative(token: string, payload: PushPayload) {
+  if (!ensureFcm()) return false;
+
+  const data = buildFcmData(payload);
+  const isRideOffer = payload.type === 'ride_offer';
+
+  await admin.messaging().send({
+    token,
+    notification: { title: payload.title, body: payload.body },
+    data,
+    android: {
+      priority: 'high',
+      ttl: 120000,
+      notification: isRideOffer ? {
+        title: payload.title,
+        body: payload.body,
+        channelId: 'ride_requests',
+        priority: 'max' as const,
+        defaultSound: true,
+        defaultVibrateTimings: true,
+        visibility: 'public' as const,
+        tag: data.tag,
+      } : undefined,
+    },
+    apns: {
+      headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
+      payload: {
+        aps: {
+          alert: { title: payload.title, body: payload.body },
+          sound: 'default',
+          'content-available': 1,
+        },
+      },
+    },
+  });
+  return true;
+}
+
+async function sendFcm(token: string, payload: PushPayload, platform?: string | null) {
+  const p = String(platform || 'web').toLowerCase();
+  if (p === 'android' || p === 'ios') {
+    return sendFcmNative(token, payload);
+  }
+  return sendFcmWeb(token, payload);
 }
 
 function parseSubscription(raw: unknown) {
@@ -171,8 +198,11 @@ Deno.serve(async (req) => {
     }
 
     const prefs = await base44.asServiceRole.entities.UserPreferences.filter({ user_id: userId });
-    const subscription = parseSubscription(prefs[0]?.push_subscription);
-    const fcmToken = prefs[0]?.fcm_token ? String(prefs[0].fcm_token) : null;
+    const pref = prefs[0] || null;
+    const subscription = parseSubscription(pref?.push_subscription);
+    const fcmToken = pref?.fcm_token ? String(pref.fcm_token) : null;
+    const pushPlatform = pref?.push_platform ? String(pref.push_platform) : 'web';
+
     const pushPayload: PushPayload = {
       title: title!,
       body: body!,
@@ -182,6 +212,10 @@ Deno.serve(async (req) => {
       offerId,
       persistent,
     };
+
+    let pushDelivered = false;
+    let method = 'none';
+    const errors: string[] = [];
 
     if (subscription && VAPID_PUBLIC && VAPID_PRIVATE) {
       try {
@@ -203,10 +237,12 @@ Deno.serve(async (req) => {
           urgency: type === 'ride_offer' || persistent ? 'high' : 'normal',
         });
 
-        console.log(`[sendPushToUser] Web Push enviado para ${userId}`);
-        return Response.json({ success: true, method: 'webpush' });
+        pushDelivered = true;
+        method = 'webpush';
+        console.log(`[sendPushToUser] Web Push OK → ${userId}`);
       } catch (pushErr: unknown) {
         const statusCode = (pushErr as { statusCode?: number })?.statusCode;
+        errors.push(`webpush:${(pushErr as Error)?.message}`);
         console.warn('[sendPushToUser] Web Push falhou:', (pushErr as Error)?.message, statusCode);
 
         if (statusCode === 404 || statusCode === 410) {
@@ -214,28 +250,58 @@ Deno.serve(async (req) => {
         }
       }
     } else if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
-      console.warn('[sendPushToUser] VAPID não configurado — tentando FCM ou in-app');
+      errors.push('vapid_not_configured');
     }
 
-    if (fcmToken) {
+    if (!pushDelivered && fcmToken) {
       try {
-        const sent = await sendFcm(fcmToken, pushPayload);
+        const sent = await sendFcm(fcmToken, pushPayload, pushPlatform);
         if (sent) {
-          console.log(`[sendPushToUser] FCM enviado para ${userId}`);
-          if (skipInApp || type === 'ride_offer') {
-            return Response.json({ success: true, method: 'fcm' });
-          }
+          pushDelivered = true;
+          method = `fcm_${pushPlatform}`;
+          console.log(`[sendPushToUser] FCM OK (${pushPlatform}) → ${userId}`);
         }
       } catch (fcmErr) {
+        errors.push(`fcm:${(fcmErr as Error).message}`);
         console.warn('[sendPushToUser] FCM falhou:', (fcmErr as Error).message);
-        if (prefs[0]?.id && String((fcmErr as { code?: string }).code || '').includes('registration-token')) {
-          await base44.asServiceRole.entities.UserPreferences.update(prefs[0].id, { fcm_token: null });
+        if (pref?.id && String((fcmErr as { code?: string }).code || '').includes('registration-token')) {
+          await base44.asServiceRole.entities.UserPreferences.update(String(pref.id), { fcm_token: null });
         }
       }
     }
 
-    if (skipInApp || (type === 'ride_offer' && (subscription || fcmToken))) {
-      return Response.json({ success: true, method: 'push_only' });
+    if (pushDelivered) {
+      return Response.json({ success: true, method });
+    }
+
+    if (type === 'ride_offer') {
+      await base44.asServiceRole.entities.Notification.create({
+        user_id: userId,
+        title: title || 'Nova corrida disponível!',
+        message: body || '',
+        type: 'ride',
+        is_read: false,
+        is_persistent: true,
+      });
+      return Response.json({
+        success: true,
+        method: 'in-app_fallback',
+        pushDelivered: false,
+        details: errors,
+      });
+    }
+
+    if (skipInApp) {
+      return Response.json({
+        success: false,
+        method: 'none',
+        error: 'push_delivery_failed',
+        details: errors,
+        hasSubscription: !!subscription,
+        hasFcmToken: !!fcmToken,
+        vapidConfigured: !!(VAPID_PUBLIC && VAPID_PRIVATE),
+        fcmConfigured: ensureFcm(),
+      }, { status: 502 });
     }
 
     await base44.asServiceRole.entities.Notification.create({
@@ -247,7 +313,7 @@ Deno.serve(async (req) => {
       is_persistent: persistent || type === 'ride_offer',
     });
 
-    return Response.json({ success: true, method: 'in-app' });
+    return Response.json({ success: true, method: 'in-app', pushDelivered: false, details: errors });
   } catch (error) {
     console.error('[sendPushToUser]', (error as Error).message);
     return Response.json({ error: (error as Error).message }, { status: 500 });

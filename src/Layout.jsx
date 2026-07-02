@@ -17,8 +17,10 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { registerAllPushChannels, handlePushDeepLinkOnLaunch } from '@/lib/pushRegistration';
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
+import AdminPushTestButton from './components/AdminPushTestButton';
 import { clearDriverSessionLocal, isDriverOnlineLocal } from '@/lib/driverSession';
 import { startDriverPresenceKeepalive } from '@/lib/driverPresenceKeepalive';
+import { restoreState, clearState } from '@/utils/stateManager';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
@@ -113,6 +115,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const isDriverPage = ['DriverDashboard', 'Earnings', 'MyReviews', 'DriverOptions', 'DriverProfile'].includes(currentPageName);
   const isDriverUser = user?.user_type === 'driver' || user?.user_type === 'both' || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
+  const [driverPresenceTick, setDriverPresenceTick] = useState(0);
 
   // Inscrever no Web Push — motoristas com prioridade (segundo plano)
   useEffect(() => {
@@ -141,10 +145,50 @@ function LayoutContent({ children, currentPageName }) {
 
   // Presença online persiste em segundo plano (estilo Uber)
   useEffect(() => {
+    const bump = () => setDriverPresenceTick((t) => t + 1);
+    window.addEventListener('driver-online-changed', bump);
+    window.addEventListener('storage', bump);
+    return () => {
+      window.removeEventListener('driver-online-changed', bump);
+      window.removeEventListener('storage', bump);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!user?.id || !isDriverUser) return;
     if (!isDriverOnlineLocal(user.id)) return;
     return startDriverPresenceKeepalive(user.id);
-  }, [user?.id, isDriverUser]);
+  }, [user?.id, isDriverUser, driverPresenceTick]);
+
+  // Passageira: ao receber "motorista aceitou", ir para tela de corrida (qualquer página)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const goToActiveRide = async () => {
+      const pendingId = restoreState('rr_activeRideId', 6 * 60 * 1000);
+      if (pendingId) {
+        clearState('rr_activeRideId');
+        navigate(`/ActiveRidePassenger?id=${pendingId}`);
+        return;
+      }
+      try {
+        const rides = await base44.entities.Ride.filter(
+          { passenger_id: user.id },
+          '-created_date',
+          5,
+        );
+        const active = rides.find((r) =>
+          ['accepted', 'picked_up', 'in_transit', 'arrived'].includes(r.status),
+        );
+        if (active?.id) {
+          navigate(`/ActiveRidePassenger?id=${active.id}`);
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('passenger-ride-accepted', goToActiveRide);
+    return () => window.removeEventListener('passenger-ride-accepted', goToActiveRide);
+  }, [user?.id, navigate]);
 
   // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
   useEffect(() => {
@@ -237,14 +281,14 @@ function LayoutContent({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-xl ${isDark ? 'bg-[#0D0D0D]/95 border-b border-[#F472B6]/20' : 'bg-white/95 border-b border-gray-200'} shadow-lg`}
+        className={`fixed top-0 left-0 right-0 z-[10000] app-header-safe backdrop-blur-xl ${isDark ? 'bg-[#0D0D0D]/95 border-b border-[#F472B6]/20' : 'bg-white/95 border-b border-gray-200'} shadow-lg`}
       >
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-2.5 md:py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
-            <img 
+            <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6966ea008a15739746d55f4e/50cfce50f_central2.png"
               alt="Central Dellas"
-              className="h-14 w-auto"
+              className="app-logo h-12 md:h-14 w-auto"
             />
           </Link>
 
@@ -282,6 +326,7 @@ function LayoutContent({ children, currentPageName }) {
 
             {user ? (
                 <div className="hidden md:flex items-center gap-3">
+                  {isAdmin && <AdminPushTestButton isAdmin={isAdmin} showBuildLabel />}
                   <NotificationBell
                     userId={user.id}
                     notifications={notifications}
@@ -313,6 +358,11 @@ function LayoutContent({ children, currentPageName }) {
                 </div>
               )}
 
+            {/* Admin: botão visível no celular (fora do menu) */}
+            {isAdmin && (
+              <AdminPushTestButton isAdmin={isAdmin} className="md:hidden shrink-0" showBuildLabel />
+            )}
+
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -332,7 +382,7 @@ function LayoutContent({ children, currentPageName }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className={`fixed inset-0 z-[9999] pt-20 md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
+            className={`fixed inset-0 z-[9999] app-mobile-menu-offset md:hidden ${isDark ? 'bg-[#0D0D0D]/95' : 'bg-white/95'} backdrop-blur-xl`}
           >
             <nav className="p-6 space-y-2">
               {user && (user.user_type === 'driver' || user.user_type === 'both' || user.role === 'admin') && (
@@ -371,6 +421,17 @@ function LayoutContent({ children, currentPageName }) {
                 </Link>
               ))}
 
+              {isAdmin && (
+                <div className="px-4 pb-2">
+                  <AdminPushTestButton
+                    isAdmin={isAdmin}
+                    className="w-full justify-center py-3 text-sm"
+                    showBuildLabel
+                    onClick={() => setIsMenuOpen(false)}
+                  />
+                </div>
+              )}
+
               {user && (
                 <button
                   onClick={async () => {
@@ -389,7 +450,7 @@ function LayoutContent({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="pt-20 min-h-screen">
+      <main className="app-content-offset min-h-app md:pb-0 app-main-bottom-space">
         {children}
       </main>
 
@@ -410,7 +471,7 @@ function LayoutContent({ children, currentPageName }) {
         <motion.nav 
               initial={{ y: 100 }}
               animate={{ y: 0 }}
-              className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#F472B6]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
+              className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] app-bottom-nav-safe ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#F472B6]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
             >
               <div className="flex items-center justify-around py-3 px-2">
                 {(isDriverPage ? driverLinks : passengerLinks).map((link, index) => (

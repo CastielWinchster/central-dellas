@@ -86,7 +86,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          transition={{ type: 'spring', damping: 32, stiffness: 420 }}
           onClick={(e) => e.stopPropagation()}
           className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto"
           style={{ borderRadius: '24px 24px 0 0' }}

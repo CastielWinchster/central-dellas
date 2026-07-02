@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
 import RideChat from '@/components/chat/RideChat';
 import { Phone, MessageCircle, User, Car, Clock, MapPin, Shield } from 'lucide-react';
-import { toast } from 'sonner';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 import { motion } from 'framer-motion';
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -40,11 +40,12 @@ export default function ActiveRidePassenger() {
       // Buscar corrida via backend (service role) — evita falha de RLS/atraso de
       // replicação que deixava a passageira presa em "Corrida não encontrada"
       const res = await base44.functions.invoke('getRideDetails', { rideId });
-      if (!res.data?.found || !res.data?.ride) {
+      const payload = unwrapInvoke(res);
+      if (!payload?.found || !payload?.ride) {
         setLoading(false);
         return;
       }
-      const rideData = res.data.ride;
+      const rideData = payload.ride;
       setRide(rideData);
 
       // Se corrida concluída/cancelada sair
@@ -59,7 +60,7 @@ export default function ActiveRidePassenger() {
         // Buscar motorista via backend
         try {
           const res = await base44.functions.invoke('getDriverInfo', { driverId: rideData.assigned_driver_id });
-          const info = res.data || {};
+          const info = unwrapInvoke(res) || {};
           setDriver({
             id: rideData.assigned_driver_id,
             name: info.name || 'Motorista',

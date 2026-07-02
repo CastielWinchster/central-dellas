@@ -4,8 +4,62 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { base44 } from '@/api/base44Client';
 import { subscribeToPush } from '@/hooks/useNotifications';
-import { firebaseConfig, FCM_VAPID_KEY } from '@/lib/firebaseConfig';
+import { firebaseConfig } from '@/lib/firebaseConfig';
+import { resolvePushPublicKeys } from '@/lib/pushConfig';
 import { buildDriverOfferUrl } from '@/lib/pushDeepLink';
+
+/** Aguarda SW ativo — crítico para push com app fechado (TWA) */
+async function waitForServiceWorker(timeoutMs = 8000) {
+  if (!('serviceWorker' in navigator)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  if (navigator.serviceWorker.controller) return reg;
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(reg), timeoutMs);
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      clearTimeout(timer);
+      resolve(reg);
+    }, { once: true });
+  });
+}
+
+export async function getLocalPushDiagnostics() {
+  const keys = await resolvePushPublicKeys();
+  const diag = {
+    permission: typeof Notification !== 'undefined' ? Notification.permission : 'unsupported',
+    serviceWorker: 'serviceWorker' in navigator,
+    pushManager: 'PushManager' in window,
+    hasController: !!navigator.serviceWorker?.controller,
+    hasSubscription: false,
+    vapidInBuild: !!import.meta.env.VITE_VAPID_PUBLIC_KEY,
+    vapidFromServer: keys.source === 'server',
+    vapidAvailable: !!keys.vapidPublicKey,
+    vapidSource: keys.source,
+    fcmVapidInBuild: !!import.meta.env.VITE_FIREBASE_VAPID_KEY,
+  };
+
+  try {
+    if (diag.serviceWorker && diag.pushManager) {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      diag.hasSubscription = !!sub;
+    }
+  } catch (_) {}
+
+  return diag;
+}
+
+export async function verifyPushRegistration() {
+  const local = await getLocalPushDiagnostics();
+  let server = null;
+  try {
+    const res = await base44.functions.invoke('getMyPushStatus', {});
+    server = res?.data || res;
+  } catch (e) {
+    server = { error: e.message };
+  }
+  return { local, server };
+}
 
 let foregroundHandlerRegistered = false;
 let nativeListenersRegistered = false;
@@ -109,7 +163,9 @@ function registerNativePushListeners() {
 /** FCM Web — token via service worker existente (/sw.js) */
 export async function registerFcmWebPush() {
   try {
-    if (!FCM_VAPID_KEY) {
+    const keys = await resolvePushPublicKeys();
+    const fcmVapidKey = keys.firebaseVapidKey || keys.vapidPublicKey;
+    if (!fcmVapidKey) {
       return { ok: false, reason: 'no_vapid' };
     }
     if (!(await isSupported())) {
@@ -123,7 +179,7 @@ export async function registerFcmWebPush() {
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
     const token = await getToken(messaging, {
-      vapidKey: FCM_VAPID_KEY,
+      vapidKey: fcmVapidKey,
       serviceWorkerRegistration: registration,
     });
 
@@ -188,6 +244,8 @@ export async function registerAllPushChannels({ requestPermission = false } = {}
     fcmWeb: { ok: false, reason: 'skipped' },
     fcmNative: { ok: false, reason: 'skipped' },
   };
+
+  await waitForServiceWorker();
 
   results.vapid = await subscribeToPush({ requestPermission });
   if (Capacitor.isNativePlatform()) {

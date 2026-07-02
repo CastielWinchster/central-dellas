@@ -28,6 +28,7 @@ import ContactWhatsAppModal from '@/components/ContactWhatsAppModal';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { clearState, saveState, restoreState } from '@/utils/stateManager';
 import { registerAllPushChannels } from '@/lib/pushRegistration';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -181,6 +182,7 @@ export default function RequestRide() {
         setUser(userData);
         if (userData.preferred_payment) {
           setSelectedPayment(userData.preferred_payment);
+          setPaymentMethod((prev) => prev || userData.preferred_payment);
         }
         
         // Carregar favoritos e recentes
@@ -540,7 +542,7 @@ export default function RequestRide() {
         code: couponCode,
         rideValue: parseFloat(estimatedPrice)
       });
-      const result = res.data;
+      const result = unwrapInvoke(res);
       console.log('[PromoCode] Resultado:', result);
       if (result.valid) {
         setAppliedCoupon(result.promoCode);
@@ -645,11 +647,54 @@ export default function RequestRide() {
   const [currentRide, setCurrentRide] = useState(null);
   const [searchingDrivers, setSearchingDrivers] = useState(false);
   const [searchStatusMessage, setSearchStatusMessage] = useState('');
+  const [searchError, setSearchError] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   const LONG_RIDE_THRESHOLD_KM = 35;
 
+  const clearFormDraftState = () => {
+    ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
+      'rr_rideType', 'rr_paymentMethod', 'rr_couponCode', 'rr_appliedCoupon', 'rr_selectedPayment']
+      .forEach((k) => clearState(k));
+  };
+
+  const PASSENGER_TRACKING_STATUSES = ['accepted', 'picked_up', 'in_transit', 'arrived'];
+
+  const navigateToActiveRide = (rideId) => {
+    if (rideId !== activeRideIdRef.current) return;
+    pollNavigatedRef.current = true;
+    stopRidePolling();
+    clearActiveRide(rideId);
+    clearFormDraftState();
+    navigate(`/ActiveRidePassenger?id=${rideId}`);
+  };
+
+  const prepareNewSearch = () => {
+    searchNonceRef.current += 1;
+    resumeAbortedRef.current = true;
+    pollNavigatedRef.current = false;
+    setSearchError('');
+    stopRidePolling();
+    clearActiveRide();
+    return searchNonceRef.current;
+  };
+
   const handleConfirmRide = async () => {
+    const effectivePayment = paymentMethod || selectedPayment;
+    if (!effectivePayment) {
+      toast.error('Selecione uma forma de pagamento');
+      setShowPaymentPicker(true);
+      return;
+    }
+
+    if (!pickupLocation?.lat || !pickupLocation?.lng || !destinationLocation?.lat || !destinationLocation?.lng) {
+      toast.error('Selecione endereços válidos no mapa');
+      setStep('address');
+      return;
+    }
+
+    const searchNonce = prepareNewSearch();
+
     // Validação de distância: qualquer corrida acima de 35km abre modal de aviso/negociação
     // Usa routeDistance (OSRM real) se disponível, senão fallback em linha reta
     const effectiveDistance = routeDistance || haversineDistance(pickupLocation, destinationLocation);
@@ -662,53 +707,76 @@ export default function RequestRide() {
 
     setStep('searching');
     setSearchingDrivers(true);
+    setSearchStatusMessage('Criando sua corrida...');
 
     // Garantir push fora do app: pede permissão e registra a assinatura da
     // passageira para ser avisada quando a motorista aceitar (app fechado).
     registerAllPushChannels({ requestPermission: true }).catch(() => {});
 
+    const dispatchPayload = {
+      pickupLat: pickupLocation.lat,
+      pickupLng: pickupLocation.lng,
+      pickupText: pickup,
+      dropoffLat: destinationLocation.lat,
+      dropoffLng: destinationLocation.lng,
+      dropoffText: destination,
+      estimatedPrice: parseFloat(estimatedPrice),
+      agreedPrice: (isIntercity && routeDistance >= 35) ? parseFloat(estimatedPrice) : null,
+      isCustomPrice: isIntercity && routeDistance >= 35,
+      estimatedDuration: parseInt(routeDuration, 10) || 5,
+      rideType: selectedRideType,
+      hasPet: acceptsPets,
+      paymentMethod: effectivePayment,
+      firstMotoDiscount: (selectedRideType === 'rotta_roza' && isFirstMotoRide) ? 2.00 : 0,
+      couponCode: appliedCoupon?.code || null,
+    };
+
     try {
-      const isCustomPriceRide = isIntercity && routeDistance >= 35;
-      const response = await base44.functions.invoke('dispatchRide', {
-        pickupLat: pickupLocation.lat,
-        pickupLng: pickupLocation.lng,
-        pickupText: pickup,
-        dropoffLat: destinationLocation.lat,
-        dropoffLng: destinationLocation.lng,
-        dropoffText: destination,
-        estimatedPrice: parseFloat(estimatedPrice),
-        agreedPrice: isCustomPriceRide ? parseFloat(estimatedPrice) : null,
-        isCustomPrice: isCustomPriceRide,
-        estimatedDuration: parseInt(routeDuration),
-        rideType: selectedRideType,
-        hasPet: acceptsPets,
-        paymentMethod: paymentMethod || selectedPayment,
-        firstMotoDiscount: (selectedRideType === 'rotta_roza' && isFirstMotoRide) ? 2.00 : 0,
-        couponCode: appliedCoupon?.code || null,
-        // normalizado para o backend registrar uso corretamente
-      });
-      
-      if (response.data.success) {
-        setCurrentRide(response.data.ride);
-        const count = response.data.ride?.offers_count ?? 0;
+      let data = null;
+      let lastError = null;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (searchNonce !== searchNonceRef.current) return;
+        try {
+          const response = await base44.functions.invoke('dispatchRide', dispatchPayload);
+          data = unwrapInvoke(response);
+          if (data?.success) break;
+          lastError = data?.error || 'Erro ao buscar motoristas';
+        } catch (err) {
+          lastError = err?.message || 'Erro de conexão';
+          if (attempt === 0) {
+            await new Promise((r) => setTimeout(r, 900));
+          }
+        }
+      }
+
+      if (searchNonce !== searchNonceRef.current) return;
+
+      if (data?.success && data.ride?.id) {
+        setCurrentRide(data.ride);
+        const count = data.ride?.offers_count ?? 0;
         setSearchStatusMessage(
           count > 0
             ? `Notificamos ${count} motorista${count > 1 ? 's' : ''} próxima${count > 1 ? 's' : ''}. Aguardando aceite...`
             : 'Nenhuma motorista online no momento. Tentando novamente automaticamente...'
         );
-        startRidePolling(response.data.ride.id);
-        // Limpar estados persistidos após corrida confirmada
+        startRidePolling(data.ride.id, searchNonce);
+        // Limpa endereços/tipo — mantém pagamento até ir para tela de corrida
         ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
-         'rr_rideType', 'rr_paymentMethod', 'rr_couponCode', 'rr_appliedCoupon', 'rr_selectedPayment']
-          .forEach(k => clearState(k));
+          'rr_rideType', 'rr_couponCode', 'rr_appliedCoupon']
+          .forEach((k) => clearState(k));
       } else {
-        toast.error(response.data.error || 'Erro ao buscar motoristas');
-        setStep('options');
+        const msg = lastError || data?.error || 'Erro ao buscar motoristas';
+        setSearchError(msg);
+        setSearchStatusMessage('');
+        toast.error(msg);
+        // Permanece em "Buscando" com botão de tentar novamente — não volta ao pagamento
       }
     } catch (error) {
       console.error('Erro ao buscar motorista:', error);
+      setSearchError('Falha de conexão. Toque em "Tentar novamente".');
+      setSearchStatusMessage('');
       toast.error('Erro ao buscar motoristas. Tente novamente.');
-      setStep('options');
     } finally {
       setSearchingDrivers(false);
     }
@@ -721,6 +789,8 @@ export default function RequestRide() {
   const pollNavigatedRef = useRef(false);
   const activeRideIdRef = useRef(null);
   const cancellingSearchRef = useRef(false);
+  const resumeAbortedRef = useRef(false);
+  const searchNonceRef = useRef(0);
 
   const handleCancelSearch = async () => {
     if (cancellingSearchRef.current) return;
@@ -747,29 +817,31 @@ export default function RequestRide() {
   };
 
   // Verifica o status da corrida uma vez. Retorna true se já navegou/encerrou.
-  const checkRideStatusOnce = async (rideId) => {
+  const checkRideStatusOnce = async (rideId, searchNonce = null) => {
     if (pollNavigatedRef.current) return true;
+    if (rideId !== activeRideIdRef.current) return false;
+    if (searchNonce != null && searchNonce !== searchNonceRef.current) return false;
     try {
       const res = await base44.functions.invoke('getRideStatus', { rideId });
-      const rideData = res.data;
+      const rideData = unwrapInvoke(res);
       console.log('[Polling] Resultado:', rideData);
 
+      if (rideId !== activeRideIdRef.current) return false;
       if (!rideData?.found) return false;
 
-      if (rideData.status === 'accepted') {
-        if (!rideData.assigned_driver_id) {
+      if (PASSENGER_TRACKING_STATUSES.includes(rideData.status)) {
+        if (rideData.status === 'accepted' && !rideData.assigned_driver_id) {
           console.error('[Polling] status accepted sem assigned_driver_id, aguardando...');
           return false;
         }
-        pollNavigatedRef.current = true;
-        stopRidePolling();
-        navigate(`/ActiveRidePassenger?id=${rideId}`);
+        navigateToActiveRide(rideId);
         return true;
       }
 
       if (rideData.status === 'cancelled') {
+        if (rideId !== activeRideIdRef.current) return false;
         stopRidePolling();
-        clearActiveRide();
+        clearActiveRide(rideId);
         setSearchStatusMessage('');
         toast.info('Busca cancelada');
         setStep('options');
@@ -777,8 +849,9 @@ export default function RequestRide() {
       }
 
       if (rideData.status === 'expired') {
+        if (rideId !== activeRideIdRef.current) return false;
         stopRidePolling();
-        clearActiveRide();
+        clearActiveRide(rideId);
         setSearchStatusMessage('');
         toast.error('Nenhuma motorista aceitou a tempo. Tente novamente em instantes.');
         setStep('options');
@@ -808,25 +881,28 @@ export default function RequestRide() {
     if (pollTimeoutRef.current) { clearTimeout(pollTimeoutRef.current); pollTimeoutRef.current = null; }
   };
 
-  const clearActiveRide = () => {
+  const clearActiveRide = (rideId = null) => {
+    if (rideId && activeRideIdRef.current && activeRideIdRef.current !== rideId) return;
     activeRideIdRef.current = null;
     try { clearState('rr_activeRideId'); } catch (_) {}
   };
 
-  const startRidePolling = (rideId) => {
+  const startRidePolling = (rideId, searchNonce = null) => {
+    if (searchNonce != null && searchNonce !== searchNonceRef.current) return;
     console.log('[Polling] Iniciando polling resiliente para rideId:', rideId);
     pollNavigatedRef.current = false;
     activeRideIdRef.current = rideId;
+    setSearchError('');
     // Persistir o id da corrida ativa para retomar mesmo após recarregar a tela
     try { saveState('rr_activeRideId', rideId); } catch (_) {}
 
     stopRidePolling();
 
-    // Checagem imediata + polling a cada 2s
-    checkRideStatusOnce(rideId);
+    // Checagem imediata + polling a cada 750ms
+    checkRideStatusOnce(rideId, searchNonce);
     pollIntervalRef.current = setInterval(() => {
-      checkRideStatusOnce(rideId);
-    }, 2000);
+      checkRideStatusOnce(rideId, searchNonce);
+    }, 750);
 
     // Timeout de 5 minutos
     pollTimeoutRef.current = setTimeout(() => {
@@ -862,16 +938,66 @@ export default function RequestRide() {
     };
   }, []);
 
-  // Ao montar a tela, se houver uma corrida ativa pendente (ex.: a pessoa
-  // recarregou ou voltou ao app), retomar o acompanhamento automaticamente.
+  // Ao montar, retomar corrida pendente ou ir direto ao tracking se já aceita
   useEffect(() => {
-    const pendingId = restoreState('rr_activeRideId', 6 * 60 * 1000);
-    if (pendingId) {
-      console.log('[Polling] Retomando corrida ativa pendente:', pendingId);
-      setStep('searching');
-      setSearchingDrivers(true);
-      startRidePolling(pendingId);
-    }
+    let cancelled = false;
+
+    const resumePendingRide = async () => {
+      if (resumeAbortedRef.current) return;
+      const pendingId = restoreState('rr_activeRideId', 6 * 60 * 1000);
+      if (!pendingId || cancelled) return;
+
+      try {
+        const res = await base44.functions.invoke('getRideStatus', { rideId: pendingId });
+        if (cancelled || resumeAbortedRef.current) return;
+
+        const rideData = unwrapInvoke(res);
+        if (cancelled || resumeAbortedRef.current) return;
+
+        if (rideData?.found && PASSENGER_TRACKING_STATUSES.includes(rideData.status)) {
+          if (rideData.status === 'accepted' && !rideData.assigned_driver_id) {
+            // continua polling abaixo
+          } else {
+            navigate(`/ActiveRidePassenger?id=${pendingId}`);
+            clearActiveRide(pendingId);
+            return;
+          }
+        }
+
+        if (rideData?.found && ['cancelled', 'expired', 'completed'].includes(rideData.status)) {
+          clearActiveRide(pendingId);
+          return;
+        }
+
+        if (resumeAbortedRef.current || activeRideIdRef.current) return;
+
+        console.log('[Polling] Retomando corrida ativa pendente:', pendingId);
+        setStep('searching');
+        setSearchingDrivers(true);
+        startRidePolling(pendingId);
+      } catch (err) {
+        if (cancelled || resumeAbortedRef.current || activeRideIdRef.current) return;
+        console.warn('[Polling] Erro ao retomar corrida:', err);
+        setStep('searching');
+        setSearchingDrivers(true);
+        startRidePolling(pendingId);
+      }
+    };
+
+    resumePendingRide();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const onAccepted = () => {
+      const rideId = activeRideIdRef.current;
+      if (rideId && !pollNavigatedRef.current) {
+        checkRideStatusOnce(rideId);
+      }
+    };
+    window.addEventListener('passenger-ride-accepted', onAccepted);
+    return () => window.removeEventListener('passenger-ride-accepted', onAccepted);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -963,23 +1089,24 @@ export default function RequestRide() {
               paymentMethod: paymentMethod || selectedPayment,
             });
 
-            console.log('[handlePriceSubmit] Resposta dispatchRide:', response.data);
+            console.log('[handlePriceSubmit] Resposta dispatchRide:', unwrapInvoke(response));
 
-            if (response.data?.success) {
-              setCurrentRide(response.data.ride);
-              const count = response.data.ride?.offers_count ?? 0;
+            const dispatchData = unwrapInvoke(response);
+            if (dispatchData?.success) {
+              setCurrentRide(dispatchData.ride);
+              const count = dispatchData.ride?.offers_count ?? 0;
               setSearchStatusMessage(
                 count > 0
                   ? `Notificamos ${count} motorista${count > 1 ? 's' : ''} próxima${count > 1 ? 's' : ''}. Aguardando aceite...`
                   : 'Nenhuma motorista online no momento. Tentando novamente automaticamente...'
               );
-              startRidePolling(response.data.ride.id);
+              startRidePolling(dispatchData.ride.id);
               toast.success('✅ Corrida solicitada! Buscando motorista...');
               ['rr_pickup', 'rr_destination', 'rr_pickupLocation', 'rr_destinationLocation',
-               'rr_rideType', 'rr_paymentMethod', 'rr_couponCode', 'rr_appliedCoupon', 'rr_selectedPayment']
-                .forEach(k => clearState(k));
+                'rr_rideType', 'rr_couponCode', 'rr_appliedCoupon']
+                .forEach((k) => clearState(k));
             } else {
-              toast.error(response.data?.error || 'Erro ao buscar motoristas');
+              toast.error(dispatchData?.error || 'Erro ao buscar motoristas');
               setStep('options');
             }
           } catch (error) {
@@ -1299,23 +1426,25 @@ export default function RequestRide() {
                     <button
                       onClick={() => setShowPaymentPicker(v => !v)}
                       className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                        paymentMethod
+                        (paymentMethod || selectedPayment)
                           ? 'border-[#F472B6] bg-[#F472B6]/10'
                           : 'border-[#F2F2F2]/10 bg-[#0D0D0D] hover:border-[#F472B6]/30'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xl">
-                          {paymentMethod ? paymentOptions.find(o => o.id === paymentMethod)?.icon : '💳'}
+                          {(paymentMethod || selectedPayment)
+                            ? paymentOptions.find(o => o.id === (paymentMethod || selectedPayment))?.icon
+                            : '💳'}
                         </span>
                         <span className="text-sm font-medium text-[#F2F2F2]">
-                          {paymentMethod
-                            ? paymentOptions.find(o => o.id === paymentMethod)?.label
+                          {(paymentMethod || selectedPayment)
+                            ? paymentOptions.find(o => o.id === (paymentMethod || selectedPayment))?.label
                             : 'Escolher forma de pagamento'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {paymentMethod && <Check className="w-4 h-4 text-[#F472B6]" />}
+                        {(paymentMethod || selectedPayment) && <Check className="w-4 h-4 text-[#F472B6]" />}
                         <ChevronDown className={`w-4 h-4 text-[#F2F2F2]/50 transition-transform ${showPaymentPicker ? 'rotate-180' : ''}`} />
                       </div>
                     </button>
@@ -1465,11 +1594,35 @@ export default function RequestRide() {
                     <p className="text-[#F2F2F2]/60">
                       {searchStatusMessage || 'Aguarde enquanto encontramos a melhor opção para você'}
                     </p>
+
+                    {searchError && (
+                      <p className="mt-4 text-sm text-red-400">{searchError}</p>
+                    )}
                     
                     <div className="mt-8 flex items-center justify-center gap-2">
                       <Shield className="w-5 h-5 text-[#F472B6]" />
                       <span className="text-sm text-[#F2F2F2]/60">Motoristas verificadas</span>
                     </div>
+
+                    {searchError && (
+                      <Button
+                        onClick={handleConfirmRide}
+                        disabled={searchingDrivers}
+                        className="mt-6 btn-gradient px-8 py-3 rounded-full"
+                      >
+                        {searchingDrivers ? 'Tentando...' : 'Tentar novamente'}
+                      </Button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setSearchError('');
+                        setStep('options');
+                      }}
+                      className="mt-4 block mx-auto text-sm text-[#F2F2F2]/40 hover:text-[#F2F2F2]/70 transition-colors"
+                    >
+                      Voltar às opções
+                    </button>
 
                     <button
                       onClick={handleCancelSearch}

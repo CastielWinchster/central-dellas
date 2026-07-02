@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { assignDriversToRide, calculateDistance } from '../_shared/rideDispatch.ts';
+import { assignDriversToRide, calculateDistance } from './rideDispatch.ts';
 
 const MAX_DISTANCE_KM = 150;
 
@@ -85,20 +85,22 @@ Deno.serve(async (req) => {
     const dispatchResult = await assignDriversToRide(base44, ride);
 
     if (couponCode) {
-      try {
-        const normalizedCode = couponCode.trim().replace(/\s+/g, '').toLowerCase();
-        const allPromos = await base44.asServiceRole.entities.PromoCode.filter({ is_active: true });
-        const promo = allPromos.find(
-          (p) => p.code.trim().replace(/\s+/g, '').toLowerCase() === normalizedCode,
-        );
-        if (promo) {
-          await base44.asServiceRole.entities.PromoCode.update(promo.id, {
-            current_uses: (promo.current_uses || 0) + 1,
-          });
+      (async () => {
+        try {
+          const normalizedCode = couponCode.trim().replace(/\s+/g, '').toLowerCase();
+          const allPromos = await base44.asServiceRole.entities.PromoCode.filter({ is_active: true });
+          const promo = allPromos.find(
+            (p) => p.code.trim().replace(/\s+/g, '').toLowerCase() === normalizedCode,
+          );
+          if (promo) {
+            await base44.asServiceRole.entities.PromoCode.update(promo.id, {
+              current_uses: (promo.current_uses || 0) + 1,
+            });
+          }
+        } catch (promoErr) {
+          console.warn('[dispatchRide] Erro ao registrar cupom:', (promoErr as Error).message);
         }
-      } catch (promoErr) {
-        console.warn('[dispatchRide] Erro ao registrar cupom:', promoErr.message);
-      }
+      })();
     }
 
     return Response.json({

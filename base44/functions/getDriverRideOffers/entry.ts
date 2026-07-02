@@ -13,44 +13,82 @@ Deno.serve(async (req) => {
     if (!isDriver(driver)) return Response.json({ error: 'Acesso negado' }, { status: 403 });
 
     const now = new Date().toISOString();
-    const offers = await base44.asServiceRole.entities.RideOffer.filter({ driver_id: driver.id });
+    const driverId = String(driver.id);
 
-    const pending = offers.filter(
-      (o) => ['sent', 'seen'].includes(String(o.status)) && String(o.expires_at) >= now,
-    );
+    const [offersSent, offersSeen, presences] = await Promise.all([
+      base44.asServiceRole.entities.RideOffer.filter({ driver_id: driverId, status: 'sent' }),
+      base44.asServiceRole.entities.RideOffer.filter({ driver_id: driverId, status: 'seen' }),
+      base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driverId }),
+    ]);
 
-    const enriched = (
-      await Promise.all(
-        pending.map(async (offer) => {
-          const rides = await base44.asServiceRole.entities.Ride.filter({ id: offer.ride_id });
-          const ride = rides[0];
-          if (!ride || !['requested', 'assigned'].includes(String(ride.status))) {
-            if (offer.id) {
-              await base44.asServiceRole.entities.RideOffer.update(String(offer.id), { status: 'expired' });
-            }
-            return null;
-          }
-
-          const passengers = await base44.asServiceRole.entities.User.filter({ id: ride.passenger_id });
-          return {
-            offer,
-            ride,
-            passenger: passengers[0] || null,
-          };
-        }),
-      )
-    ).filter(Boolean);
-
-    enriched.sort(
-      (a, b) => new Date(String(a!.offer.sent_at)).getTime() - new Date(String(b!.offer.sent_at)).getTime(),
-    );
-
-    const presences = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });
     const presence = presences[0] || null;
     const isAvailable = !!presence?.is_online && presence?.is_available !== false;
 
-    console.log(
-      `[getDriverRideOffers] ${driver.email} | online=${presence?.is_online} available=${isAvailable} | ofertas=${enriched.length}`,
+    const pending = [...offersSent, ...offersSeen].filter(
+      (o) => String(o.expires_at) >= now,
+    );
+
+    if (!isAvailable || pending.length === 0) {
+      return Response.json({
+        success: true,
+        isOnlineDb: !!presence?.is_online,
+        isAvailableDb: isAvailable,
+        presence: presence || null,
+        presenceId: presence?.id || null,
+        offers: [],
+      });
+    }
+
+    const rideIds = [...new Set(pending.map((o) => String(o.ride_id)).filter(Boolean))];
+
+    const rideLists = await Promise.all(
+      rideIds.map((id) => base44.asServiceRole.entities.Ride.filter({ id })),
+    );
+    const rideById = new Map<string, Record<string, unknown>>();
+    for (const list of rideLists) {
+      const ride = list[0];
+      if (ride?.id && ['requested', 'assigned'].includes(String(ride.status))) {
+        rideById.set(String(ride.id), ride);
+      }
+    }
+
+    const expiredOfferIds = pending
+      .filter((o) => !rideById.has(String(o.ride_id)))
+      .map((o) => String(o.id));
+
+    if (expiredOfferIds.length > 0) {
+      Promise.allSettled(
+        expiredOfferIds.map((id) =>
+          base44.asServiceRole.entities.RideOffer.update(id, { status: 'expired' }),
+        ),
+      ).catch(() => {});
+    }
+
+    const validPending = pending.filter((o) => rideById.has(String(o.ride_id)));
+    const passengerIds = [...new Set(
+      [...rideById.values()].map((r) => String(r.passenger_id)).filter(Boolean),
+    )];
+
+    const passengerLists = await Promise.all(
+      passengerIds.map((id) => base44.asServiceRole.entities.User.filter({ id })),
+    );
+    const passengerById = new Map<string, Record<string, unknown>>();
+    for (const list of passengerLists) {
+      if (list[0]?.id) passengerById.set(String(list[0].id), list[0]);
+    }
+
+    const enriched = validPending
+      .map((offer) => {
+        const ride = rideById.get(String(offer.ride_id));
+        if (!ride) return null;
+        const passenger = passengerById.get(String(ride.passenger_id)) || null;
+        return { offer, ride, passenger };
+      })
+      .filter(Boolean);
+
+    enriched.sort(
+      (a, b) =>
+        new Date(String(a!.offer.sent_at)).getTime() - new Date(String(b!.offer.sent_at)).getTime(),
     );
 
     return Response.json({
@@ -59,7 +97,7 @@ Deno.serve(async (req) => {
       isAvailableDb: isAvailable,
       presence: presence || null,
       presenceId: presence?.id || null,
-      offers: isAvailable ? enriched : [],
+      offers: enriched,
     });
   } catch (error) {
     console.error('[getDriverRideOffers]', (error as Error).message);

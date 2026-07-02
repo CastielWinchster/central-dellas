@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { maybeRedispatchRide } from '../_shared/rideDispatch.ts';
+import { maybeRedispatchRide } from './rideDispatch.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -24,6 +24,18 @@ Deno.serve(async (req) => {
 
     if (ride.passenger_id !== user.id) {
       return Response.json({ error: 'Acesso negado' }, { status: 403 });
+    }
+
+    if (['accepted', 'cancelled', 'expired', 'completed'].includes(String(ride.status))) {
+      return Response.json({
+        found: true,
+        status: ride.status,
+        assigned_driver_id: ride.assigned_driver_id || null,
+        offers_count: 0,
+        redispatched: false,
+        expired: ride.status === 'expired',
+        offer_expires_at: ride.offer_expires_at || null,
+      });
     }
 
     const { ride: updatedRide, redispatched, offers_count, expired } = await maybeRedispatchRide(

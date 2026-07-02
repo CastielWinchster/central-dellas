@@ -1,5 +1,5 @@
-// Service Worker Central Dellas — push estilo Uber (app fechado + ações Aceitar/Recusar)
-const SW_VERSION = 'centraldellas-v10';
+// Service Worker Central Dellas — push VAPID + FCM (app fechado)
+const SW_VERSION = 'centraldellas-v13';
 const CACHE_NAME = SW_VERSION;
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const RIDE_ALERT_INTERVAL_MS = 8000;
@@ -191,3 +191,67 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+function normalizePushPayload(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  return {
+    title: raw.title,
+    body: raw.body || raw.message,
+    type: raw.type,
+    url: raw.url,
+    rideId: raw.rideId || raw.ride_id,
+    offerId: raw.offerId || raw.offer_id,
+    persistent: raw.persistent === true || raw.persistent === 'true' || raw.type === 'ride_offer',
+    tag: raw.tag,
+  };
+}
+
+function handleIncomingPushPayload(raw) {
+  const data = normalizePushPayload(raw);
+
+  if (data.type === 'ride_offer_cancelled') {
+    stopRideAlert(data.rideId);
+    return Promise.resolve();
+  }
+
+  if (data.type === 'ride_offer' || data.persistent) {
+    return Promise.all([startRideAlertLoop(data), notifyOpenClients(data)]);
+  }
+
+  const title = data.title || 'Central Dellas 🚗';
+  const body = data.body || '';
+  const url = data.url || '/';
+  return self.registration.showNotification(title, {
+    body,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: data.tag || `cd-${data.type || 'default'}-${Date.now()}`,
+    renotify: true,
+    vibrate: [200, 100, 200],
+    data: { url, type: data.type || 'default', rideId: data.rideId, offerId: data.offerId },
+  });
+}
+
+// FCM Web — fallback quando token vem do Firebase getToken (TWA / Play Store)
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+  firebase.initializeApp({
+    apiKey: 'AIzaSyDRNqvm4iWZLzyrbsZA2ZeJKcXku6k1wzY',
+    authDomain: 'centraldellas-408d4.firebaseapp.com',
+    projectId: 'centraldellas-408d4',
+    storageBucket: 'centraldellas-408d4.firebasestorage.app',
+    messagingSenderId: '223072086607',
+    appId: '1:223072086607:web:3bb6664afeb70ed574983a',
+  });
+  firebase.messaging().onBackgroundMessage((payload) => {
+    const merged = normalizePushPayload({
+      ...(payload.data || {}),
+      title: payload.notification?.title || payload.data?.title,
+      body: payload.notification?.body || payload.data?.body,
+    });
+    return handleIncomingPushPayload(merged);
+  });
+} catch (e) {
+  console.warn('[SW] Firebase messaging indisponível:', e);
+}

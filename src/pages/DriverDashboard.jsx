@@ -16,6 +16,7 @@ import MapView from '../components/map/MapView';
 import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
+import { verifyPushRegistration } from '@/lib/pushRegistration';
 import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
@@ -114,6 +115,18 @@ export default function DriverDashboard() {
     }
   }, [user?.id]);
 
+  // Sincronizar switch com outras abas / DriverRideOfferLayer
+  useEffect(() => {
+    if (!user?.id) return;
+    const syncFromStorage = () => setIsOnline(isDriverOnlineLocal(user.id));
+    window.addEventListener('storage', syncFromStorage);
+    window.addEventListener('driver-online-changed', syncFromStorage);
+    return () => {
+      window.removeEventListener('storage', syncFromStorage);
+      window.removeEventListener('driver-online-changed', syncFromStorage);
+    };
+  }, [user?.id]);
+
   // Sincronizar ref com state para uso dentro do effect sem causar re-render
   useEffect(() => {
     presenceRecordRef.current = presenceRecord;
@@ -172,10 +185,8 @@ export default function DriverDashboard() {
         }
       } catch (dbError) {
         console.error('Erro ao salvar presença:', dbError);
-        toast.error('Não foi possível ficar online. Tente novamente.');
-        setDriverOnlineLocal(user.id, false);
-        setIsOnline(false);
-        return;
+        toast.warning('Conexão instável — continuando online, tentando reconectar...');
+        // Não desliga o switch; segue com GPS e re-tentativas no intervalo abaixo
       }
 
       // Iniciar watchPosition se disponível
@@ -246,6 +257,10 @@ export default function DriverDashboard() {
         clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
       }
+      // Evita derrubar presença por race/re-mount enquanto localStorage ainda está online
+      if (user?.id && isDriverOnlineLocal(user.id)) {
+        return;
+      }
       // Em corrida ativa: permanece online no mapa, só indisponível para novas ofertas
       if (hasActiveRideLocal()) {
         try {
@@ -283,7 +298,7 @@ export default function DriverDashboard() {
         updateIntervalRef.current = null;
       }
     };
-  }, [isOnline, user, onlineReady]); // presenceRecord removido das deps intencionalmente
+  }, [isOnline, user?.id, onlineReady]); // presenceRecord removido das deps intencionalmente
   
   // Calcular distância entre dois pontos (em metros)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -318,7 +333,19 @@ export default function DriverDashboard() {
   }, [selectedRide, currentLocation]);
 
   useEffect(() => {
-    if (user && isOnline) ensureDriverPushSubscription();
+    if (user && isOnline) {
+      ensureDriverPushSubscription().then(async (result) => {
+        if (!result?.ok) {
+          toast.warning('Ative as notificações para receber corridas com o app fechado.', { duration: 5000 });
+          return;
+        }
+        const check = await verifyPushRegistration();
+        const serverOk = check.server?.has_subscription || check.server?.has_fcm_token;
+        if (!serverOk) {
+          toast.warning('Push não registrado no servidor. Abra as configurações e permita notificações.', { duration: 6000 });
+        }
+      }).catch(() => {});
+    }
   }, [user, isOnline]);
 
   const handleAcceptRide = async () => {
@@ -405,11 +432,14 @@ export default function DriverDashboard() {
                 </span>
                 <Switch
                   checked={isOnline}
-                  onCheckedChange={(val) => {
+                  onCheckedChange={async (val) => {
                     if (!user?.id) return;
                     if (val) {
                       setDriverOnlineLocal(user.id, true);
-                      ensureDriverPushSubscription();
+                      const push = await ensureDriverPushSubscription();
+                      if (!push?.ok) {
+                        toast.warning('Permita notificações — sem isso você não recebe corridas com o app fechado.');
+                      }
                     } else {
                       setDriverOnlineLocal(user.id, false);
                     }
