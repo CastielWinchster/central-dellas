@@ -29,6 +29,7 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { clearState, saveState, restoreState } from '@/utils/stateManager';
 import { registerAllPushChannels } from '@/lib/pushRegistration';
 import { unwrapInvoke } from '@/utils/invokeResponse';
+import { formatInvokeError } from '@/utils/invokeError';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -743,12 +744,7 @@ export default function RequestRide() {
           if (data?.success) break;
           lastError = data?.error || 'Erro ao buscar motoristas';
         } catch (err) {
-          const status = err?.response?.status ?? err?.status;
-          if (status === 404) {
-            lastError = 'Função dispatchRide não publicada. Rode: npx base44 functions deploy dispatchRide';
-          } else {
-            lastError = err?.message || 'Erro de conexão';
-          }
+          lastError = formatInvokeError(err, 'dispatchRide');
           if (attempt === 0) {
             await new Promise((r) => setTimeout(r, 900));
           }
@@ -1116,7 +1112,7 @@ export default function RequestRide() {
             }
           } catch (error) {
             console.error('[handlePriceSubmit] Erro ao criar corrida:', error);
-            toast.error('Erro ao solicitar corrida. Tente novamente.');
+            toast.error(formatInvokeError(error, 'dispatchRide'));
             setStep('options');
           } finally {
             setSearchingDrivers(false);

@@ -8,11 +8,22 @@ import { SW_BUILD_ID } from './src/config/swVersion.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+const appJsonPath = path.resolve(__dirname, 'base44/.app.jsonc')
+const base44AppId = JSON.parse(fs.readFileSync(appJsonPath, 'utf8')).id
+const base44AppBaseUrl =
+  process.env.VITE_BASE44_APP_BASE_URL || 'https://centraldellas.base44.app'
+
 // https://vite.dev/config/
 export default defineConfig({
   logLevel: 'error',
   define: {
     __SW_BUILD_ID__: JSON.stringify(SW_BUILD_ID),
+    'import.meta.env.VITE_BASE44_APP_ID': JSON.stringify(
+      process.env.VITE_BASE44_APP_ID || base44AppId,
+    ),
+    'import.meta.env.VITE_BASE44_APP_BASE_URL': JSON.stringify(
+      process.env.VITE_BASE44_APP_BASE_URL || base44AppBaseUrl,
+    ),
   },
   plugins: [
     base44({
