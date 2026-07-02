@@ -47,9 +47,7 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "is_authenticated": true
-      }
+      "user_id": "{{user.id}}"
     },
     "read": {
       "user_id": "{{user.id}}"

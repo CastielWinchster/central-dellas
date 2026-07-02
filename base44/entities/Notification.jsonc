@@ -46,7 +46,9 @@
     "type"
   ],
   "rls": {
-    "create": null,
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
     "read": {
       "$or": [
         { "user_id": "{{user.id}}" },

@@ -55,7 +55,9 @@
         "role": "admin"
       }
     },
-    "read": null,
+    "read": {
+      "is_active": true
+    },
     "update": {
       "user_condition": {
         "role": "admin"

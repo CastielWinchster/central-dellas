@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AdminPanel from './pages/AdminPanel';
+import AvailableRides from './pages/AvailableRides';
 import BlockedUsers from './pages/BlockedUsers';
 import CustomSignup from './pages/CustomSignup';
 import DriverDashboard from './pages/DriverDashboard';
@@ -78,6 +79,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AdminPanel": AdminPanel,
+    "AvailableRides": AvailableRides,
     "BlockedUsers": BlockedUsers,
     "CustomSignup": CustomSignup,
     "DriverDashboard": DriverDashboard,

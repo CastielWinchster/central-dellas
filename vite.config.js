@@ -37,9 +37,12 @@ export default defineConfig({
         )
         const swPath = path.join(distDir, 'sw.js')
         if (fs.existsSync(swPath)) {
-          const sw = fs.readFileSync(swPath, 'utf8')
-          if (!sw.includes(`centraldellas-v${SW_BUILD_ID}`)) {
-            console.warn('[build] public/sw.js não contém a versão esperada v' + SW_BUILD_ID)
+          let sw = fs.readFileSync(swPath, 'utf8')
+          const expectedVersion = `centraldellas-v${SW_BUILD_ID}`
+          if (!sw.includes(expectedVersion)) {
+            sw = sw.replace(/centraldellas-v\d+/g, expectedVersion)
+            fs.writeFileSync(swPath, sw)
+            console.warn('[build] sw.js version sincronizada para', expectedVersion)
           }
         }
       },

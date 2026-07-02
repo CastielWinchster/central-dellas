@@ -48,7 +48,9 @@
     "distance_km"
   ],
   "rls": {
-    "create": null,
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
     "read": {
       "$or": [
         { "driver_id": "{{user.id}}" },
