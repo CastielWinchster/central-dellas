@@ -154,11 +154,11 @@ function LayoutContent({ children, currentPageName }) {
     <div className={`min-h-screen transition-colors ${isDark ? 'bg-[#0D0D0D] text-[#F2F2F2]' : 'bg-gray-50 text-gray-900'}`}>
       <style>{`
         :root {
-          --rosa-principal: #7C3AED;
-          --rosa-vibrante: #A855F7;
-          --roxo-escuro: #5B21B6;
-          --roxo-principal: #7C3AED;
-          --roxo-vibrante: #A855F7;
+          --rosa-principal: #EC4899;
+          --rosa-vibrante: #F472B6;
+          --roxo-escuro: #BE185D;
+          --roxo-principal: #EC4899;
+          --roxo-vibrante: #F472B6;
           --branco-gelo: #F2F2F2;
           --preto-profundo: #0D0D0D;
         }
@@ -178,11 +178,11 @@ function LayoutContent({ children, currentPageName }) {
         }
         
         .gradient-pink {
-          background: linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #5B21B6 100%);
+          background: linear-gradient(135deg, #EC4899 0%, #F472B6 50%, #BE185D 100%);
         }
         
         .gradient-text {
-          background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+          background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
@@ -190,32 +190,32 @@ function LayoutContent({ children, currentPageName }) {
         .light-theme .glass-effect {
           background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(124, 58, 237, 0.2);
+          border: 1px solid rgba(236, 72, 153, 0.2);
         }
         
         .dark-theme .glass-effect {
           background: rgba(13, 13, 13, 0.8);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(124, 58, 237, 0.2);
+          border: 1px solid rgba(236, 72, 153, 0.2);
         }
         
         .glow-pink {
-          box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(124, 58, 237, 0.2);
+          box-shadow: 0 0 20px rgba(244, 114, 182, 0.3), 0 0 40px rgba(236, 72, 153, 0.2);
         }
         
         .btn-gradient {
-          background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+          background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%);
           transition: all 0.3s ease;
         }
         
         .btn-gradient:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+          box-shadow: 0 10px 30px rgba(244, 114, 182, 0.4);
         }
         
         @keyframes pulse-pink {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
-          50% { box-shadow: 0 0 0 15px rgba(168, 85, 247, 0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.4); }
+          50% { box-shadow: 0 0 0 15px rgba(244, 114, 182, 0); }
         }
         
         .pulse-animation {
@@ -227,7 +227,7 @@ function LayoutContent({ children, currentPageName }) {
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-xl ${isDark ? 'bg-[#0D0D0D]/95 border-b border-[#A855F7]/20' : 'bg-white/95 border-b border-gray-200'} shadow-lg`}
+        className={`fixed top-0 left-0 right-0 z-[10000] backdrop-blur-xl ${isDark ? 'bg-[#0D0D0D]/95 border-b border-[#F472B6]/20' : 'bg-white/95 border-b border-gray-200'} shadow-lg`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('PassengerHome')} className="flex items-center gap-2">
@@ -249,7 +249,7 @@ function LayoutContent({ children, currentPageName }) {
                     "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300",
                     currentPageName === link.page
                       ? "btn-gradient text-white"
-                      : isDark ? "text-[#F2F2F2]/70 hover:text-[#A855F7]" : "text-gray-600 hover:text-[#A855F7]"
+                      : isDark ? "text-[#F2F2F2]/70 hover:text-[#F472B6]" : "text-gray-600 hover:text-[#F472B6]"
                   )}
                 >
                   <link.icon className="w-4 h-4" />
@@ -263,7 +263,7 @@ function LayoutContent({ children, currentPageName }) {
             {user && (user.user_type === 'driver' || user.user_type === 'both' || user.role === 'admin') && (
                 <Link
                   to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
-                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#A855F7]/30 text-[#A855F7] hover:bg-[#A855F7]/10 transition-all"
+                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-[#F472B6]/30 text-[#F472B6] hover:bg-[#F472B6]/10 transition-all"
                 >
                   {isDriverPage ? <MapPin className="w-4 h-4" /> : <Car className="w-4 h-4" />}
                   <span className="text-sm">{isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}</span>
@@ -282,11 +282,11 @@ function LayoutContent({ children, currentPageName }) {
                     setNotifications={setNotifications}
                     setUnreadCount={setUnreadCount}
                   />
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#A855F7]">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F472B6]">
                     {user.photo_url ? (
                       <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
                         <User className="w-5 h-5 text-white" />
                       </div>
                     )}
@@ -306,7 +306,7 @@ function LayoutContent({ children, currentPageName }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-[#A855F7]/10 transition-colors relative z-[10001]"
+              className="md:hidden p-2 rounded-lg hover:bg-[#F472B6]/10 transition-colors relative z-[10001]"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -329,10 +329,10 @@ function LayoutContent({ children, currentPageName }) {
                 <Link
                   to={createPageUrl(isDriverPage ? 'PassengerHome' : 'DriverDashboard')}
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-4 px-4 py-4 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/30 hover:bg-[#A855F7]/20 transition-all mb-3"
+                  className="flex items-center gap-4 px-4 py-4 rounded-xl bg-[#F472B6]/10 border border-[#F472B6]/30 hover:bg-[#F472B6]/20 transition-all mb-3"
                 >
-                  {isDriverPage ? <MapPin className="w-6 h-6 text-[#A855F7]" /> : <Car className="w-6 h-6 text-[#A855F7]" />}
-                  <span className="font-medium text-[#A855F7]">
+                  {isDriverPage ? <MapPin className="w-6 h-6 text-[#F472B6]" /> : <Car className="w-6 h-6 text-[#F472B6]" />}
+                  <span className="font-medium text-[#F472B6]">
                     {isDriverPage ? 'Modo Passageira' : 'Modo Motorista'}
                   </span>
                 </Link>
@@ -346,17 +346,17 @@ function LayoutContent({ children, currentPageName }) {
                 className={cn(
                   "flex items-center gap-4 px-4 py-4 rounded-xl transition-all",
                   currentPageName === link.page
-                    ? "bg-gradient-to-r from-[#7C3AED]/20 to-[#A855F7]/20 border border-[#A855F7]/30"
-                    : isDark ? "hover:bg-[#A855F7]/10" : "hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-[#EC4899]/20 to-[#F472B6]/20 border border-[#F472B6]/30"
+                    : isDark ? "hover:bg-[#F472B6]/10" : "hover:bg-gray-100"
                 )}
               >
                   <link.icon className={cn(
                     "w-6 h-6",
-                    currentPageName === link.page ? "text-[#A855F7]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
+                    currentPageName === link.page ? "text-[#F472B6]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
                   )} />
                   <span className={cn(
                     "font-medium",
-                    currentPageName === link.page ? "text-[#A855F7]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
+                    currentPageName === link.page ? "text-[#F472B6]" : isDark ? "text-[#F2F2F2]/70" : "text-gray-600"
                   )}>{link.name}</span>
                 </Link>
               ))}
@@ -400,7 +400,7 @@ function LayoutContent({ children, currentPageName }) {
         <motion.nav 
               initial={{ y: 100 }}
               animate={{ y: 0 }}
-              className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#A855F7]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
+              className={`fixed bottom-0 left-0 right-0 md:hidden z-[80] ${isDark ? 'bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#F472B6]/20' : 'bg-white/95 backdrop-blur-xl border-t border-gray-200'} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]`}
             >
               <div className="flex items-center justify-around py-3 px-2">
                 {(isDriverPage ? driverLinks : passengerLinks).map((link, index) => (
@@ -414,7 +414,7 @@ function LayoutContent({ children, currentPageName }) {
                     className={cn(
                       "p-2 rounded-xl transition-all",
                       currentPageName === link.page
-                        ? "bg-gradient-to-br from-[#7C3AED] to-[#A855F7] glow-pink"
+                        ? "bg-gradient-to-br from-[#EC4899] to-[#F472B6] glow-pink"
                         : isDark ? "text-[#F2F2F2]/50" : "text-gray-400"
                     )}
                   >
@@ -425,7 +425,7 @@ function LayoutContent({ children, currentPageName }) {
                   </motion.div>
                   <span className={cn(
                     "text-[10px] font-medium",
-                    currentPageName === link.page ? "text-[#A855F7]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
+                    currentPageName === link.page ? "text-[#F472B6]" : isDark ? "text-[#F2F2F2]/50" : "text-gray-500"
                   )}>{link.name}</span>
                 </Link>
               ))}
