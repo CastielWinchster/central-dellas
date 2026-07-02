@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import { verifyPushRegistration } from '@/lib/pushRegistration';
-import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -172,6 +172,7 @@ export default function DriverDashboard() {
       try {
         const res = await base44.functions.invoke('setDriverPresence', {
           isOnline: true,
+          isAvailable: true,
           lat: latitude,
           lng: longitude,
           accuracy,
@@ -219,6 +220,7 @@ export default function DriverDashboard() {
             try {
               await base44.functions.invoke('setDriverPresence', {
                 isOnline: true,
+                isAvailable: true,
                 lat,
                 lng,
                 accuracy: acc || 0,
@@ -239,7 +241,7 @@ export default function DriverDashboard() {
       // Atualizar timestamp a cada 3 segundos
       updateIntervalRef.current = setInterval(async () => {
         try {
-          await base44.functions.invoke('setDriverPresence', { isOnline: true });
+          await base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true });
         } catch (error) {
           console.error('Erro ao atualizar timestamp:', error);
         }
@@ -437,6 +439,7 @@ export default function DriverDashboard() {
                     if (!user?.id) return;
                     if (val) {
                       setDriverOnlineLocal(user.id, true);
+                      setDriverAvailableIfOnline(base44, user.id).catch(() => {});
                       const push = await ensureDriverPushSubscription();
                       if (!push?.ok) {
                         toast.warning('Permita notificações — sem isso você não recebe corridas com o app fechado.');

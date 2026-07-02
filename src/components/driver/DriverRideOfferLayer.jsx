@@ -76,7 +76,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
       if (!data?.success) return;
 
       if (data.isOnlineDb === false && isDriverOnlineLocal(userId)) {
-        base44.functions.invoke('setDriverPresence', { isOnline: true }).catch(() => {});
+        base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true }).catch(() => {});
       }
 
       const pending = (data.offers || []).filter(

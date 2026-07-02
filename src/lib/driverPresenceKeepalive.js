@@ -12,7 +12,7 @@ export function startDriverPresenceKeepalive(userId) {
 
   const ping = () => {
     if (!isDriverOnlineLocal(userId)) return;
-    base44.functions.invoke('setDriverPresence', { isOnline: true }).catch(() => {});
+    base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true }).catch(() => {});
   };
 
   ping();

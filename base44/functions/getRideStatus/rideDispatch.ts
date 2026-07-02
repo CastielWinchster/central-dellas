@@ -48,11 +48,10 @@ type RideRecord = Record<string, unknown> & {
 
 export async function findOnlineDriversWithCoords(base44: Base44Client) {
   const graceCutoff = new Date(Date.now() - DRIVER_PRESENCE_GRACE_MS).toISOString();
-  let onlineDrivers: Array<Record<string, unknown>> = [];
+  let allOnline: Array<Record<string, unknown>> = [];
 
   try {
-    onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
-      is_available: true,
+    allOnline = await base44.asServiceRole.entities.DriverPresence.filter({
       is_online: true,
       last_seen_at: { $gte: graceCutoff },
     });
@@ -60,12 +59,12 @@ export async function findOnlineDriversWithCoords(base44: Base44Client) {
     console.warn('[rideDispatch] filtro last_seen_at falhou, usando fallback:', (e as Error).message);
   }
 
-  if (onlineDrivers.length === 0) {
-    onlineDrivers = await base44.asServiceRole.entities.DriverPresence.filter({
-      is_available: true,
-      is_online: true,
-    });
+  if (allOnline.length === 0) {
+    allOnline = await base44.asServiceRole.entities.DriverPresence.filter({ is_online: true });
   }
+
+  // Mapa usa só is_online; dispatch exige disponível — is_available=false = em corrida
+  const onlineDrivers = allOnline.filter((d) => d.is_available !== false);
 
   return onlineDrivers
     .map((d) => ({
