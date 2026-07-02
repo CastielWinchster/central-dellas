@@ -5,8 +5,10 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { base44 } from '@/api/base44Client';
 import { subscribeToPush } from '@/hooks/useNotifications';
 import { firebaseConfig, FCM_VAPID_KEY } from '@/lib/firebaseConfig';
+import { buildDriverOfferUrl } from '@/lib/pushDeepLink';
 
 let foregroundHandlerRegistered = false;
+let nativeListenersRegistered = false;
 
 async function saveTokens({ subscription, fcmToken, platform }) {
   const payload = {};
@@ -19,6 +21,28 @@ async function saveTokens({ subscription, fcmToken, platform }) {
   return { ok: true };
 }
 
+function dispatchRideOfferAlert(data = {}) {
+  window.dispatchEvent(new CustomEvent('driver-ride-offer-alert', { detail: data }));
+}
+
+function navigateToOffer(data = {}) {
+  const url = data.url || buildDriverOfferUrl({ rideId: data.rideId, offerId: data.offerId });
+  if (window.location.pathname + window.location.search !== url) {
+    window.location.href = url;
+  } else {
+    dispatchRideOfferAlert(data);
+  }
+}
+
+async function rejectOfferFromPush(offerId) {
+  if (!offerId) return;
+  try {
+    await base44.functions.invoke('respondRideOffer', { offerId, status: 'rejected' });
+  } catch (e) {
+    console.warn('[Push] Falha ao recusar oferta:', e.message);
+  }
+}
+
 function registerForegroundHandler() {
   if (foregroundHandlerRegistered) return;
   foregroundHandlerRegistered = true;
@@ -28,20 +52,58 @@ function registerForegroundHandler() {
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
     onMessage(messaging, (payload) => {
-      const title = payload.notification?.title || 'Central Dellas';
-      const body = payload.notification?.body || '';
+      const data = payload.data || {};
+      const title = payload.notification?.title || data.title || 'Central Dellas';
+      const body = payload.notification?.body || data.body || '';
+
+      if (data.type === 'ride_offer') {
+        dispatchRideOfferAlert(data);
+        if (Notification.permission === 'granted') {
+          const tag = data.rideId ? `ride-offer-${data.rideId}` : `fcm-${Date.now()}`;
+          new Notification(title, {
+            body,
+            icon: '/favicon.ico',
+            tag,
+            requireInteraction: true,
+            data,
+          });
+        }
+        return;
+      }
+
       if (Notification.permission === 'granted') {
         new Notification(title, {
           body,
           icon: '/favicon.ico',
-          tag: payload.data?.tag || `fcm-${Date.now()}`,
+          tag: data.tag || `fcm-${Date.now()}`,
         });
-      }
-      if (payload.data?.type === 'ride_offer') {
-        window.dispatchEvent(new CustomEvent('driver-ride-offer-alert'));
       }
     });
   }).catch(() => {});
+}
+
+function registerNativePushListeners() {
+  if (nativeListenersRegistered || !Capacitor.isNativePlatform()) return;
+  nativeListenersRegistered = true;
+
+  PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    const data = notification.data || {};
+    if (data.type === 'ride_offer') {
+      dispatchRideOfferAlert(data);
+    }
+  });
+
+  PushNotifications.addListener('pushNotificationActionPerformed', async (event) => {
+    const data = event.notification?.data || {};
+    if (data.type !== 'ride_offer') return;
+
+    if (event.actionId === 'reject') {
+      await rejectOfferFromPush(data.offerId);
+      return;
+    }
+
+    navigateToOffer(data);
+  });
 }
 
 /** FCM Web — token via service worker existente (/sw.js) */
@@ -83,6 +145,8 @@ export async function registerNativeFcmPush() {
     if (!Capacitor.isNativePlatform()) {
       return { ok: false, reason: 'not_native' };
     }
+
+    registerNativePushListeners();
 
     const perm = await PushNotifications.requestPermissions();
     if (perm.receive !== 'granted') {
@@ -134,4 +198,29 @@ export async function registerAllPushChannels({ requestPermission = false } = {}
 
   const anyOk = results.vapid.ok || results.fcmWeb.ok || results.fcmNative.ok;
   return { ok: anyOk, ...results };
+}
+
+/** Trata deep link / recusa automática ao abrir app via notificação */
+export async function handlePushDeepLinkOnLaunch() {
+  const params = new URLSearchParams(window.location.search);
+  const autoReject = params.get('autoReject') === '1';
+  const offerId = params.get('offerId') || params.get('offer_id');
+  const rideId = params.get('rideId') || params.get('ride_id');
+
+  if (autoReject && offerId) {
+    await rejectOfferFromPush(offerId);
+    params.delete('autoReject');
+    params.delete('offerId');
+    params.delete('offer_id');
+    const qs = params.toString();
+    window.history.replaceState({}, document.title, `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+    return { handled: true, action: 'reject', offerId, rideId };
+  }
+
+  if (rideId || offerId) {
+    dispatchRideOfferAlert({ rideId, offerId });
+    return { handled: true, action: 'open', offerId, rideId };
+  }
+
+  return { handled: false };
 }

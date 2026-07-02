@@ -37,25 +37,73 @@ function ensureFcm() {
   }
 }
 
-async function sendFcm(
-  token: string,
-  payload: { title: string; body: string; type: string; url: string; rideId: string | null },
-) {
+type PushPayload = {
+  title: string;
+  body: string;
+  type: string;
+  url: string;
+  rideId: string | null;
+  offerId: string | null;
+  persistent: boolean;
+};
+
+async function sendFcm(token: string, payload: PushPayload) {
   if (!ensureFcm()) return false;
+
+  const data: Record<string, string> = {
+    type: payload.type,
+    url: payload.url,
+    rideId: payload.rideId || '',
+    offerId: payload.offerId || '',
+    title: payload.title,
+    body: payload.body,
+    persistent: payload.persistent ? 'true' : 'false',
+    tag: payload.rideId ? `ride-offer-${payload.rideId}` : `cd-${payload.type}`,
+  };
+
+  const isRideOffer = payload.type === 'ride_offer';
+
   await admin.messaging().send({
     token,
-    notification: { title: payload.title, body: payload.body },
-    data: {
-      type: payload.type,
-      url: payload.url,
-      rideId: payload.rideId || '',
-      title: payload.title,
-      body: payload.body,
-    },
+    ...(isRideOffer
+      ? {
+          data,
+          android: {
+            priority: 'high',
+            ttl: 120000,
+            notification: {
+              title: payload.title,
+              body: payload.body,
+              channelId: 'ride_requests',
+              priority: 'max' as const,
+              defaultSound: true,
+              defaultVibrateTimings: true,
+              visibility: 'public' as const,
+              tag: data.tag,
+              clickAction: payload.url,
+            },
+          },
+          apns: {
+            headers: { 'apns-priority': '10', 'apns-push-type': 'alert' },
+            payload: {
+              aps: {
+                alert: { title: payload.title, body: payload.body },
+                sound: 'default',
+                'content-available': 1,
+                'mutable-content': 1,
+              },
+            },
+          },
+        }
+      : {
+          notification: { title: payload.title, body: payload.body },
+          data,
+          android: { priority: 'high' },
+        }),
     webpush: {
       fcmOptions: { link: payload.url },
+      headers: { Urgency: isRideOffer ? 'high' : 'normal' },
     },
-    android: { priority: 'high' },
   });
   return true;
 }
@@ -95,6 +143,7 @@ Deno.serve(async (req) => {
     let type = 'default';
     let url = '/DriverDashboard';
     let rideId: string | null = null;
+    let offerId: string | null = null;
     let persistent = false;
     let skipInApp = false;
 
@@ -106,6 +155,7 @@ Deno.serve(async (req) => {
       type = b.type ?? 'default';
       url = b.url ?? '/DriverDashboard';
       rideId = b.rideId ?? null;
+      offerId = b.offerId ?? null;
       persistent = b.persistent ?? false;
       skipInApp = b.skipInApp ?? false;
     } catch {
@@ -123,7 +173,15 @@ Deno.serve(async (req) => {
     const prefs = await base44.asServiceRole.entities.UserPreferences.filter({ user_id: userId });
     const subscription = parseSubscription(prefs[0]?.push_subscription);
     const fcmToken = prefs[0]?.fcm_token ? String(prefs[0].fcm_token) : null;
-    const pushPayload = { title: title!, body: body!, type, url, rideId };
+    const pushPayload: PushPayload = {
+      title: title!,
+      body: body!,
+      type,
+      url,
+      rideId,
+      offerId,
+      persistent,
+    };
 
     if (subscription && VAPID_PUBLIC && VAPID_PRIVATE) {
       try {
@@ -135,6 +193,7 @@ Deno.serve(async (req) => {
           type,
           url,
           rideId,
+          offerId,
           persistent,
           tag,
         });

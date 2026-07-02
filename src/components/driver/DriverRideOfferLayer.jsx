@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
 import { isDriverOnlineLocal, setActiveRideLocal, setDriverBusyOnRide } from '@/lib/driverSession';
+import { readPushDeepLinkParams, clearPushDeepLinkParams } from '@/lib/pushDeepLink';
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
@@ -95,6 +96,56 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
   }, [enabled, userId, isOnline, rideOffer]);
 
   checkOffersRef.current = checkOffers;
+
+  // Deep link vindo de notificação push (app fechado → toque abre modal)
+  useEffect(() => {
+    if (!enabled || !userId) return;
+
+    const { rideId, offerId, autoReject, fromPush } = readPushDeepLinkParams();
+    if (!fromPush) return;
+
+    if (autoReject && offerId) {
+      base44.functions.invoke('respondRideOffer', { offerId, status: 'rejected' }).catch(() => {});
+      cancelRideAlert(rideId);
+      toast.info('Corrida recusada');
+      clearPushDeepLinkParams();
+      return;
+    }
+
+    const openFromPush = async () => {
+      try {
+        const response = await base44.functions.invoke('getDriverRideOffers', {});
+        const data = response?.data || response;
+        const match = (data.offers || []).find(
+          (item) =>
+            (offerId && item?.offer?.id === offerId) ||
+            (rideId && item?.ride?.id === rideId),
+        );
+        if (match?.offer?.id && !shownOfferIdsRef.current.has(match.offer.id)) {
+          setRideOffer(match.offer);
+          setOfferRide(match.ride);
+          setOfferPassenger(match.passenger || null);
+          shownOfferIdsRef.current.add(match.offer.id);
+          if (match.offer.status === 'sent') {
+            await base44.functions.invoke('respondRideOffer', {
+              offerId: match.offer.id,
+              status: 'seen',
+            }).catch(() => {});
+          }
+        } else {
+          checkOffersRef.current?.();
+        }
+      } catch {
+        checkOffersRef.current?.();
+      } finally {
+        clearPushDeepLinkParams();
+      }
+    };
+
+    if (rideId || offerId) {
+      openFromPush();
+    }
+  }, [enabled, userId]);
 
   useEffect(() => {
     if (!enabled || !userId || !isOnline) {

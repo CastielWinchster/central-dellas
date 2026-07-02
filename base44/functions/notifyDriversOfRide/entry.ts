@@ -7,22 +7,28 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function buildOfferUrl(rideId: string, offerId?: string) {
+  const params = new URLSearchParams({ from: 'push', rideId });
+  if (offerId) params.set('offerId', offerId);
+  return `/DriverDashboard?${params.toString()}`;
+}
+
 async function sendPush(
   base44: ReturnType<typeof createClientFromRequest>,
   userId: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) {
   try {
     await base44.asServiceRole.functions.invoke('sendPushToUser', payload);
   } catch (e) {
-    console.warn(`[notifyDriversOfRide] push falhou para ${userId}:`, e.message);
+    console.warn(`[notifyDriversOfRide] push falhou para ${userId}:`, (e as Error).message);
   }
 }
 
 async function cancelPush(
   base44: ReturnType<typeof createClientFromRequest>,
   userId: string,
-  rideId: string
+  rideId: string,
 ) {
   await sendPush(base44, userId, {
     userId,
@@ -45,7 +51,6 @@ Deno.serve(async (req) => {
     const uniqueDrivers = [...new Set(driverIds.filter(Boolean))];
     const pushTitle = title || '🚗 Nova corrida disponível!';
     const pushBody = body || 'Toque para ver os detalhes e aceitar.';
-    const url = '/DriverDashboard';
     const started = Date.now();
     let rounds = 0;
 
@@ -55,25 +60,34 @@ Deno.serve(async (req) => {
       const rides = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
       const ride = rides[0];
 
-      if (!ride || !['requested', 'assigned'].includes(ride.status)) {
+      if (!ride || !['requested', 'assigned'].includes(String(ride.status))) {
         console.log(`[notifyDriversOfRide] Corrida ${rideId} não disponível (${ride?.status}) — cancelando alertas`);
         await Promise.all(uniqueDrivers.map((userId) => cancelPush(base44, userId, rideId)));
         return Response.json({ success: true, stopped: true, reason: 'ride_unavailable', rounds });
       }
 
+      const allOffers = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId });
+      const activeOffers = allOffers.filter((o) =>
+        ['sent', 'seen'].includes(String(o.status)) &&
+        uniqueDrivers.includes(String(o.driver_id)),
+      );
+
       await Promise.all(
-        uniqueDrivers.map((userId) =>
-          sendPush(base44, userId, {
+        activeOffers.map((offer) => {
+          const userId = String(offer.driver_id);
+          const offerId = String(offer.id);
+          return sendPush(base44, userId, {
             userId,
             title: pushTitle,
             body: pushBody,
             type: 'ride_offer',
             rideId,
-            url,
+            offerId,
+            url: buildOfferUrl(rideId, offerId),
             persistent: true,
             skipInApp: true,
-          })
-        )
+          });
+        }),
       );
 
       rounds += 1;
@@ -84,7 +98,7 @@ Deno.serve(async (req) => {
     await Promise.all(uniqueDrivers.map((userId) => cancelPush(base44, userId, rideId)));
     return Response.json({ success: true, stopped: true, reason: 'timeout', rounds });
   } catch (error) {
-    console.error('[notifyDriversOfRide]', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[notifyDriversOfRide]', (error as Error).message);
+    return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 });

@@ -1,0 +1,22 @@
+{
+  "name": "Central Dellas",
+  "short_name": "Dellas",
+  "description": "Corridas e entregas — motoristas e passageiras",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#EC4899",
+  "lang": "pt-BR",
+  "categories": ["travel", "navigation"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}

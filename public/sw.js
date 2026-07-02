@@ -1,7 +1,8 @@
-// Service Worker da CentralDellas — versão visível no DevTools > Application > Service Workers
-const SW_VERSION = 'centraldellas-v9';
+// Service Worker Central Dellas — push estilo Uber (app fechado + ações Aceitar/Recusar)
+const SW_VERSION = 'centraldellas-v10';
 const CACHE_NAME = SW_VERSION;
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
+const RIDE_ALERT_INTERVAL_MS = 8000;
 const activeRideAlerts = new Map();
 
 function parsePushData(event) {
@@ -15,6 +16,14 @@ function parsePushData(event) {
       return { body: event.data.text() };
     }
   }
+}
+
+function buildDriverUrl(data) {
+  if (data.url) return data.url;
+  const params = new URLSearchParams({ from: 'push' });
+  if (data.rideId) params.set('rideId', data.rideId);
+  if (data.offerId) params.set('offerId', data.offerId);
+  return `/DriverDashboard?${params.toString()}`;
 }
 
 function stopRideAlert(rideId) {
@@ -33,7 +42,7 @@ function showRideOfferNotification(data) {
   const rideId = data.rideId;
   const title = data.title || '🚗 Nova corrida disponível!';
   const body = data.body || 'Toque para aceitar agora!';
-  const url = data.url || '/DriverDashboard';
+  const url = buildDriverUrl(data);
   const tag = data.tag || (rideId ? `ride-offer-${rideId}` : `ride-offer-${Date.now()}`);
 
   return self.registration.showNotification(title, {
@@ -45,8 +54,11 @@ function showRideOfferNotification(data) {
     requireInteraction: true,
     silent: false,
     vibrate: RIDE_VIBRATE,
-    data: { url, rideId, type: 'ride_offer' },
-    actions: [{ action: 'open', title: 'Ver corrida' }],
+    data: { url, rideId, offerId: data.offerId || null, type: 'ride_offer' },
+    actions: [
+      { action: 'accept', title: '✅ Aceitar' },
+      { action: 'reject', title: '❌ Recusar' },
+    ],
   });
 }
 
@@ -56,7 +68,8 @@ function notifyOpenClients(data) {
       client.postMessage({
         type: 'ride_offer_push',
         rideId: data.rideId,
-        url: data.url || '/DriverDashboard',
+        offerId: data.offerId,
+        url: buildDriverUrl(data),
       });
     });
   });
@@ -73,8 +86,39 @@ function startRideAlertLoop(data) {
 
   const timer = setInterval(() => {
     showRideOfferNotification(data);
-  }, 12000);
+  }, RIDE_ALERT_INTERVAL_MS);
   activeRideAlerts.set(rideId, timer);
+}
+
+function openOrFocusClient(url, data) {
+  const absolute = url.startsWith('http') ? url : `${self.location.origin}${url}`;
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    clientList.forEach((client) => {
+      client.postMessage({
+        type: 'ride_offer_push',
+        rideId: data?.rideId,
+        offerId: data?.offerId,
+        url,
+      });
+    });
+    for (const client of clientList) {
+      if (client.url.includes(self.location.origin) && 'focus' in client) {
+        if ('navigate' in client) {
+          return client.navigate(absolute).then(() => client.focus());
+        }
+        return client.focus();
+      }
+    }
+    return self.clients.openWindow(absolute);
+  });
+}
+
+function handleRejectFromNotification(data) {
+  stopRideAlert(data?.rideId);
+  const params = new URLSearchParams({ from: 'push', autoReject: '1' });
+  if (data?.rideId) params.set('rideId', data.rideId);
+  if (data?.offerId) params.set('offerId', data.offerId);
+  return openOrFocusClient(`/DriverDashboard?${params.toString()}`, data);
 }
 
 self.addEventListener('install', () => {
@@ -93,9 +137,7 @@ self.addEventListener('push', (event) => {
   const data = parsePushData(event);
 
   if (data.type === 'ride_offer_cancelled') {
-    event.waitUntil(
-      Promise.resolve().then(() => stopRideAlert(data.rideId))
-    );
+    event.waitUntil(Promise.resolve().then(() => stopRideAlert(data.rideId)));
     return;
   }
 
@@ -106,7 +148,7 @@ self.addEventListener('push', (event) => {
     return;
   }
 
-  const title = data.title || 'CentralDellas 🚗';
+  const title = data.title || 'Central Dellas 🚗';
   const body = data.body || data.message || '';
   const url = data.url || '/';
   const vibrate = data.type === 'ride' ? RIDE_VIBRATE : [200, 100, 200];
@@ -120,31 +162,25 @@ self.addEventListener('push', (event) => {
       renotify: true,
       requireInteraction: data.type === 'ride',
       vibrate,
-      data: { url, type: data.type || 'default' },
-    })
+      data: { url, type: data.type || 'default', rideId: data.rideId, offerId: data.offerId },
+    }),
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const rideId = event.notification.data?.rideId;
-  if (rideId) stopRideAlert(rideId);
+  const data = event.notification.data || {};
+  const action = event.action;
 
-  const url = event.notification.data?.url || '/DriverDashboard';
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      clientList.forEach((client) => {
-        client.postMessage({ type: 'ride_offer_push', rideId, url });
-      });
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.navigate(url);
-          return client.focus();
-        }
-      }
-      return self.clients.openWindow(url);
-    }),
-  );
+  if (data.rideId) stopRideAlert(data.rideId);
+
+  if (action === 'reject') {
+    event.waitUntil(handleRejectFromNotification(data));
+    return;
+  }
+
+  const url = buildDriverUrl(data);
+  event.waitUntil(openOrFocusClient(url, data));
 });
 
 self.addEventListener('message', (event) => {

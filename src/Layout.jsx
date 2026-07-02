@@ -14,10 +14,11 @@ import { useAuthUser } from '@/components/AuthGuard';
 
 import NotificationBell from './components/NotificationBell';
 import { useNotifications } from '@/hooks/useNotifications';
-import { registerAllPushChannels } from '@/lib/pushRegistration';
+import { registerAllPushChannels, handlePushDeepLinkOnLaunch } from '@/lib/pushRegistration';
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
-import { clearDriverSessionLocal } from '@/lib/driverSession';
+import { clearDriverSessionLocal, isDriverOnlineLocal } from '@/lib/driverSession';
+import { startDriverPresenceKeepalive } from '@/lib/driverPresenceKeepalive';
 
 const ChatbotFloat = lazy(() => import('./components/ChatbotFloat'));
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
@@ -130,10 +131,19 @@ function LayoutContent({ children, currentPageName }) {
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         registerAllPushChannels({ requestPermission: false });
+        handlePushDeepLinkOnLaunch().catch(() => {});
       }
     };
     document.addEventListener('visibilitychange', onVisible);
+    handlePushDeepLinkOnLaunch().catch(() => {});
     return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [user?.id, isDriverUser]);
+
+  // Presença online persiste em segundo plano (estilo Uber)
+  useEffect(() => {
+    if (!user?.id || !isDriverUser) return;
+    if (!isDriverOnlineLocal(user.id)) return;
+    return startDriverPresenceKeepalive(user.id);
   }, [user?.id, isDriverUser]);
 
   // Redirect para login nativo se não estiver autenticado e não estiver em rota pública
