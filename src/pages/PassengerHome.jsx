@@ -22,9 +22,9 @@ export default function PassengerHome() {
       <WelcomeCouponModal />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#5B21B6]/30 via-[#0D0D0D] to-[#0D0D0D]" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#A855F7]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#7C3AED]/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#BE185D]/30 via-[#0D0D0D] to-[#0D0D0D]" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#F472B6]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#EC4899]/10 rounded-full blur-3xl" />
         
         <style>{`
           @keyframes gradientMove {
@@ -34,7 +34,7 @@ export default function PassengerHome() {
           }
           
           .animated-gradient-text {
-            background: linear-gradient(135deg, #7C3AED 0%, #A855F7 25%, #5B21B6 50%, #7C3AED 75%, #A855F7 100%);
+            background: linear-gradient(135deg, #EC4899 0%, #F472B6 25%, #BE185D 50%, #EC4899 75%, #F472B6 100%);
             background-size: 300% 300%;
             animation: gradientMove 8s ease infinite;
             -webkit-background-clip: text;
@@ -54,7 +54,7 @@ export default function PassengerHome() {
           .logo-glass {
             background: rgba(13, 13, 13, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(244, 114, 182, 0.05);
           }
         `}</style>
         
@@ -71,10 +71,10 @@ export default function PassengerHome() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F472B6]/10 border border-[#F472B6]/30 mb-6"
               >
-                <Heart className="w-4 h-4 text-[#A855F7]" />
-                <span className="text-sm text-[#A855F7] font-medium">Feito por mulheres, para todos</span>
+                <Heart className="w-4 h-4 text-[#F472B6]" />
+                <span className="text-sm text-[#F472B6] font-medium">Feito por mulheres, para todos</span>
               </motion.div>
 
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -115,7 +115,7 @@ export default function PassengerHome() {
                 <motion.span
                   animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-2xl font-black text-[#A855F7]"
+                  className="text-2xl font-black text-[#F472B6]"
                 >
                   ×
                 </motion.span>
@@ -200,10 +200,10 @@ export default function PassengerHome() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#A855F7]/10 hover:border-[#A855F7]/20 transition-all"
+              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#F472B6]/10 hover:border-[#F472B6]/20 transition-all"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#A855F7]/10 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-[#A855F7]" />
+              <div className="w-12 h-12 rounded-xl bg-[#F472B6]/10 flex items-center justify-center mb-4">
+                <feature.icon className="w-6 h-6 text-[#F472B6]" />
               </div>
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-2">{feature.title}</h3>
               <p className="text-[#F2F2F2]/60 text-sm leading-relaxed">{feature.description}</p>
@@ -235,8 +235,8 @@ export default function PassengerHome() {
                 }
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#A855F7]/10 flex items-center justify-center flex-shrink-0">
-                    <item.icon className="w-5 h-5 text-[#A855F7]" />
+                  <div className="w-10 h-10 rounded-lg bg-[#F472B6]/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-5 h-5 text-[#F472B6]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-[#F2F2F2] mb-1">{item.title}</h3>
@@ -253,9 +253,9 @@ export default function PassengerHome() {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="aspect-square rounded-3xl bg-gradient-to-br from-[#7C3AED]/20 to-[#A855F7]/20 border border-[#A855F7]/20 flex items-center justify-center">
+            <div className="aspect-square rounded-3xl bg-gradient-to-br from-[#EC4899]/20 to-[#F472B6]/20 border border-[#F472B6]/20 flex items-center justify-center">
               <div className="text-center p-8">
-                <Shield className="w-24 h-24 text-[#A855F7] mx-auto mb-4" />
+                <Shield className="w-24 h-24 text-[#F472B6] mx-auto mb-4" />
                 <p className="text-[#F2F2F2]/60">Sua segurança é nossa prioridade</p>
               </div>
             </div>
@@ -299,9 +299,9 @@ export default function PassengerHome() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#A855F7]/10"
+              className="p-6 rounded-2xl bg-[#F2F2F2]/5 border border-[#F472B6]/10"
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#A855F7] flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center mb-4">
                 <service.icon className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-[#F2F2F2] mb-2">{service.title}</h3>
