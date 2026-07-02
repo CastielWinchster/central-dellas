@@ -743,7 +743,12 @@ export default function RequestRide() {
           if (data?.success) break;
           lastError = data?.error || 'Erro ao buscar motoristas';
         } catch (err) {
-          lastError = err?.message || 'Erro de conexão';
+          const status = err?.response?.status ?? err?.status;
+          if (status === 404) {
+            lastError = 'Função dispatchRide não publicada. Rode: npx base44 functions deploy dispatchRide';
+          } else {
+            lastError = err?.message || 'Erro de conexão';
+          }
           if (attempt === 0) {
             await new Promise((r) => setTimeout(r, 900));
           }

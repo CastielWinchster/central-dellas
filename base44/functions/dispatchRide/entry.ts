@@ -56,7 +56,11 @@ Deno.serve(async (req) => {
 
     let ride;
     try {
-      await cancelPassengerOpenRides(base44, String(user.id));
+      try {
+        await cancelPassengerOpenRides(base44, String(user.id));
+      } catch (cancelErr) {
+        console.warn('[dispatchRide] cancelPassengerOpenRides:', (cancelErr as Error).message);
+      }
 
       ride = await base44.asServiceRole.entities.Ride.create({
         passenger_id: user.id,

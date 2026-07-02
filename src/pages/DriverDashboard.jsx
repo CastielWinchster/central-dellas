@@ -257,22 +257,23 @@ export default function DriverDashboard() {
         clearInterval(updateIntervalRef.current);
         updateIntervalRef.current = null;
       }
-      // Evita derrubar presença por race/re-mount enquanto localStorage ainda está online
+
+      // Switch ainda ligado — só ajusta disponibilidade durante corrida ativa
       if (user?.id && isDriverOnlineLocal(user.id)) {
-        return;
-      }
-      // Em corrida ativa: permanece online no mapa, só indisponível para novas ofertas
-      if (hasActiveRideLocal()) {
-        try {
-          await base44.functions.invoke('setDriverPresence', {
-            isOnline: true,
-            isAvailable: false,
-          });
-        } catch (error) {
-          console.error('Erro ao marcar indisponível:', error);
+        if (hasActiveRideLocal()) {
+          try {
+            await base44.functions.invoke('setDriverPresence', {
+              isOnline: true,
+              isAvailable: false,
+            });
+          } catch (error) {
+            console.error('Erro ao marcar indisponível:', error);
+          }
         }
         return;
       }
+
+      // Switch desligado — sempre marcar offline no servidor (remove carro do mapa)
       try {
         await base44.functions.invoke('setDriverPresence', { isOnline: false });
         toast.info('Você está offline');

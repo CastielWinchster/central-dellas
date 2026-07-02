@@ -241,29 +241,47 @@ export default function MapView({
 
     const fetchDrivers = async () => {
       try {
-        const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
-        const online = await base44.entities.DriverPresence.filter({
-          is_online: true,
-          last_seen_at: { $gte: thirtySecondsAgo }
-        });
+        const thirtySecondsAgo = Date.now() - 30000;
+        let online = [];
+        try {
+          online = await base44.entities.DriverPresence.filter({
+            is_online: true,
+            last_seen_at: { $gte: new Date(thirtySecondsAgo).toISOString() },
+          });
+        } catch {
+          online = await base44.entities.DriverPresence.filter({ is_online: true });
+        }
+
         const mapped = online
-          .filter(d => d.lat && d.lng)
-          .map(d => ({
+          .filter((d) => d.is_online !== false && d.lat && d.lng)
+          .filter((d) => {
+            const seen = d.last_seen_at ? new Date(String(d.last_seen_at)).getTime() : 0;
+            return seen >= thirtySecondsAgo;
+          })
+          .map((d) => ({
             id: d.driver_id,
             lat: d.lat,
             lng: d.lng,
             tags: d.tags || [],
             heading: d.heading || 0,
           }));
-        setRealTimeDrivers(filterPets ? mapped.filter(d => d.tags.includes('aceita_pet')) : mapped);
+        setRealTimeDrivers(filterPets ? mapped.filter((d) => d.tags.includes('aceita_pet')) : mapped);
       } catch (e) {
         console.error('[MapView] Erro ao buscar motoristas:', e);
+        setRealTimeDrivers([]);
       }
     };
 
     fetchDrivers();
     realTimeIntervalRef.current = setInterval(fetchDrivers, 4000);
-    return () => clearInterval(realTimeIntervalRef.current);
+
+    const onPresenceChanged = () => fetchDrivers();
+    window.addEventListener('driver-online-changed', onPresenceChanged);
+
+    return () => {
+      clearInterval(realTimeIntervalRef.current);
+      window.removeEventListener('driver-online-changed', onPresenceChanged);
+    };
   }, [showRealTimeDrivers, filterPets]);
 
   // Sync driverLocation ref
