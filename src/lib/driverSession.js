@@ -35,6 +35,27 @@ export function setActiveRideLocal(ride) {
   }
 }
 
+const LAST_LOC_KEY = 'driver_last_location';
+
+/** Última posição GPS conhecida — reutilizada no keepalive para não perder lat/lng. */
+export function getDriverLastLocation(userId) {
+  if (!userId) return null;
+  try {
+    const raw = localStorage.getItem(`${LAST_LOC_KEY}_${userId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setDriverLastLocation(userId, { lat, lng, accuracy, heading, speed } = {}) {
+  if (!userId || lat == null || lng == null) return;
+  localStorage.setItem(
+    `${LAST_LOC_KEY}_${userId}`,
+    JSON.stringify({ lat, lng, accuracy: accuracy ?? 0, heading: heading ?? 0, speed: speed ?? 0, at: Date.now() }),
+  );
+}
+
 export function hasActiveRideLocal() {
   return !!getActiveRideLocal()?.id;
 }

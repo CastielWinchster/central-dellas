@@ -1,7 +1,7 @@
 import { base44 } from '@/api/base44Client';
-import { isDriverOnlineLocal } from '@/lib/driverSession';
+import { isDriverOnlineLocal, getDriverLastLocation } from '@/lib/driverSession';
 
-const PING_INTERVAL_MS = 12000;
+const PING_INTERVAL_MS = 45000;
 
 /**
  * Mantém motorista online no servidor fora do DriverDashboard
@@ -12,7 +12,16 @@ export function startDriverPresenceKeepalive(userId) {
 
   const ping = () => {
     if (!isDriverOnlineLocal(userId)) return;
-    base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true }).catch(() => {});
+    const loc = getDriverLastLocation(userId);
+    const payload = { isOnline: true, isAvailable: true };
+    if (loc?.lat != null && loc?.lng != null) {
+      payload.lat = loc.lat;
+      payload.lng = loc.lng;
+      payload.accuracy = loc.accuracy ?? 0;
+      payload.heading = loc.heading ?? 0;
+      payload.speed = loc.speed ?? 0;
+    }
+    base44.functions.invoke('setDriverPresence', payload).catch(() => {});
   };
 
   ping();

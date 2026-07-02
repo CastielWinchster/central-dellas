@@ -60,7 +60,12 @@ export async function findOnlineDriversWithCoords(base44: Base44Client) {
   }
 
   if (allOnline.length === 0) {
-    allOnline = await base44.asServiceRole.entities.DriverPresence.filter({ is_online: true });
+    try {
+      allOnline = await base44.asServiceRole.entities.DriverPresence.filter({ is_online: true });
+    } catch (e) {
+      console.error('[rideDispatch] filtro is_online falhou:', (e as Error).message);
+      return [];
+    }
   }
 
   // Mapa usa só is_online; dispatch exige disponível — is_available=false = em corrida

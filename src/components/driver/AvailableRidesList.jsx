@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { unwrapInvoke } from '@/utils/invokeResponse';
+import { signalRideAccepted } from '@/lib/rideAcceptSignal';
 
 const PROXIMITY_KM = 15; // raio máximo para mostrar corridas
 
@@ -82,7 +83,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
 
   useEffect(() => {
     fetchRides();
-    pollingRef.current = setInterval(fetchRides, 5000);
+    pollingRef.current = setInterval(fetchRides, 8000);
     return () => clearInterval(pollingRef.current);
   }, []);
 
@@ -94,6 +95,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
 
   const handleAccept = async (ride, e) => {
     e.stopPropagation();
+    signalRideAccepted(ride.id);
     try {
       const response = await base44.functions.invoke('acceptRideOffer', {
         rideId: ride.id,

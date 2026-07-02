@@ -32,6 +32,14 @@ Deno.serve(async (req) => {
       payload.accuracy = body.accuracy ?? 0;
       payload.heading = body.heading ?? 0;
       payload.speed = body.speed ?? 0;
+    } else if (record) {
+      // Heartbeat sem GPS — mantém última posição conhecida
+      const lat = record.lat ?? record.current_lat;
+      const lng = record.lng ?? record.current_lng;
+      if (lat != null && lng != null) {
+        payload.lat = lat;
+        payload.lng = lng;
+      }
     }
 
     let record = presences[0];

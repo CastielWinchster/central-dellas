@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { MAPBOX_CONFIG, loadMapboxToken } from '@/components/utils/mapboxConfig';
 import { reverseGeocode } from '@/components/utils/geocoding';
 import { base44 } from '@/api/base44Client';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 function calculateHeading(fromLat, fromLng, toLat, toLng) {
@@ -235,31 +236,26 @@ export default function MapView({
   const streetIntervalRef = useRef(null);
   const driverLocationRef = useRef(driverLocation);
 
-  // Polling de motoristas em tempo real
+  // Polling de motoristas em tempo real (via função — contorna RLS + rate limit de entities)
   useEffect(() => {
     if (!showRealTimeDrivers) return;
 
+    const MAP_GRACE_MS = 5 * 60 * 1000;
+
     const fetchDrivers = async () => {
       try {
-        const thirtySecondsAgo = Date.now() - 30000;
-        let online = [];
-        try {
-          online = await base44.entities.DriverPresence.filter({
-            is_online: true,
-            last_seen_at: { $gte: new Date(thirtySecondsAgo).toISOString() },
-          });
-        } catch {
-          online = await base44.entities.DriverPresence.filter({ is_online: true });
-        }
+        const res = await base44.functions.invoke('getDriverInfo', { mode: 'online_map' });
+        const data = unwrapInvoke(res);
+        const list = data?.drivers || [];
 
-        const mapped = online
-          .filter((d) => d.is_online !== false && d.lat && d.lng)
+        const mapped = list
+          .filter((d) => d.lat != null && d.lng != null)
           .filter((d) => {
             const seen = d.last_seen_at ? new Date(String(d.last_seen_at)).getTime() : 0;
-            return seen >= thirtySecondsAgo;
+            return !seen || Date.now() - seen <= MAP_GRACE_MS;
           })
           .map((d) => ({
-            id: d.driver_id,
+            id: d.id,
             lat: d.lat,
             lng: d.lng,
             tags: d.tags || [],
@@ -273,7 +269,7 @@ export default function MapView({
     };
 
     fetchDrivers();
-    realTimeIntervalRef.current = setInterval(fetchDrivers, 4000);
+    realTimeIntervalRef.current = setInterval(fetchDrivers, 20000);
 
     const onPresenceChanged = () => fetchDrivers();
     window.addEventListener('driver-online-changed', onPresenceChanged);

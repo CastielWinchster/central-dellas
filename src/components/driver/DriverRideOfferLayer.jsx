@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
 import { isDriverOnlineLocal, setActiveRideLocal, setDriverBusyOnRide } from '@/lib/driverSession';
+import { signalRideAccepted } from '@/lib/rideAcceptSignal';
 import { readPushDeepLinkParams, clearPushDeepLinkParams } from '@/lib/pushDeepLink';
 
-const POLL_MS = 750;
+const POLL_MS = 2000;
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
@@ -173,6 +174,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     };
     setActiveRideLocal(optimisticRide);
     clearOffer();
+    signalRideAccepted(ride.id);
     navigate(`/ActiveRideDriver?id=${ride.id}`);
     setDriverBusyOnRide(base44).catch(() => {});
 
@@ -186,6 +188,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
       const responseData = response?.data || response;
       if (responseData.success) {
         toast.success('🎉 Corrida aceita!');
+        signalRideAccepted(ride.id);
         if (responseData.ride) setActiveRideLocal(responseData.ride);
       } else if (responseData.expired) {
         toast.warning('Oferta expirada');

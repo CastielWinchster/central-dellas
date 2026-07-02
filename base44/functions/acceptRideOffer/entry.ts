@@ -136,12 +136,6 @@ Deno.serve(async (req) => {
       } : {}),
     });
 
-    const verify = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
-    const updated = verify[0];
-    if (updated?.assigned_driver_id && updated.assigned_driver_id !== driver.id) {
-      return Response.json({ error: 'Corrida já aceita por outra motorista' }, { status: 409 });
-    }
-
     finishAcceptInBackground({
       base44,
       rideId,

@@ -1,5 +1,5 @@
 // Service Worker Central Dellas — push VAPID + FCM (app fechado)
-const SW_VERSION = 'centraldellas-v17';
+const SW_VERSION = 'centraldellas-v20';
 const CACHE_NAME = SW_VERSION;
 const RIDE_VIBRATE = [800, 200, 800, 200, 800, 200, 800, 200, 800];
 const RIDE_ALERT_INTERVAL_MS = 8000;

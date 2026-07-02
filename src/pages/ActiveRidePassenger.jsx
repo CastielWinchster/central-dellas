@@ -5,6 +5,7 @@ import MapView from '@/components/map/MapView';
 import RideChat from '@/components/chat/RideChat';
 import { Phone, MessageCircle, User, Car, Clock, MapPin, Shield } from 'lucide-react';
 import { unwrapInvoke } from '@/utils/invokeResponse';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -98,7 +99,7 @@ export default function ActiveRidePassenger() {
 
   useEffect(() => {
     fetchData();
-    intervalRef.current = setInterval(fetchData, 4000);
+    intervalRef.current = setInterval(fetchData, 8000);
     return () => clearInterval(intervalRef.current);
   }, [rideId]);
 
@@ -222,11 +223,14 @@ export default function ActiveRidePassenger() {
         {vehicle && (
           <div className="bg-[#0D0D0D] rounded-2xl mb-4 overflow-hidden">
             {vehicle.photo_url && (
-              <img
-                src={vehicle.photo_url}
-                alt={`${vehicle.brand || ''} ${vehicle.model || ''}`.trim()}
-                className="w-full object-contain max-h-48 bg-white"
-              />
+              <div className="bg-[#1a1a2e] flex items-center justify-center max-h-36 overflow-hidden">
+                <img
+                  src={vehicle.photo_url}
+                  alt={`${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || 'Veículo'}
+                  className="w-full max-h-36 object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </div>
             )}
             <div className="flex items-center justify-between px-4 py-3">
               <div>

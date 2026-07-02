@@ -30,6 +30,7 @@ import { clearState, saveState, restoreState } from '@/utils/stateManager';
 import { registerAllPushChannels } from '@/lib/pushRegistration';
 import { unwrapInvoke } from '@/utils/invokeResponse';
 import { formatInvokeError } from '@/utils/invokeError';
+import { subscribeRideAccepted, readRideAcceptedAt, clearRideAcceptedSignal } from '@/lib/rideAcceptSignal';
 
 export default function RequestRide() {
   const navigate = useNavigate();
@@ -666,6 +667,7 @@ export default function RequestRide() {
     pollNavigatedRef.current = true;
     stopRidePolling();
     clearActiveRide(rideId);
+    clearRideAcceptedSignal(rideId);
     clearFormDraftState();
     navigate(`/ActiveRidePassenger?id=${rideId}`);
   };
@@ -788,6 +790,7 @@ export default function RequestRide() {
   const pollIntervalRef = useRef(null);
   const pollTimeoutRef = useRef(null);
   const pollNavigatedRef = useRef(false);
+  const pollDelayRef = useRef(2500);
   const activeRideIdRef = useRef(null);
   const cancellingSearchRef = useRef(false);
   const resumeAbortedRef = useRef(false);
@@ -872,13 +875,31 @@ export default function RequestRide() {
 
       return false;
     } catch (error) {
+      const status = error?.status ?? error?.response?.status;
+      if (status === 429) {
+        pollDelayRef.current = Math.min(Math.round(pollDelayRef.current * 1.6), 15000);
+      } else {
+        pollDelayRef.current = 2500;
+      }
       console.error('[Polling] Erro na consulta:', error);
       return false;
     }
   };
 
+  const scheduleRidePoll = (rideId, searchNonce = null) => {
+    if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+    pollIntervalRef.current = setTimeout(async () => {
+      if (pollNavigatedRef.current || rideId !== activeRideIdRef.current) return;
+      if (searchNonce != null && searchNonce !== searchNonceRef.current) return;
+      const done = await checkRideStatusOnce(rideId, searchNonce);
+      if (!done && rideId === activeRideIdRef.current) {
+        scheduleRidePoll(rideId, searchNonce);
+      }
+    }, pollDelayRef.current);
+  };
+
   const stopRidePolling = () => {
-    if (pollIntervalRef.current) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    if (pollIntervalRef.current) { clearTimeout(pollIntervalRef.current); pollIntervalRef.current = null; }
     if (pollTimeoutRef.current) { clearTimeout(pollTimeoutRef.current); pollTimeoutRef.current = null; }
   };
 
@@ -899,11 +920,14 @@ export default function RequestRide() {
 
     stopRidePolling();
 
-    // Checagem imediata + polling a cada 750ms
+    if (readRideAcceptedAt(rideId)) {
+      navigateToActiveRide(rideId);
+      return;
+    }
+
+    pollDelayRef.current = 2500;
     checkRideStatusOnce(rideId, searchNonce);
-    pollIntervalRef.current = setInterval(() => {
-      checkRideStatusOnce(rideId, searchNonce);
-    }, 750);
+    scheduleRidePoll(rideId, searchNonce);
 
     // Timeout de 5 minutos
     pollTimeoutRef.current = setTimeout(() => {
@@ -991,14 +1015,14 @@ export default function RequestRide() {
   }, []);
 
   useEffect(() => {
-    const onAccepted = () => {
-      const rideId = activeRideIdRef.current;
-      if (rideId && !pollNavigatedRef.current) {
-        checkRideStatusOnce(rideId);
-      }
+    const onAccepted = (rideId) => {
+      const activeId = activeRideIdRef.current;
+      if (!activeId || pollNavigatedRef.current) return;
+      if (rideId && rideId !== activeId) return;
+      navigateToActiveRide(activeId);
     };
-    window.addEventListener('passenger-ride-accepted', onAccepted);
-    return () => window.removeEventListener('passenger-ride-accepted', onAccepted);
+    const unsub = subscribeRideAccepted(onAccepted);
+    return unsub;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

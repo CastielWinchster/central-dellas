@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       (o) => String(o.expires_at) >= now,
     );
 
-    if (!isAvailable || pending.length === 0) {
+    if (pending.length === 0) {
       return Response.json({
         success: true,
         isOnlineDb: !!presence?.is_online,

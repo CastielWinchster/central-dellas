@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import { verifyPushRegistration } from '@/lib/pushRegistration';
-import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline, setDriverLastLocation } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -167,6 +167,7 @@ export default function DriverDashboard() {
 
       setCurrentLocation({ lat: latitude, lng: longitude });
       lastLocationRef.current = { lat: latitude, lng: longitude };
+      setDriverLastLocation(user.id, { lat: latitude, lng: longitude, accuracy, heading, speed });
 
       // Criar/atualizar presença via função (contorna RLS)
       try {
@@ -211,10 +212,11 @@ export default function DriverDashboard() {
 
             setCurrentLocation(newLocation);
             lastLocationRef.current = newLocation;
+            setDriverLastLocation(user.id, { lat, lng, accuracy: acc || 0, heading: h || 0, speed: s || 0 });
 
-            // Throttle de 5s para writes no banco
+            // Throttle de 15s para writes no banco (evita rate limit)
             const now = Date.now();
-            if (now - lastGpsUpdateRef.current < 5000) return;
+            if (now - lastGpsUpdateRef.current < 15000) return;
             lastGpsUpdateRef.current = now;
 
             try {
@@ -237,15 +239,6 @@ export default function DriverDashboard() {
           { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
         );
       }
-
-      // Atualizar timestamp a cada 3 segundos
-      updateIntervalRef.current = setInterval(async () => {
-        try {
-          await base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true });
-        } catch (error) {
-          console.error('Erro ao atualizar timestamp:', error);
-        }
-      }, 3000);
 
       toast.success('🚗 Você está online e visível para passageiras!');
     };
