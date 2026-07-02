@@ -18,6 +18,7 @@ Deno.serve(async (req) => {
 
     const presences = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });
     const now = new Date().toISOString();
+    let record = presences[0];
 
     const payload: Record<string, unknown> = {
       driver_id: driver.id,
@@ -33,7 +34,6 @@ Deno.serve(async (req) => {
       payload.heading = body.heading ?? 0;
       payload.speed = body.speed ?? 0;
     } else if (record) {
-      // Heartbeat sem GPS — mantém última posição conhecida
       const lat = record.lat ?? record.current_lat;
       const lng = record.lng ?? record.current_lng;
       if (lat != null && lng != null) {
@@ -42,7 +42,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    let record = presences[0];
     if (record?.id) {
       await base44.asServiceRole.entities.DriverPresence.update(String(record.id), payload);
       const updated = await base44.asServiceRole.entities.DriverPresence.filter({ driver_id: driver.id });

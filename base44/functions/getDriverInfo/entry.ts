@@ -41,6 +41,36 @@ async function listOnlineDriversForMap(base44: ReturnType<typeof createClientFro
     .filter((d) => d.id && d.lat != null && d.lng != null);
 }
 
+function rideEarningsAmount(ride: Record<string, unknown>) {
+  return Number(ride.driver_confirmed_price ?? ride.agreed_price ?? ride.estimated_price ?? 0);
+}
+
+function isDriverUser(user: Record<string, unknown>) {
+  const type = String(user.user_type || '');
+  return type === 'driver' || type === 'both' || user.role === 'admin';
+}
+
+async function listCompletedRidesForDriver(
+  base44: ReturnType<typeof createClientFromRequest>,
+  driverId: string,
+) {
+  let rides: Array<Record<string, unknown>> = [];
+  try {
+    rides = await base44.asServiceRole.entities.Ride.filter({
+      assigned_driver_id: driverId,
+      status: 'completed',
+    });
+  } catch (e) {
+    console.error('[getDriverInfo] completed rides filter failed:', (e as Error).message);
+    return [];
+  }
+  rides.sort(
+    (a, b) =>
+      new Date(String(b.created_date)).getTime() - new Date(String(a.created_date)).getTime(),
+  );
+  return rides;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -56,6 +86,22 @@ Deno.serve(async (req) => {
     if (mode === 'online_map') {
       const drivers = await listOnlineDriversForMap(base44);
       return Response.json({ success: true, drivers });
+    }
+
+    if (mode === 'completed_rides') {
+      if (!isDriverUser(user)) {
+        return Response.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+      const rides = await listCompletedRidesForDriver(base44, String(user.id));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayRides = rides.filter((r) => new Date(String(r.created_date)) >= today);
+      const todayEarnings = todayRides.reduce((sum, r) => sum + rideEarningsAmount(r), 0);
+      return Response.json({
+        success: true,
+        rides,
+        today: { rides: todayRides.length, earnings: todayEarnings },
+      });
     }
 
     if (!driverId) {

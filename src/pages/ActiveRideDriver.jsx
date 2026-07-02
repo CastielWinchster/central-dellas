@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import MapView from '@/components/map/MapView';
 import RideChat from '@/components/chat/RideChat';
 import { Phone, MessageCircle, User, MapPin, CheckCircle, Navigation } from 'lucide-react';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
@@ -51,7 +52,7 @@ export default function ActiveRideDriver() {
         setCurrentUser(user);
 
         const res = await base44.functions.invoke('getActiveRideForDriver', { rideId });
-        const data = res?.data || res;
+        const data = unwrapInvoke(res);
 
         if (!data?.found || !data?.ride) {
           setLoading(false);
@@ -126,7 +127,8 @@ export default function ActiveRideDriver() {
     setCompleting(true);
     try {
       const res = await base44.functions.invoke('updateRideStatus', { rideId, status: 'completed' });
-      if (!res.data?.success) throw new Error(res.data?.error || 'Falha ao concluir');
+      const data = unwrapInvoke(res);
+      if (!data?.success) throw new Error(data?.error || 'Falha ao concluir');
       setActiveRideLocal(null);
       await setDriverAvailableIfOnline(base44, currentUser?.id);
       toast.success('✅ Corrida concluída!');

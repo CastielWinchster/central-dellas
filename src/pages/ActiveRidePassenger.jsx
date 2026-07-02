@@ -38,10 +38,18 @@ export default function ActiveRidePassenger() {
   const fetchData = async () => {
     if (!rideId) return;
     try {
-      // Buscar corrida via backend (service role) — evita falha de RLS/atraso de
-      // replicação que deixava a passageira presa em "Corrida não encontrada"
-      const res = await base44.functions.invoke('getRideDetails', { rideId });
-      const payload = unwrapInvoke(res);
+      let payload = null;
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const res = await base44.functions.invoke('getRideDetails', { rideId });
+        payload = unwrapInvoke(res);
+        if (payload?.found && payload?.ride) break;
+        if (payload?.error && payload.error !== 'Acesso negado') {
+          await new Promise((r) => setTimeout(r, 400 + attempt * 350));
+          continue;
+        }
+        break;
+      }
+
       if (!payload?.found || !payload?.ride) {
         setLoading(false);
         return;

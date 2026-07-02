@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fns';
-import { toBrasiliaDateMedium } from '@/utils/dateUtils';
+import { fetchDriverCompletedRides, getRideEarningsAmount } from '@/utils/rideEarnings';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const COMMISSION_RATE = 0.12;
@@ -31,7 +31,7 @@ function buildChartData(rides, period) {
     rides.forEach(r => {
       const dayIdx = new Date(r.created_date).getDay(); // 0=Dom
       const label = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][dayIdx];
-      if (label in map) map[label] += r.estimated_price || 0;
+      if (label in map) map[label] += getRideEarningsAmount(r);
     });
     return days.map(d => ({ day: d, value: parseFloat(map[d].toFixed(2)) }));
   }
@@ -41,7 +41,7 @@ function buildChartData(rides, period) {
     rides.forEach(r => {
       const dom = new Date(r.created_date).getDate();
       const key = dom <= 7 ? 'S1' : dom <= 14 ? 'S2' : dom <= 21 ? 'S3' : 'S4';
-      map[key] += r.estimated_price || 0;
+      map[key] += getRideEarningsAmount(r);
     });
     return weeks.map(w => ({ day: w, value: parseFloat(map[w].toFixed(2)) }));
   }
@@ -51,7 +51,7 @@ function buildChartData(rides, period) {
   months.forEach(m => { map[m] = 0; });
   rides.forEach(r => {
     const m = months[new Date(r.created_date).getMonth()];
-    map[m] += r.estimated_price || 0;
+    map[m] += getRideEarningsAmount(r);
   });
   return months.map(m => ({ day: m, value: parseFloat(map[m].toFixed(2)) }));
 }
@@ -86,11 +86,7 @@ export default function Earnings() {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
-        // Buscar todas as corridas completadas da motorista
-        const rides = await base44.entities.Ride.filter({
-          assigned_driver_id: userData.id,
-          status: 'completed'
-        });
+        const { rides } = await fetchDriverCompletedRides(base44);
         setAllRides(rides);
       } catch (e) {
         base44.auth.redirectToLogin();
@@ -105,7 +101,7 @@ export default function Earnings() {
   const periodStart = getPeriodStart(period);
   const filteredRides = allRides.filter(r => isAfter(new Date(r.created_date), periodStart));
 
-  const total = filteredRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
+  const total = filteredRides.reduce((sum, r) => sum + getRideEarningsAmount(r), 0);
   const rides = filteredRides.length;
   const avgPerRide = rides > 0 ? total / rides : 0;
 
@@ -115,7 +111,7 @@ export default function Earnings() {
     const d = new Date(r.created_date);
     return isAfter(d, prevStart) && d < periodStart;
   });
-  const prevTotal = prevRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
+  const prevTotal = prevRides.reduce((sum, r) => sum + getRideEarningsAmount(r), 0);
   const trend = prevTotal > 0 ? ((total - prevTotal) / prevTotal) * 100 : 0;
 
   const chartData = buildChartData(filteredRides, period);
@@ -449,7 +445,7 @@ export default function Earnings() {
                       </div>
                     </div>
                     <span className="font-bold text-green-400 flex-shrink-0 ml-4">
-                      +R$ {(ride.estimated_price || 0).toFixed(2)}
+                      +R$ {getRideEarningsAmount(ride).toFixed(2)}
                     </span>
                   </motion.div>
                 ))}

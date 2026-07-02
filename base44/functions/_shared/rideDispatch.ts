@@ -6,6 +6,8 @@ export const SEARCH_TIMEOUT_MS = 5 * 60 * 1000;
 export const REDISPATCH_GRACE_MS = 5_000;
 /** Motorista permanece elegível mesmo sem heartbeat (app fechado) — estilo Uber */
 export const DRIVER_PRESENCE_GRACE_MS = 30 * 60 * 1000;
+/** Para dispatch: só motoristas vistas recentemente (evita fantasmas no contador) */
+export const DRIVER_DISPATCH_GRACE_MS = 3 * 60 * 1000;
 
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -47,7 +49,7 @@ type RideRecord = Record<string, unknown> & {
 };
 
 export async function findOnlineDriversWithCoords(base44: Base44Client) {
-  const graceCutoff = new Date(Date.now() - DRIVER_PRESENCE_GRACE_MS).toISOString();
+  const graceCutoff = new Date(Date.now() - DRIVER_DISPATCH_GRACE_MS).toISOString();
   let allOnline: Array<Record<string, unknown>> = [];
 
   try {

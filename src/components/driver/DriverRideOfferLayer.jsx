@@ -174,7 +174,6 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     };
     setActiveRideLocal(optimisticRide);
     clearOffer();
-    signalRideAccepted(ride.id);
     navigate(`/ActiveRideDriver?id=${ride.id}`);
     setDriverBusyOnRide(base44).catch(() => {});
 

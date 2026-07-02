@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import { verifyPushRegistration } from '@/lib/pushRegistration';
+import { fetchDriverCompletedRides } from '@/utils/rideEarnings';
 import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline, setDriverLastLocation } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
@@ -84,16 +85,13 @@ export default function DriverDashboard() {
           // não bloqueia carregamento
         }
 
-        // Buscar corridas reais de hoje
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const allRides = await base44.entities.Ride.filter({
-          assigned_driver_id: userData.id,
-          status: 'completed'
-        });
-        const todayRides = allRides.filter(r => new Date(r.created_date) >= today);
-        const todayEarnings = todayRides.reduce((sum, r) => sum + (r.estimated_price || 0), 0);
-        setTodayStats({ rides: todayRides.length, earnings: todayEarnings });
+        // Estatísticas de hoje via backend (service role — contorna RLS)
+        try {
+          const { today } = await fetchDriverCompletedRides(base44);
+          setTodayStats({ rides: today.rides, earnings: today.earnings });
+        } catch (_) {
+          setTodayStats({ rides: 0, earnings: 0 });
+        }
 
       } catch (e) {
         if (e.message?.includes('401') || e.message?.includes('Unauthorized')) {
@@ -105,6 +103,27 @@ export default function DriverDashboard() {
     };
     loadUser();
   }, []);
+
+  // Atualizar stats ao voltar para o dashboard (ex.: após concluir corrida)
+  useEffect(() => {
+    if (!user?.id) return;
+    const refreshStats = async () => {
+      try {
+        const { today } = await fetchDriverCompletedRides(base44);
+        setTodayStats({ rides: today.rides, earnings: today.earnings });
+      } catch (_) {}
+    };
+    refreshStats();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshStats();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', refreshStats);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', refreshStats);
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
