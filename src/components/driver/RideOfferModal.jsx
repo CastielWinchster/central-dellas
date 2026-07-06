@@ -15,7 +15,10 @@ function calcOfferEta(distanceKm) {
 export default function RideOfferModal({ offer, ride, passenger, onAccept, onReject, onClose }) {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const expires = new Date(offer.expires_at);
+    return Math.max(0, Math.floor((expires.getTime() - Date.now()) / 1000));
+  });
   const [showPriceValidation, setShowPriceValidation] = useState(false);
   const isCustomPrice = ride?.is_custom_price || ride?.is_intercity;
   const systemPrice = Number(ride?.agreed_price ?? ride?.estimated_price ?? 0) || 0;
@@ -36,7 +39,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [offer.expires_at, onClose]);
+  }, [offer.id, offer.expires_at, onReject]);
   
   const handleAcceptClick = async () => {
     // Corridas com preço calculado: aceitar direto (sem digitar valor)

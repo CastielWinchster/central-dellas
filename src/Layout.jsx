@@ -18,7 +18,7 @@ import { registerAllPushChannels, handlePushDeepLinkOnLaunch } from '@/lib/pushR
 import DriverRideOfferLayer from './components/driver/DriverRideOfferLayer';
 import NotificationToast from './components/NotificationToast';
 import AdminPushTestButton from './components/AdminPushTestButton';
-import { clearDriverSessionLocal, isDriverOnlineLocal } from '@/lib/driverSession';
+import { logoutDriverSession, isDriverOnlineLocal } from '@/lib/driverSession';
 import { startDriverPresenceKeepalive } from '@/lib/driverPresenceKeepalive';
 import { restoreState, clearState } from '@/utils/stateManager';
 
@@ -117,6 +117,22 @@ function LayoutContent({ children, currentPageName }) {
   const isDriverUser = user?.user_type === 'driver' || user?.user_type === 'both' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
   const [driverPresenceTick, setDriverPresenceTick] = useState(0);
+  const [driverLocalOnline, setDriverLocalOnline] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setDriverLocalOnline(false);
+      return;
+    }
+    setDriverLocalOnline(isDriverOnlineLocal(user.id));
+    const sync = () => setDriverLocalOnline(isDriverOnlineLocal(user.id));
+    window.addEventListener('driver-online-changed', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('driver-online-changed', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, [user?.id, driverPresenceTick]);
 
   // Inscrever no Web Push — motoristas com prioridade (segundo plano)
   useEffect(() => {
@@ -436,7 +452,7 @@ function LayoutContent({ children, currentPageName }) {
               {user && (
                 <button
                   onClick={async () => {
-                    clearDriverSessionLocal(user?.id);
+                    await logoutDriverSession(base44, user?.id);
                     base44.auth.logout();
                   }}
                   className="flex items-center gap-4 px-4 py-4 rounded-xl w-full text-red-400 hover:bg-red-500/10 transition-all"
@@ -462,10 +478,10 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Toast de notificações em tempo real */}
       <NotificationToast toasts={toastQueue} onDismiss={dismissToast} />
-      {/* Sempre habilitado para qualquer usuária logada — o próprio layer só ativa
-          quando a motorista está online (driver_is_online no localStorage),
-          então não dependemos mais de user_type/role estarem corretos. */}
-      <DriverRideOfferLayer userId={user?.id} enabled={!!user?.id} />
+      <DriverRideOfferLayer
+        userId={user?.id}
+        enabled={isDriverUser && driverLocalOnline}
+      />
 
       {/* Bottom Navigation - Mobile */}
       {user && (

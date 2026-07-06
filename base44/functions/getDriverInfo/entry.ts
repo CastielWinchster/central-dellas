@@ -41,6 +41,19 @@ async function listOnlineDriversForMap(base44: ReturnType<typeof createClientFro
     .filter((d) => d.id && d.lat != null && d.lng != null);
 }
 
+function startOfTodayBrazil() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const y = parts.find((p) => p.type === 'year')?.value;
+  const m = parts.find((p) => p.type === 'month')?.value;
+  const d = parts.find((p) => p.type === 'day')?.value;
+  return new Date(`${y}-${m}-${d}T03:00:00.000Z`);
+}
+
 function rideEarningsAmount(ride: Record<string, unknown>) {
   return Number(ride.driver_confirmed_price ?? ride.agreed_price ?? ride.estimated_price ?? 0);
 }
@@ -93,8 +106,7 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Acesso negado' }, { status: 403 });
       }
       const rides = await listCompletedRidesForDriver(base44, String(user.id));
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = startOfTodayBrazil();
       const todayRides = rides.filter((r) => new Date(String(r.created_date)) >= today);
       const todayEarnings = todayRides.reduce((sum, r) => sum + rideEarningsAmount(r), 0);
       return Response.json({

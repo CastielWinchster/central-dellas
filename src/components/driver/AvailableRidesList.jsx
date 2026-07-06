@@ -9,7 +9,8 @@ import { unwrapInvoke } from '@/utils/invokeResponse';
 import { toast } from 'sonner';
 import { signalRideAccepted } from '@/lib/rideAcceptSignal';
 
-const PROXIMITY_KM = 15; // raio máximo para mostrar corridas
+const PROXIMITY_KM = 15;
+const LIST_POLL_MS = 15000;
 
 const rideTypeColors = {
   standard:   { bg: 'bg-blue-500/20',   text: 'text-blue-400',   label: 'Standard' },
@@ -84,7 +85,7 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
 
   useEffect(() => {
     fetchRides();
-    pollingRef.current = setInterval(fetchRides, 8000);
+    pollingRef.current = setInterval(fetchRides, LIST_POLL_MS);
     return () => clearInterval(pollingRef.current);
   }, []);
 
@@ -97,7 +98,11 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
   const handleAccept = async (ride, e) => {
     e.stopPropagation();
     if (!ride.offerId) {
-      toast.error('Esta corrida ainda não foi oferecida para você. Aguarde a notificação.');
+      toast.error('Aguarde a notificação de corrida ou use o modal para aceitar.');
+      return;
+    }
+    if (ride.is_custom_price || ride.is_intercity) {
+      toast.info('Corridas com preço personalizado devem ser aceitas pelo modal de oferta.');
       return;
     }
     try {

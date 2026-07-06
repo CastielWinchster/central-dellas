@@ -63,9 +63,24 @@ export function hasActiveRideLocal() {
 export function clearDriverSessionLocal(userId) {
   if (userId) {
     localStorage.removeItem(driverOnlineKey(userId));
+    localStorage.removeItem(`${LAST_LOC_KEY}_${userId}`);
   }
   localStorage.removeItem('driver_is_online');
   localStorage.removeItem('active_ride');
+}
+
+/** Marca motorista offline no servidor (logout, fechar app). */
+export async function setDriverOfflineOnServer(base44) {
+  try {
+    await base44.functions.invoke('setDriverPresence', { isOnline: false });
+  } catch (e) {
+    console.warn('[setDriverOfflineOnServer]', e);
+  }
+}
+
+export async function logoutDriverSession(base44, userId) {
+  await setDriverOfflineOnServer(base44);
+  clearDriverSessionLocal(userId);
 }
 
 /** Marca motorista em corrida ativa — online mas indisponível para novas ofertas */

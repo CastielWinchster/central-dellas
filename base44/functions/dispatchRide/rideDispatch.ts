@@ -58,6 +58,17 @@ export async function findOnlineDriversWithCoords(base44: Base44Client) {
     });
   } catch (e) {
     console.warn('[rideDispatch] filtro last_seen_at falhou, usando fallback:', (e as Error).message);
+    try {
+      const all = await base44.asServiceRole.entities.DriverPresence.filter({ is_online: true });
+      const cutoff = Date.now() - DRIVER_DISPATCH_GRACE_MS;
+      allOnline = all.filter((d) => {
+        const seen = d.last_seen_at ? new Date(String(d.last_seen_at)).getTime() : 0;
+        return seen >= cutoff;
+      });
+    } catch (e2) {
+      console.error('[rideDispatch] fallback is_online falhou:', (e2 as Error).message);
+      return [];
+    }
   }
 
   if (allOnline.length === 0) {

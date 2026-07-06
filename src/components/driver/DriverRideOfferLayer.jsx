@@ -4,11 +4,17 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import RideOfferModal from './RideOfferModal';
 import { useRideAlert, cancelRideAlert } from '@/hooks/useRideAlert';
-import { isDriverOnlineLocal, setDriverOnlineLocal, setActiveRideLocal, setDriverBusyOnRide } from '@/lib/driverSession';
+import {
+  isDriverOnlineLocal,
+  setActiveRideLocal,
+  setDriverBusyOnRide,
+} from '@/lib/driverSession';
 import { signalRideAccepted } from '@/lib/rideAcceptSignal';
 import { readPushDeepLinkParams, clearPushDeepLinkParams } from '@/lib/pushDeepLink';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 
-const POLL_MS = 2000;
+const POLL_MS = 4000;
+const PRESENCE_RESYNC_MS = 30000;
 
 /**
  * Modal rosa + alarme contínuo — global para motoristas online em qualquer página.
@@ -24,6 +30,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
   const pollRef = useRef(null);
   const checkOffersRef = useRef(null);
   const hasOfferRef = useRef(false);
+  const lastPresenceResyncRef = useRef(0);
 
   useRideAlert(!!rideOffer && enabled && isOnline);
 
@@ -76,28 +83,28 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     }
   }, []);
 
+  const maybeResyncPresence = useCallback((localOnline, dbOnline) => {
+    if (!localOnline || dbOnline) return;
+    const now = Date.now();
+    if (now - lastPresenceResyncRef.current < PRESENCE_RESYNC_MS) return;
+    lastPresenceResyncRef.current = now;
+    base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true }).catch(() => {});
+  }, []);
+
   const checkOffers = useCallback(async () => {
     if (!enabled || !userId || hasOfferRef.current) return;
+    if (!isDriverOnlineLocal(userId)) return;
 
     try {
       const response = await base44.functions.invoke('getDriverRideOffers', {});
-      const data = response?.data || response;
+      const data = unwrapInvoke(response);
 
       if (!data?.success) return;
 
-      const dbOnline = data.isOnlineDb === true;
       const localOnline = isDriverOnlineLocal(userId);
+      if (!localOnline) return;
 
-      if (dbOnline && !localOnline) {
-        setDriverOnlineLocal(userId, true);
-        setIsOnline(true);
-      }
-
-      if (!dbOnline && !localOnline) return;
-
-      if (data.isOnlineDb === false && localOnline) {
-        base44.functions.invoke('setDriverPresence', { isOnline: true, isAvailable: true }).catch(() => {});
-      }
+      maybeResyncPresence(localOnline, data.isOnlineDb === true);
 
       const pending = (data.offers || []).filter(
         (item) => item?.offer?.id && !shownOfferIdsRef.current.has(item.offer.id),
@@ -110,7 +117,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     } catch (error) {
       console.error('[DriverRideOfferLayer] Erro ao verificar ofertas:', error);
     }
-  }, [enabled, userId, showOffer]);
+  }, [enabled, userId, showOffer, maybeResyncPresence]);
 
   checkOffersRef.current = checkOffers;
 
@@ -131,7 +138,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
     const openFromPush = async () => {
       try {
         const response = await base44.functions.invoke('getDriverRideOffers', {});
-        const data = response?.data || response;
+        const data = unwrapInvoke(response);
         const match = (data.offers || []).find(
           (item) =>
             (offerId && item?.offer?.id === offerId) ||
@@ -153,7 +160,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
   }, [enabled, userId, showOffer]);
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !userId || !isOnline) {
       if (pollRef.current) clearInterval(pollRef.current);
       return;
     }
@@ -185,16 +192,7 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
 
   const handleAcceptOffer = async (offer, ride, driverConfirmedPrice) => {
     cancelRideAlert(ride.id);
-
-    const optimisticRide = {
-      ...ride,
-      id: ride.id,
-      status: 'accepted',
-    };
-    setActiveRideLocal(optimisticRide);
     clearOffer();
-    navigate(`/ActiveRideDriver?id=${ride.id}`);
-    setDriverBusyOnRide(base44).catch(() => {});
 
     try {
       const response = await base44.functions.invoke('acceptRideOffer', {
@@ -203,22 +201,22 @@ export default function DriverRideOfferLayer({ userId, enabled }) {
         driverConfirmedPrice: driverConfirmedPrice ?? null,
       });
 
-      const responseData = response?.data || response;
-      if (responseData.success) {
-        toast.success('🎉 Corrida aceita!');
+      const responseData = unwrapInvoke(response);
+      if (responseData?.success) {
+        const acceptedRide = { ...ride, ...(responseData.ride || {}), status: 'accepted' };
+        setActiveRideLocal(acceptedRide);
+        await setDriverBusyOnRide(base44);
         signalRideAccepted(ride.id);
-        if (responseData.ride) setActiveRideLocal(responseData.ride);
-      } else if (responseData.expired) {
+        toast.success('🎉 Corrida aceita!');
+        navigate(`/ActiveRideDriver?id=${ride.id}`);
+      } else if (responseData?.expired) {
         toast.warning('Oferta expirada');
-        navigate('/DriverDashboard');
       } else {
-        toast.error(responseData.error || 'Não foi possível aceitar');
-        navigate('/DriverDashboard');
+        toast.error(responseData?.error || 'Não foi possível aceitar');
       }
     } catch (error) {
       console.error('[DriverRideOfferLayer] Erro ao aceitar:', error);
       toast.error('Erro ao aceitar corrida');
-      navigate('/DriverDashboard');
     }
   };
 

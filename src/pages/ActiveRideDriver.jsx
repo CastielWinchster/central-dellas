@@ -11,6 +11,7 @@ import {
   setActiveRideLocal,
   setDriverBusyOnRide,
   setDriverAvailableIfOnline,
+  setDriverLastLocation,
 } from '@/lib/driverSession';
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -37,6 +38,7 @@ export default function ActiveRideDriver() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const watchIdRef = useRef(null);
   const lastGpsPosRef = useRef(null);
+  const lastPresencePingRef = useRef(0);
 
   // Memoizar objetos de localização — DEVE ficar antes dos early returns (regra dos Hooks)
   const pickupLocationMemo = useMemo(() => ride ? { lat: ride.pickup_lat, lng: ride.pickup_lng } : null, [ride?.pickup_lat, ride?.pickup_lng]);
@@ -114,12 +116,20 @@ export default function ActiveRideDriver() {
 
     // Atualizar presença no banco
     if (currentUser) {
-      base44.functions.invoke('setDriverPresence', {
-        isOnline: true,
-        isAvailable: false,
-        lat: myLocation.lat,
-        lng: myLocation.lng,
-      }).catch(() => {});
+      const now = Date.now();
+      if (now - lastPresencePingRef.current >= 20000) {
+        lastPresencePingRef.current = now;
+        setDriverLastLocation(currentUser.id, {
+          lat: myLocation.lat,
+          lng: myLocation.lng,
+        });
+        base44.functions.invoke('setDriverPresence', {
+          isOnline: true,
+          isAvailable: false,
+          lat: myLocation.lat,
+          lng: myLocation.lng,
+        }).catch(() => {});
+      }
     }
   }, [myLocation, ride, currentUser]);
 
@@ -306,7 +316,8 @@ export default function ActiveRideDriver() {
                   onClick={async () => {
                     try {
                       const res = await base44.functions.invoke('updateRideStatus', { rideId, status: 'cancelled' });
-                      if (!res.data?.success) throw new Error(res.data?.error || 'Falha ao cancelar');
+                      const data = unwrapInvoke(res);
+                      if (!data?.success) throw new Error(data?.error || 'Falha ao cancelar');
                       setActiveRideLocal(null);
                       await setDriverAvailableIfOnline(base44, currentUser?.id);
                       toast.info('Corrida cancelada.');

@@ -2,6 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const SEARCH_TIMEOUT_MS = 5 * 60 * 1000;
 
+function isDriver(user: Record<string, unknown>) {
+  const type = String(user.user_type || '');
+  return type === 'driver' || type === 'both' || user.role === 'admin';
+}
+
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -48,6 +53,10 @@ Deno.serve(async (req) => {
 
     if (!driver) {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
+    if (!isDriver(driver)) {
+      return Response.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const { driverLat, driverLng, radiusKm = 15 } = await req.json();
@@ -98,36 +107,38 @@ Deno.serve(async (req) => {
       filtered = uniqueRides.map((r) => ({ ...r, distance: null }));
     }
 
-    const enriched = await Promise.all(filtered.map(async (ride) => {
-      try {
-        const users = await base44.asServiceRole.entities.User.filter({ id: ride.passenger_id });
-        const passenger = users[0];
-        const [sentOffers, seenOffers] = await Promise.all([
-          base44.asServiceRole.entities.RideOffer.filter({
-            ride_id: ride.id,
-            driver_id: driver.id,
-            status: 'sent',
-          }),
-          base44.asServiceRole.entities.RideOffer.filter({
-            ride_id: ride.id,
-            driver_id: driver.id,
-            status: 'seen',
-          }),
-        ]);
-        const nowIso = new Date().toISOString();
-        const activeOffer = [...sentOffers, ...seenOffers].find(
-          (o) => String(o.expires_at) >= nowIso,
-        );
-        return {
-          ...ride,
-          passengerName: passenger?.full_name || 'Passageira',
-          passengerPhoto: passenger?.photo_url || null,
-          offerId: activeOffer?.id ? String(activeOffer.id) : null,
-        };
-      } catch {
-        return { ...ride, passengerName: 'Passageira', passengerPhoto: null, offerId: null };
+    const nowIso = new Date().toISOString();
+    const driverId = String(driver.id);
+
+    const passengerIds = [...new Set(filtered.map((r) => String(r.passenger_id)).filter(Boolean))];
+    const passengerLists = await Promise.all(
+      passengerIds.map((id) => base44.asServiceRole.entities.User.filter({ id })),
+    );
+    const passengerById = new Map<string, Record<string, unknown>>();
+    for (const list of passengerLists) {
+      if (list[0]?.id) passengerById.set(String(list[0].id), list[0]);
+    }
+
+    const [sentOffers, seenOffers] = await Promise.all([
+      base44.asServiceRole.entities.RideOffer.filter({ driver_id: driverId, status: 'sent' }),
+      base44.asServiceRole.entities.RideOffer.filter({ driver_id: driverId, status: 'seen' }),
+    ]);
+    const offerByRideId = new Map<string, string>();
+    for (const o of [...sentOffers, ...seenOffers]) {
+      if (String(o.expires_at) >= nowIso && o.ride_id) {
+        offerByRideId.set(String(o.ride_id), String(o.id));
       }
-    }));
+    }
+
+    const enriched = filtered.map((ride) => {
+      const passenger = passengerById.get(String(ride.passenger_id));
+      return {
+        ...ride,
+        passengerName: passenger?.full_name || 'Passageira',
+        passengerPhoto: passenger?.photo_url || null,
+        offerId: offerByRideId.get(String(ride.id)) || null,
+      };
+    });
 
     return Response.json({ success: true, rides: enriched });
   } catch (error) {

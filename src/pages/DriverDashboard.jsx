@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import RideChat from '../components/chat/RideChat';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
@@ -18,7 +17,7 @@ import AvailableRidesList from '../components/driver/AvailableRidesList';
 import { ensureDriverPushSubscription } from '@/hooks/useNotifications';
 import { verifyPushRegistration } from '@/lib/pushRegistration';
 import { fetchDriverCompletedRides } from '@/utils/rideEarnings';
-import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline, setDriverLastLocation } from '@/lib/driverSession';
+import { isDriverOnlineLocal, setDriverOnlineLocal, hasActiveRideLocal, setDriverAvailableIfOnline, setDriverLastLocation, getActiveRideLocal, setActiveRideLocal, setDriverBusyOnRide } from '@/lib/driverSession';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
@@ -40,10 +39,8 @@ export default function DriverDashboard() {
   const updateIntervalRef = useRef(null);
   const [liveEta, setLiveEta] = useState(null);
   const etaIntervalRef = useRef(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [acceptedRide, setAcceptedRide] = useState(null);
-  const [passengerUser, setPassengerUser] = useState(null);
   const lastGpsUpdateRef = useRef(0);
+  const trackingGenRef = useRef(0);
 
   // Haversine local para ETA em tempo real
   const haversineLocal = (lat1, lng1, lat2, lng2) => {
@@ -73,17 +70,7 @@ export default function DriverDashboard() {
           await base44.auth.updateMe({ user_type: 'both' });
         }
         
-        // Presença existente vem via função (contorna RLS)
-        try {
-          const session = await base44.functions.invoke('getDriverRideOffers', {});
-          const sessionData = session?.data || session;
-          if (sessionData?.presence) {
-            setPresenceRecord(sessionData.presence);
-            presenceRecordRef.current = sessionData.presence;
-          }
-        } catch (_) {
-          // não bloqueia carregamento
-        }
+        // Presença inicial vem do toggle online — sem poll extra de ofertas no mount
 
         // Estatísticas de hoje via backend (service role — contorna RLS)
         try {
@@ -133,6 +120,14 @@ export default function DriverDashboard() {
       setOnlineReady(false);
     }
   }, [user?.id]);
+
+  // Redirecionar para corrida ativa se existir no localStorage
+  useEffect(() => {
+    const active = getActiveRideLocal();
+    if (active?.id) {
+      navigate(`/ActiveRideDriver?id=${active.id}`);
+    }
+  }, [navigate]);
 
   // Sincronizar switch com outras abas / DriverRideOfferLayer
   useEffect(() => {
@@ -272,22 +267,22 @@ export default function DriverDashboard() {
         updateIntervalRef.current = null;
       }
 
-      // Switch ainda ligado — só ajusta disponibilidade durante corrida ativa
-      if (user?.id && isDriverOnlineLocal(user.id)) {
-        if (hasActiveRideLocal()) {
-          try {
-            await base44.functions.invoke('setDriverPresence', {
-              isOnline: true,
-              isAvailable: false,
-            });
-          } catch (error) {
-            console.error('Erro ao marcar indisponível:', error);
-          }
+      if (hasActiveRideLocal()) {
+        try {
+          await base44.functions.invoke('setDriverPresence', {
+            isOnline: true,
+            isAvailable: false,
+          });
+        } catch (error) {
+          console.error('Erro ao marcar indisponível:', error);
         }
         return;
       }
 
-      // Switch desligado — sempre marcar offline no servidor (remove carro do mapa)
+      if (user?.id && isDriverOnlineLocal(user.id)) {
+        return;
+      }
+
       try {
         await base44.functions.invoke('setDriverPresence', { isOnline: false });
         toast.info('Você está offline');
@@ -296,8 +291,17 @@ export default function DriverDashboard() {
       }
     };
 
+    const gen = ++trackingGenRef.current;
+
     if (isOnline) {
-      startTracking();
+      startTracking().then(() => {
+        if (gen !== trackingGenRef.current) {
+          if (watchIdRef.current) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+          }
+        }
+      });
     } else {
       stopTracking();
     }
@@ -369,22 +373,10 @@ export default function DriverDashboard() {
 
   // Chamado pelo AvailableRidesList quando aceita via lista
   const handleRideAcceptedFromList = async (acceptedRideData) => {
-    localStorage.setItem('active_ride', JSON.stringify(acceptedRideData));
+    setActiveRideLocal(acceptedRideData);
+    await setDriverBusyOnRide(base44);
     toast.success('🎉 Corrida aceita!');
     navigate(`/ActiveRideDriver?id=${acceptedRideData.id}`);
-  };
-
-  const handleCompleteRide = async () => {
-    const price = acceptedRide?.estimated_price || 0;
-    if (acceptedRide?.id) {
-      try { await base44.entities.Ride.update(acceptedRide.id, { status: 'completed' }); } catch(e) {}
-    }
-    localStorage.removeItem('active_ride');
-    setAcceptedRide(null);
-    setSelectedRide(null);
-    setPassengerUser(null);
-    setTodayStats(prev => ({ rides: prev.rides + 1, earnings: prev.earnings + price }));
-    toast.success(`✅ Corrida concluída! Você ganhou R$ ${Number(price).toFixed(2)}`);
   };
 
   const handleRejectRide = () => {
@@ -457,6 +449,10 @@ export default function DriverDashboard() {
                         toast.warning('Permita notificações — sem isso você não recebe corridas com o app fechado.');
                       }
                     } else {
+                      if (hasActiveRideLocal()) {
+                        toast.warning('Conclua ou cancele a corrida ativa antes de ficar offline.');
+                        return;
+                      }
                       setDriverOnlineLocal(user.id, false);
                     }
                     setIsOnline(val);
@@ -578,77 +574,8 @@ export default function DriverDashboard() {
           ))}
         </div>
 
-        {/* Corrida aceita — card principal */}
-        {acceptedRide && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <Card className="p-6 rounded-3xl bg-gradient-to-r from-[#EC4899]/20 to-[#F472B6]/20 border-2 border-[#F472B6]">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-green-400 font-semibold text-sm">Corrida Aceita</span>
-                {liveEta && (
-                  <span className="ml-auto text-[#F472B6] font-bold text-sm">
-                    {typeof liveEta === 'string' ? liveEta : `~${liveEta} min até passageira`}
-                  </span>
-                )}
-              </div>
-
-              {/* Passageira */}
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#F472B6] flex-shrink-0 bg-gradient-to-br from-[#EC4899] to-[#BE185D] flex items-center justify-center">
-                  {passengerUser?.photo_url
-                    ? <img src={passengerUser.photo_url} alt={passengerUser.full_name} className="w-full h-full object-cover" />
-                    : <span className="text-white text-xl font-bold">{passengerUser?.full_name?.charAt(0) || 'P'}</span>
-                  }
-                </div>
-                <div>
-                  <p className="font-bold text-[#F2F2F2] text-lg">{passengerUser?.full_name || 'Passageira'}</p>
-                  <p className="text-[#F2F2F2]/50 text-sm">R$ {acceptedRide.estimated_price?.toFixed(2) || '--'}</p>
-                </div>
-              </div>
-
-              {/* Rota */}
-              <div className="space-y-3 mb-5">
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
-                  <div className="w-3 h-3 rounded-full bg-green-400 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Origem</p>
-                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.pickup_text || acceptedRide.pickup_address}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#0D0D0D]/40">
-                  <div className="w-3 h-3 rounded-full bg-[#F472B6] mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-[#F2F2F2]/40 mb-0.5">Destino</p>
-                    <p className="text-[#F2F2F2] text-sm">{acceptedRide.dropoff_text || acceptedRide.dropoff_address}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ações */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setIsChatOpen(true)}
-                  className="py-3 rounded-2xl border border-[#F472B6]/40 text-[#F472B6] hover:bg-[#F472B6]/10 flex items-center justify-center gap-2 font-medium transition-colors"
-                >
-                  💬 Chat
-                </button>
-                <button
-                  onClick={handleCompleteRide}
-                  className="py-3 rounded-2xl border border-[#F2F2F2]/20 text-[#F2F2F2]/50 hover:bg-[#F2F2F2]/5 flex items-center justify-center gap-2 font-medium transition-colors"
-                >
-                  ✓ Concluir
-                </button>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Corridas/Entregas disponíveis — só quando online e sem corrida aceita */}
-        {isOnline && !acceptedRide && (
+        {/* Corridas/Entregas disponíveis — só quando online */}
+        {isOnline && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -717,18 +644,6 @@ export default function DriverDashboard() {
           </div>
         </div>
       </div>
-      
-      <RideChat
-        rideId={acceptedRide?.id}
-        currentUserId={user?.id}
-        otherUserId={acceptedRide?.passenger_id}
-        otherUserName={passengerUser?.full_name}
-        otherUserPhoto={passengerUser?.photo_url}
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        rideStatus={acceptedRide?.status || 'accepted'}
-      />
-
     </div>
   );
 }

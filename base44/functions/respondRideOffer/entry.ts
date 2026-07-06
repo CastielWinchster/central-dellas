@@ -20,6 +20,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Oferta não pertence a esta motorista' }, { status: 403 });
     }
 
+    if (!['sent', 'seen'].includes(String(offer.status))) {
+      return Response.json({ error: 'Oferta não pode ser alterada', status: offer.status }, { status: 409 });
+    }
+
     await base44.asServiceRole.entities.RideOffer.update(String(offer.id), {
       status,
       ...(status !== 'seen' ? { responded_at: new Date().toISOString() } : {}),
