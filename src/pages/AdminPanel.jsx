@@ -16,6 +16,10 @@ import RideHistory from '../components/admin/RideHistory';
 import MigrationMetrics from '../components/admin/MigrationMetrics';
 import PriceManager from '../components/admin/PriceManager';
 import CouponManager from '../components/admin/CouponManager';
+import AdminPasswordGate from '../components/admin/AdminPasswordGate';
+import { lockAdminPanel } from '@/lib/adminGate';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -119,12 +123,27 @@ export default function AdminPanel() {
   ];
 
   return (
+    <AdminPasswordGate>
     <div className="min-h-screen bg-[#0D0D0D] pb-8">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#EC4899] to-[#F472B6] p-6 text-white">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Central de Monitoramento</h1>
-          <p className="text-white/80">Painel Administrativo - Central Dellas</p>
+        <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Central de Monitoramento</h1>
+            <p className="text-white/80">Painel Administrativo - Central Dellas</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              lockAdminPanel();
+              navigate('/PassengerHome');
+            }}
+            className="border-white/40 text-white hover:bg-white/10 shrink-0"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Bloquear painel
+          </Button>
         </div>
       </div>
 
@@ -220,5 +239,6 @@ export default function AdminPanel() {
         </Tabs>
       </div>
     </div>
+    </AdminPasswordGate>
   );
 }

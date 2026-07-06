@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,8 +7,11 @@ import { Bell, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { registerAllPushChannels, verifyPushRegistration } from '@/lib/pushRegistration';
 import { clearPushKeysCache } from '@/lib/pushConfig';
+import AdminPasswordGate from '@/components/admin/AdminPasswordGate';
+import { unwrapInvoke } from '@/utils/invokeResponse';
 
 export default function PushTestPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingPush, setSendingPush] = useState(false);
@@ -20,9 +24,15 @@ export default function PushTestPage() {
   };
 
   useEffect(() => {
-    base44.auth.me().then(setUser).finally(() => setLoading(false));
+    base44.auth.me().then((u) => {
+      if (!u || u.role !== 'admin') {
+        navigate('/PassengerHome');
+        return;
+      }
+      setUser(u);
+    }).finally(() => setLoading(false));
     refreshDiag();
-  }, []);
+  }, [navigate]);
 
   const handleRegisterPush = async () => {
     clearPushKeysCache();
@@ -47,7 +57,7 @@ export default function PushTestPage() {
         persistent: true,
         skipInApp: true,
       });
-      const data = response?.data || response;
+      const data = unwrapInvoke(response);
       if (data?.success) {
         toast.success(`Push enviado via ${data.method}. Feche o app e veja se chega.`);
       } else {
@@ -70,6 +80,7 @@ export default function PushTestPage() {
   }
 
   return (
+    <AdminPasswordGate>
     <div className="min-h-screen bg-[#0D0D0D] p-6">
       <div className="max-w-2xl mx-auto space-y-4">
         <div>
@@ -97,5 +108,6 @@ export default function PushTestPage() {
         )}
       </div>
     </div>
+    </AdminPasswordGate>
   );
 }
