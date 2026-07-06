@@ -878,6 +878,10 @@ export default function RequestRide() {
       const status = error?.status ?? error?.response?.status;
       if (status === 429) {
         pollDelayRef.current = Math.min(Math.round(pollDelayRef.current * 1.6), 15000);
+      } else if (status === 401 || status === 403) {
+        setSearchError('Sessão expirada. Faça login novamente.');
+        stopRidePolling();
+        toast.error('Sessão expirada. Faça login novamente.');
       } else {
         pollDelayRef.current = 2500;
       }
@@ -929,9 +933,17 @@ export default function RequestRide() {
     checkRideStatusOnce(rideId, searchNonce);
     scheduleRidePoll(rideId, searchNonce);
 
-    // Timeout de 5 minutos
-    pollTimeoutRef.current = setTimeout(() => {
+    // Timeout de 5 minutos — cancela no servidor para evitar corrida órfã
+    pollTimeoutRef.current = setTimeout(async () => {
+      const rideId = activeRideIdRef.current;
       stopRidePolling();
+      if (rideId) {
+        try {
+          await base44.functions.invoke('cancelRideSearch', { rideId });
+        } catch (err) {
+          console.warn('[Polling] Falha ao cancelar busca expirada:', err);
+        }
+      }
       clearActiveRide();
       setStep(prev => {
         if (prev === 'searching') {
@@ -959,7 +971,6 @@ export default function RequestRide() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleVisibility);
-      stopRidePolling();
     };
   }, []);
 
@@ -1002,10 +1013,8 @@ export default function RequestRide() {
         startRidePolling(pendingId);
       } catch (err) {
         if (cancelled || resumeAbortedRef.current || activeRideIdRef.current) return;
-        console.warn('[Polling] Erro ao retomar corrida:', err);
-        setStep('searching');
-        setSearchingDrivers(true);
-        startRidePolling(pendingId);
+        console.warn('[Polling] Erro ao retomar corrida — limpando estado:', err);
+        clearActiveRide(pendingId);
       }
     };
 

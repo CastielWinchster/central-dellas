@@ -27,6 +27,10 @@ Deno.serve(async (req) => {
       ride = null;
     }
     if (!ride) {
+      const rows = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
+      ride = rows[0] || null;
+    }
+    if (!ride) {
       return Response.json({ found: false });
     }
 

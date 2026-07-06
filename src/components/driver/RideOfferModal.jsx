@@ -31,7 +31,7 @@ export default function RideOfferModal({ offer, ride, passenger, onAccept, onRej
       setTimeLeft(diff);
       
       if (diff === 0) {
-        onClose();
+        onReject(offer);
       }
     }, 1000);
     

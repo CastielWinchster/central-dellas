@@ -110,19 +110,50 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    if (ride.assigned_driver_id && ride.assigned_driver_id !== driver.id) {
+    if (ride.assigned_driver_id && String(ride.assigned_driver_id) !== String(driver.id)) {
       return Response.json({ error: 'Corrida já aceita por outra motorista' }, { status: 409 });
     }
 
     const now = new Date();
+    let resolvedOfferId = offerId ? String(offerId) : null;
 
     if (offerId) {
       const offers = await base44.asServiceRole.entities.RideOffer.filter({ id: offerId });
       const offer = offers[0];
-      if (offer && new Date(String(offer.expires_at)) < now) {
+      if (!offer || String(offer.driver_id) !== String(driver.id)) {
+        return Response.json({ error: 'Oferta inválida' }, { status: 403 });
+      }
+      if (!['sent', 'seen'].includes(String(offer.status))) {
+        return Response.json({ error: 'Oferta não está mais disponível' }, { status: 410 });
+      }
+      if (new Date(String(offer.expires_at)) < now) {
         await base44.asServiceRole.entities.RideOffer.update(String(offerId), { status: 'expired' });
         return Response.json({ error: 'Oferta expirada', expired: true }, { status: 410 });
       }
+    } else {
+      const [sentOffers, seenOffers] = await Promise.all([
+        base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId, driver_id: driver.id, status: 'sent' }),
+        base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId, driver_id: driver.id, status: 'seen' }),
+      ]);
+      const activeOffer = [...sentOffers, ...seenOffers].find(
+        (o) => new Date(String(o.expires_at)) >= now,
+      );
+      if (!activeOffer) {
+        return Response.json({
+          error: 'Você não tem oferta ativa para esta corrida',
+          code: 'no_active_offer',
+        }, { status: 403 });
+      }
+      resolvedOfferId = String(activeOffer.id);
+    }
+
+    const freshRows = await base44.asServiceRole.entities.Ride.filter({ id: rideId });
+    const freshRide = freshRows[0];
+    if (!freshRide || !['requested', 'assigned'].includes(String(freshRide.status))) {
+      return Response.json({ error: 'Corrida não disponível' }, { status: 409 });
+    }
+    if (freshRide.assigned_driver_id && String(freshRide.assigned_driver_id) !== String(driver.id)) {
+      return Response.json({ error: 'Corrida já aceita por outra motorista' }, { status: 409 });
     }
 
     // Caminho crítico: aceitar corrida primeiro, responder imediatamente
@@ -139,7 +170,7 @@ Deno.serve(async (req) => {
     finishAcceptInBackground({
       base44,
       rideId,
-      offerId,
+      offerId: resolvedOfferId || undefined,
       driver,
       ride,
       driverConfirmedPrice,

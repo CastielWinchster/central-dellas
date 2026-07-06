@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { unwrapInvoke } from '@/utils/invokeResponse';
+import { toast } from 'sonner';
 import { signalRideAccepted } from '@/lib/rideAcceptSignal';
 
 const PROXIMITY_KM = 15; // raio máximo para mostrar corridas
@@ -95,14 +96,18 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
 
   const handleAccept = async (ride, e) => {
     e.stopPropagation();
-    signalRideAccepted(ride.id);
+    if (!ride.offerId) {
+      toast.error('Esta corrida ainda não foi oferecida para você. Aguarde a notificação.');
+      return;
+    }
     try {
       const response = await base44.functions.invoke('acceptRideOffer', {
         rideId: ride.id,
-        offerId: null
+        offerId: ride.offerId,
       });
       const data = unwrapInvoke(response);
       if (data?.success) {
+        signalRideAccepted(ride.id);
         const acceptedRide = data.ride;
         setRides(prev => prev.filter(r => r.id !== ride.id));
         if (onRideAccepted) {
@@ -110,9 +115,12 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
         } else {
           onRideSelect(acceptedRide);
         }
+      } else {
+        toast.error(data?.error || 'Não foi possível aceitar a corrida');
       }
     } catch (err) {
       console.error('Erro ao aceitar corrida:', err);
+      toast.error('Erro ao aceitar corrida');
     }
   };
 
@@ -264,9 +272,11 @@ export default function AvailableRidesList({ onRideSelect, onRideAccepted, selec
                       </Button>
                       <Button
                         onClick={(e) => handleAccept(ride, e)}
-                        className="py-2 rounded-xl btn-gradient"
+                        disabled={!ride.offerId}
+                        className="py-2 rounded-xl btn-gradient disabled:opacity-40"
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" /> Aceitar
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        {ride.offerId ? 'Aceitar' : 'Aguardando oferta'}
                       </Button>
                     </motion.div>
                   )}

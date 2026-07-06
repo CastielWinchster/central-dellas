@@ -39,18 +39,23 @@ export default function ActiveRidePassenger() {
     if (!rideId) return;
     try {
       let payload = null;
-      for (let attempt = 0; attempt < 8; attempt += 1) {
+      for (let attempt = 0; attempt < 15; attempt += 1) {
         const res = await base44.functions.invoke('getRideDetails', { rideId });
         payload = unwrapInvoke(res);
         if (payload?.found && payload?.ride) break;
-        if (payload?.error && payload.error !== 'Acesso negado') {
-          await new Promise((r) => setTimeout(r, 400 + attempt * 350));
-          continue;
-        }
-        break;
+        await new Promise((r) => setTimeout(r, 500 + attempt * 400));
       }
 
       if (!payload?.found || !payload?.ride) {
+        try {
+          const statusRes = await base44.functions.invoke('getRideStatus', { rideId });
+          const statusData = unwrapInvoke(statusRes);
+          if (statusData?.found && ['requested', 'assigned'].includes(statusData.status)) {
+            toast.info('Aguardando confirmação da motorista...');
+            navigate('/RequestRide');
+            return;
+          }
+        } catch (_) {}
         setLoading(false);
         return;
       }

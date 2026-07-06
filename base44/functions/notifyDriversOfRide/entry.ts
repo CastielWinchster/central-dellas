@@ -115,9 +115,8 @@ Deno.serve(async (req) => {
       rounds += 1;
     }
 
-    console.log(`[notifyDriversOfRide] Tempo esgotado para corrida ${rideId} após ${rounds} rodadas`);
-    await Promise.all(uniqueDrivers.map((userId) => cancelPush(base44, userId, rideId)));
-    return Response.json({ success: true, stopped: true, reason: 'timeout', rounds });
+    console.log(`[notifyDriversOfRide] Ciclo de lembretes concluído para corrida ${rideId} após ${rounds} rodadas`);
+    return Response.json({ success: true, stopped: true, reason: 'reminder_cycle_complete', rounds });
   } catch (error) {
     console.error('[notifyDriversOfRide]', (error as Error).message);
     return Response.json({ error: (error as Error).message }, { status: 500 });

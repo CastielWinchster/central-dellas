@@ -102,13 +102,30 @@ Deno.serve(async (req) => {
       try {
         const users = await base44.asServiceRole.entities.User.filter({ id: ride.passenger_id });
         const passenger = users[0];
+        const [sentOffers, seenOffers] = await Promise.all([
+          base44.asServiceRole.entities.RideOffer.filter({
+            ride_id: ride.id,
+            driver_id: driver.id,
+            status: 'sent',
+          }),
+          base44.asServiceRole.entities.RideOffer.filter({
+            ride_id: ride.id,
+            driver_id: driver.id,
+            status: 'seen',
+          }),
+        ]);
+        const nowIso = new Date().toISOString();
+        const activeOffer = [...sentOffers, ...seenOffers].find(
+          (o) => String(o.expires_at) >= nowIso,
+        );
         return {
           ...ride,
           passengerName: passenger?.full_name || 'Passageira',
           passengerPhoto: passenger?.photo_url || null,
+          offerId: activeOffer?.id ? String(activeOffer.id) : null,
         };
       } catch {
-        return { ...ride, passengerName: 'Passageira', passengerPhoto: null };
+        return { ...ride, passengerName: 'Passageira', passengerPhoto: null, offerId: null };
       }
     }));
 

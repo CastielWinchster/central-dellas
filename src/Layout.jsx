@@ -164,8 +164,9 @@ function LayoutContent({ children, currentPageName }) {
   useEffect(() => {
     if (!user?.id) return;
 
-    const goToActiveRide = async () => {
-      const pendingId = restoreState('rr_activeRideId', 6 * 60 * 1000);
+    const goToActiveRide = async (event) => {
+      const rideIdFromEvent = event?.detail?.rideId;
+      const pendingId = rideIdFromEvent || restoreState('rr_activeRideId', 6 * 60 * 1000);
       if (pendingId) {
         clearState('rr_activeRideId');
         navigate(`/ActiveRidePassenger?id=${pendingId}`);

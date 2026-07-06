@@ -62,12 +62,8 @@ export async function findOnlineDriversWithCoords(base44: Base44Client) {
   }
 
   if (allOnline.length === 0) {
-    try {
-      allOnline = await base44.asServiceRole.entities.DriverPresence.filter({ is_online: true });
-    } catch (e) {
-      console.error('[rideDispatch] filtro is_online falhou:', (e as Error).message);
-      return [];
-    }
+    console.log('[rideDispatch] nenhuma motorista com heartbeat recente (3 min)');
+    return [];
   }
 
   // Mapa usa só is_online; dispatch exige disponível — is_available=false = em corrida
@@ -160,8 +156,15 @@ export async function assignDriversToRide(base44: Base44Client, ride: RideRecord
   ]);
 
   const rejectedIds = new Set(rejectedOffers.map((o) => String(o.driver_id)));
+  const needsPet = !!ride.has_pet;
+  const eligibleDrivers = needsPet
+    ? (onlineDrivers as Array<Record<string, unknown>>).filter(
+        (d) => d.accepts_pets !== false,
+      )
+    : onlineDrivers;
+
   let nearbyDrivers = filterNearbyDrivers(
-    onlineDrivers as Array<{ driver_id: string; lat: number; lng: number }>,
+    eligibleDrivers as Array<{ driver_id: string; lat: number; lng: number }>,
     ride.pickup_lat,
     ride.pickup_lng,
   ).filter((d) => !rejectedIds.has(d.driver_id));

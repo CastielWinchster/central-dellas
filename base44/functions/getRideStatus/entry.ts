@@ -4,7 +4,12 @@ import { maybeRedispatchRide } from './rideDispatch.ts';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    let user;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      return Response.json({ error: 'Não autenticado' }, { status: 401 });
+    }
 
     if (!user) {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
@@ -22,7 +27,7 @@ Deno.serve(async (req) => {
 
     const ride = rides[0];
 
-    if (ride.passenger_id !== user.id) {
+    if (String(ride.passenger_id) !== String(user.id)) {
       return Response.json({ error: 'Acesso negado' }, { status: 403 });
     }
 

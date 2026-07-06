@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /** Motoristas visíveis no mapa — service role (passageiras não leem DriverPresence via RLS). */
-const MAP_GRACE_MS = 5 * 60 * 1000;
+const MAP_GRACE_MS = 3 * 60 * 1000;
 
 async function listOnlineDriversForMap(base44: ReturnType<typeof createClientFromRequest>) {
   const graceCutoff = new Date(Date.now() - MAP_GRACE_MS).toISOString();

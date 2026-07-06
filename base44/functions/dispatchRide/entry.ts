@@ -89,10 +89,12 @@ Deno.serve(async (req) => {
     console.log(`[dispatchRide] Corrida criada: ${ride.id}`);
 
     let dispatchResult = { offers_count: 0, status: 'requested', expires_at: null as string | null };
+    let dispatchError: string | null = null;
     try {
       dispatchResult = await assignDriversToRide(base44, ride);
     } catch (assignErr) {
-      console.error('[dispatchRide] assignDriversToRide falhou:', (assignErr as Error).message);
+      dispatchError = (assignErr as Error).message;
+      console.error('[dispatchRide] assignDriversToRide falhou:', dispatchError);
     }
 
     if (couponCode) {
@@ -122,6 +124,7 @@ Deno.serve(async (req) => {
         offers_count: dispatchResult.offers_count,
         expires_at: dispatchResult.expires_at,
       },
+      dispatch_error: dispatchError,
     });
   } catch (error) {
     console.error('[dispatchRide] Erro geral:', error.message);

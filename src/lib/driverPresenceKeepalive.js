@@ -1,5 +1,5 @@
 import { base44 } from '@/api/base44Client';
-import { isDriverOnlineLocal, getDriverLastLocation } from '@/lib/driverSession';
+import { isDriverOnlineLocal, getDriverLastLocation, hasActiveRideLocal } from '@/lib/driverSession';
 
 const PING_INTERVAL_MS = 45000;
 
@@ -13,7 +13,8 @@ export function startDriverPresenceKeepalive(userId) {
   const ping = () => {
     if (!isDriverOnlineLocal(userId)) return;
     const loc = getDriverLastLocation(userId);
-    const payload = { isOnline: true, isAvailable: true };
+    const busy = hasActiveRideLocal();
+    const payload = { isOnline: true, isAvailable: !busy };
     if (loc?.lat != null && loc?.lng != null) {
       payload.lat = loc.lat;
       payload.lng = loc.lng;
