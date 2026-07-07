@@ -15,8 +15,8 @@
     "cap:open:ios": "cap open ios"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.35",
-    "@base44/vite-plugin": "^1.0.26",
+    "@base44/sdk": "^0.8.36",
+    "@base44/vite-plugin": "^1.0.28",
     "@capacitor/app": "^8.0.1",
     "@capacitor/camera": "^8.0.2",
     "@capacitor/core": "^8.4.1",
