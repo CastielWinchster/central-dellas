@@ -1,6 +1,6 @@
 /** Senha compartilhada do painel admin (pode sobrescrever via VITE_ADMIN_PANEL_PASSWORD). */
 export const ADMIN_PANEL_PASSWORD =
-  import.meta.env.VITE_ADMIN_PANEL_PASSWORD || 'dellas2024';
+  import.meta.env.VITE_ADMIN_PANEL_PASSWORD || 'dellas2026';
 
 const STORAGE_KEY = 'cd_admin_panel_unlocked';
 const SESSION_MS = 8 * 60 * 60 * 1000;
