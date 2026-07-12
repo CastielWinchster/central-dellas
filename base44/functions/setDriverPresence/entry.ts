@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
       is_online: isOnline,
       is_available: isOnline && isAvailable,
       last_seen_at: now,
+      vehicle_type: driver.is_rotta_roza ? 'motorcycle' : 'car',
     };
 
     if (body.lat != null && body.lng != null) {

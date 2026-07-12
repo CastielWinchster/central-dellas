@@ -5,6 +5,12 @@ function isDriver(user: Record<string, unknown>) {
   return type === 'driver' || type === 'both' || user.role === 'admin';
 }
 
+function driverMatchesRideType(driver: Record<string, unknown>, rideType: string) {
+  const wantsMoto = rideType === 'rotta_roza';
+  const isRotta = !!driver.is_rotta_roza;
+  return wantsMoto ? isRotta : !isRotta;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -81,6 +87,7 @@ Deno.serve(async (req) => {
       .map((offer) => {
         const ride = rideById.get(String(offer.ride_id));
         if (!ride) return null;
+        if (!driverMatchesRideType(driver, String(ride.ride_type || 'standard'))) return null;
         const passenger = passengerById.get(String(ride.passenger_id)) || null;
         return { offer, ride, passenger };
       })

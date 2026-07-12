@@ -14,6 +14,11 @@
     "phone": {
       "type": "string",
       "description": "Telefone de contato da motorista (WhatsApp/celular)"
+    },
+    "is_rotta_roza": {
+      "type": "boolean",
+      "default": false,
+      "description": "Motorista credenciada para corridas Rotta Roza (motos)"
     }
   },
   "required": [

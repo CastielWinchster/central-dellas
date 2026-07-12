@@ -7,6 +7,12 @@ function isDriver(user: Record<string, unknown>) {
   return type === 'driver' || type === 'both' || user.role === 'admin';
 }
 
+function driverMatchesRideType(driver: Record<string, unknown>, rideType: string) {
+  const wantsMoto = rideType === 'rotta_roza';
+  const isRotta = !!driver.is_rotta_roza;
+  return wantsMoto ? isRotta : !isRotta;
+}
+
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -92,7 +98,9 @@ Deno.serve(async (req) => {
       const rideTs = new Date(String(ride.created_date)).getTime();
       if (rideTs > existingTs) byPassenger.set(pid, ride);
     }
-    const uniqueRides = Array.from(byPassenger.values());
+    const uniqueRides = Array.from(byPassenger.values()).filter((ride) =>
+      driverMatchesRideType(driver, String(ride.ride_type || 'standard')),
+    );
 
     let filtered = uniqueRides;
     if (driverLat != null && driverLng != null) {

@@ -24,6 +24,7 @@ type Base44Client = {
   asServiceRole: {
     entities: {
       DriverPresence: { filter: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>> };
+      User: { filter: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>> };
       RideOffer: {
         filter: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>>;
         create: (data: Record<string, unknown>) => Promise<unknown>;
@@ -114,6 +115,30 @@ export function filterNearbyDrivers(
   return nearby;
 }
 
+async function buildRottaRozaMap(base44: Base44Client, driverIds: string[]) {
+  const map = new Map<string, boolean>();
+  const uniqueIds = [...new Set(driverIds.filter(Boolean))];
+  await Promise.all(
+    uniqueIds.map(async (id) => {
+      const rows = await base44.asServiceRole.entities.User.filter({ id });
+      if (rows[0]?.id) map.set(String(rows[0].id), !!rows[0].is_rotta_roza);
+    }),
+  );
+  return map;
+}
+
+function filterDriversForRideType(
+  drivers: Array<{ driver_id: string }>,
+  rottaMap: Map<string, boolean>,
+  rideType: string,
+) {
+  const wantsMoto = rideType === 'rotta_roza';
+  return drivers.filter((d) => {
+    const isRotta = rottaMap.get(String(d.driver_id)) === true;
+    return wantsMoto ? isRotta : !isRotta;
+  });
+}
+
 export async function expireStaleOffers(base44: Base44Client, rideId: string) {
   const now = new Date().toISOString();
   const stale = await base44.asServiceRole.entities.RideOffer.filter({ ride_id: rideId });
@@ -143,7 +168,11 @@ async function notifyDrivers(
   if (driverIds.length === 0) return;
 
   const rideType = String(ride.ride_type || 'standard');
-  const notifyTitle = rideType === 'delivery' ? '📦 Nova entrega disponível!' : '🚗 Nova corrida disponível!';
+  const notifyTitle = rideType === 'delivery'
+    ? '📦 Nova entrega disponível!'
+    : rideType === 'rotta_roza'
+    ? '🏍 Nova corrida Rotta Roza!'
+    : '🚗 Nova corrida disponível!';
   const notifyBody = `${ride.pickup_text || 'Origem'} → ${ride.dropoff_text || 'destino'}`;
 
   // Push apenas — in-app duplicava e encheva a lista a cada re-dispatch
@@ -166,12 +195,23 @@ export async function assignDriversToRide(base44: Base44Client, ride: RideRecord
   ]);
 
   const rejectedIds = new Set(rejectedOffers.map((o) => String(o.driver_id)));
+  const rideType = String(ride.ride_type || 'standard');
   const needsPet = !!ride.has_pet;
-  const eligibleDrivers = needsPet
+  let eligibleDrivers = needsPet
     ? (onlineDrivers as Array<Record<string, unknown>>).filter(
         (d) => d.accepts_pets !== false,
       )
     : onlineDrivers;
+
+  const rottaMap = await buildRottaRozaMap(
+    base44,
+    eligibleDrivers.map((d) => String((d as { driver_id: string }).driver_id)),
+  );
+  eligibleDrivers = filterDriversForRideType(
+    eligibleDrivers as Array<{ driver_id: string }>,
+    rottaMap,
+    rideType,
+  );
 
   let nearbyDrivers = filterNearbyDrivers(
     eligibleDrivers as Array<{ driver_id: string; lat: number; lng: number }>,

@@ -114,6 +114,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Corrida já aceita por outra motorista' }, { status: 409 });
     }
 
+    const wantsMoto = String(ride.ride_type || 'standard') === 'rotta_roza';
+    const isRotta = !!driver.is_rotta_roza;
+    if (wantsMoto !== isRotta) {
+      return Response.json({
+        error: wantsMoto
+          ? 'Esta corrida Rotta Roza é exclusiva para motoristas de moto'
+          : 'Esta corrida é exclusiva para motoristas de carro',
+      }, { status: 403 });
+    }
+
     const now = new Date();
     let resolvedOfferId = offerId ? String(offerId) : null;
 
