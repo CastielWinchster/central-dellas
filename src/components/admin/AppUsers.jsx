@@ -36,9 +36,13 @@ export default function AppUsers() {
   const handleToggleRottaRoza = async (user, checked) => {
     setUpdatingId(user.id);
     try {
-      await base44.entities.User.update(user.id, { is_rotta_roza: checked });
+      const payload = { is_rotta_roza: checked };
+      if (checked && !isDriverUser(user)) {
+        payload.user_type = user.user_type === 'passenger' ? 'both' : 'driver';
+      }
+      await base44.entities.User.update(user.id, payload);
       setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, is_rotta_roza: checked } : u)),
+        prev.map((u) => (u.id === user.id ? { ...u, ...payload } : u)),
       );
 
       try {
@@ -134,9 +138,7 @@ export default function AppUsers() {
       </Card>
 
       <div className="space-y-2">
-        {filtered.map((u) => {
-          const isDriver = isDriverUser(u);
-          return (
+        {filtered.map((u) => (
             <Card key={u.id} className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
@@ -155,25 +157,23 @@ export default function AppUsers() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                <div className="flex flex-col items-end gap-2 flex-shrink-0 min-w-[120px]">
                   <div className="flex gap-1 flex-wrap justify-end">
                     {u.role === 'admin' && <Badge className="bg-[#F472B6]">Admin</Badge>}
-                    {isDriver && <Badge className="bg-blue-500">Motorista</Badge>}
+                    {isDriverUser(u) && <Badge className="bg-blue-500">Motorista</Badge>}
                     {u.is_rotta_roza && <Badge className="bg-pink-500">Rotta Roza</Badge>}
                   </div>
 
-                  {isDriver && (
-                    <label className="flex items-center gap-2 text-xs text-[#F2F2F2]/70 cursor-pointer">
-                      <Bike className="w-3.5 h-3.5 text-pink-400" />
-                      <span>Moto</span>
-                      <Switch
-                        checked={!!u.is_rotta_roza}
-                        disabled={updatingId === u.id}
-                        onCheckedChange={(checked) => handleToggleRottaRoza(u, checked)}
-                        className="data-[state=checked]:bg-pink-500"
-                      />
-                    </label>
-                  )}
+                  <label className="flex items-center gap-2 text-xs text-[#F2F2F2]/70 cursor-pointer">
+                    <Bike className="w-3.5 h-3.5 text-pink-400" />
+                    <span>Rotta Roza</span>
+                    <Switch
+                      checked={!!u.is_rotta_roza}
+                      disabled={updatingId === u.id}
+                      onCheckedChange={(checked) => handleToggleRottaRoza(u, checked)}
+                      className="data-[state=checked]:bg-pink-500"
+                    />
+                  </label>
 
                   <div className="flex items-center gap-1 text-xs text-[#F2F2F2]/50">
                     <Calendar className="w-3 h-3" />
@@ -182,8 +182,7 @@ export default function AppUsers() {
                 </div>
               </div>
             </Card>
-          );
-        })}
+        ))}
 
         {filtered.length === 0 && (
           <Card className="bg-[#F2F2F2]/5 border-[#F472B6]/10 p-8 text-center">
