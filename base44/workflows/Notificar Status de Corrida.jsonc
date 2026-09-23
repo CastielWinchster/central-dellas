@@ -1,0 +1,37 @@
+{
+  "name": "Notificar Status de Corrida",
+  "description": "Envia push + inbox quando o status de uma corrida \u00e9 atualizado (aceita, a caminho, em andamento, conclu\u00edda, cancelada)",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Ride"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "notificar_status_de_corrida",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rideNotify",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "rideNotify"
+  }
+}
